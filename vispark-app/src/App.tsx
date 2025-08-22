@@ -1,16 +1,20 @@
+import { Button } from 'antd'
 import { useState } from 'react'
-import './App.css'
+import { CenterDiv } from './modules/common'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
-      <h1 className='text-3xl font-bold underline'>
-        hah {count}
-      </h1>
-      <button onClick={() => setCount(count + 1)}>click</button>
-    </>
+    <div className="w-full h-[100dvh] bg-zinc-900">
+      <CenterDiv>
+        <h1 className='text-3xl text-white font-bold underline'>
+          youtube channels
+        </h1>
+        <Button onClick={() => setCount(count + 1)}>subscribe</Button>
+        <Button onClick={() => setCount(count + 1)}>unsubscribe</Button>
+      </CenterDiv>
+    </div>
   )
 }
 
