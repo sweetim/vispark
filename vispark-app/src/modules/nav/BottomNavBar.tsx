@@ -1,6 +1,7 @@
 import {
   type Icon,
   ListNumbersIcon,
+  MagnifyingGlassIcon,
   StackPlusIcon,
   UserCircleGearIcon,
   WalletIcon,
@@ -28,6 +29,11 @@ const navBarItems: NavBarItem[] = [
     title: "Channels",
   },
   {
+    to: "/app/search",
+    icon: MagnifyingGlassIcon,
+    title: "Search",
+  },
+  {
     to: "/app/wallet",
     icon: WalletIcon,
     title: "Wallet",
@@ -45,7 +51,9 @@ const BottomNavBar: FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-800 border-none z-50">
-      <div className="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+      <div
+        className={`grid h-full max-w-lg grid-cols-${navBarItems.length} mx-auto font-medium`}
+      >
         {navBarItems.map((item, index) => {
           const isPathMatching = currentToRoute === item.to
 
@@ -70,7 +78,11 @@ const BottomNavBar: FC = () => {
           const NavIcon = item.icon
 
           return (
-            <Link to={item.to} className={linkClassName} key={index}>
+            <Link
+              to={item.to}
+              className={linkClassName}
+              key={`${index}-${item.to}`}
+            >
               <NavIcon
                 size={32}
                 color={navIconColor}

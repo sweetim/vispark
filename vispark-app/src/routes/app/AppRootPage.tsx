@@ -1,5 +1,5 @@
-import BottomNavBar from "@/modules/nav/BottomNavBar"
 import { Outlet } from "react-router"
+import BottomNavBar from "@/modules/nav/BottomNavBar"
 
 const AppRootPage = () => {
   return (

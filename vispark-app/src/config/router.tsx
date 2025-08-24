@@ -1,10 +1,11 @@
+import { createBrowserRouter } from "react-router"
 import {
   AppRootPage,
   ChannelPage,
   RootPage,
+  SearchPage,
   SummariesPage,
 } from "@/routes"
-import { createBrowserRouter } from "react-router"
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,10 @@ export const router = createBrowserRouter([
           {
             path: "channel",
             element: <ChannelPage />,
+          },
+          {
+            path: "search",
+            element: <SearchPage />,
           },
         ],
       },

@@ -1,72 +1,83 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from "react"
 
-const subscribedChannels = [
-  {
-    id: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
-    name: 'Google Developers',
-    avatar: 'https://yt3.ggpht.com/a/AATXAJw-hXv_t_fH_t_fH_t_fH_t_fH_t_fH_t_fH=s100-c-k-c0xffffffff-no-rj-mo',
-  },
-  {
-    id: 'UClb90NQQcskXHeG-2gI18Fg',
-    name: 'React',
-    avatar: 'https://yt3.ggpht.com/a/AATXAJw-hXv_t_fH_t_fH_t_fH_t_fH_t_fH_t_fH=s100-c-k-c0xffffffff-no-rj-mo',
-  },
-  {
-    id: 'UCv_f_3_p_s_f_s_f_s_f_s_f_s_f_s_f_s_f_s_f_s_f',
-    name: 'Tailwind CSS',
-    avatar: 'https://yt3.ggpht.com/a/AATXAJw-hXv_t_fH_t_fH_t_fH_t_fH_t_fH_t_fH=s100-c-k-c0xffffffff-no-rj-mo',
-  },
-]
+const STORAGE_KEY = "subscribedChannels"
 
 const ChannelPage = () => {
-  const [channelId, setChannelId] = useState('')
+  const [subscribedChannels, setSubscribedChannels] = useState<
+    Array<{ id: string; name?: string; avatar?: string }>
+  >([])
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    console.log('Channel ID:', channelId)
-    // TODO: Add logic to handle the channel ID
-  }
+  const loadSubscriptions = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw) return setSubscribedChannels([])
+      const parsed = JSON.parse(raw)
+      setSubscribedChannels(Array.isArray(parsed) ? parsed : [])
+    } catch (_err) {
+      setSubscribedChannels([])
+    }
+  }, [])
+
+  useEffect(() => {
+    loadSubscriptions()
+  }, [loadSubscriptions])
 
   return (
-    <div className="flex flex-col items-center h-full w-full bg-gray-900 text-white p-4">
+    <div className="flex flex-col items-center min-h-screen w-full bg-gray-900 text-white p-4">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center mb-8">
-          Manage YouTube Channels
-        </h1>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-10">
-          <input
-            type="text"
-            value={channelId}
-            onChange={(e) => setChannelId(e.target.value)}
-            placeholder="e.g. UC_x5XG1OV2P6uZZ5FSM9Ttw"
-            className="px-4 py-3 border rounded-lg bg-gray-900 text-white border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-          />
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-lg"
-          >
-            Add Channel
-          </button>
-        </form>
-
-        <div className="w-full max-w-md">
-          <h2 className="text-2xl font-bold mb-4">Subscribed Channels</h2>
-          <ul className="space-y-4">
-            {subscribedChannels.map((channel) => (
+        <header style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <h2 style={{ margin: 0 }}>Subscribed channels</h2>
+        </header>
+        {subscribedChannels.length === 0 ? (
+          <p>No subscribed channels found.</p>
+        ) : (
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {subscribedChannels.map((ch) => (
               <li
-                key={channel.id}
-                className="flex items-center p-4 bg-gray-800 rounded-lg shadow-md"
+                key={ch.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "8px 0",
+                }}
               >
-                <img
-                  src={channel.avatar}
-                  alt={`${channel.name} avatar`}
-                  className="w-12 h-12 rounded-full mr-4"
-                />
-                <span className="font-semibold text-lg">{channel.name}</span>
+                {ch.avatar ? (
+                  <img
+                    src={ch.avatar}
+                    alt={ch.name ?? ch.id}
+                    width={48}
+                    height={48}
+                    style={{ borderRadius: 8, objectFit: "cover" }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 8,
+                      background: "#eee",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#666",
+                      fontSize: 12,
+                    }}
+                  >
+                    {ch.name ? ch.name[0].toUpperCase() : "?"}
+                  </div>
+                )}
+
+                <div>
+                  <div style={{ fontWeight: 600 }}>
+                    {ch.name ?? "(no name)"}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#666" }}>{ch.id}</div>
+                </div>
               </li>
             ))}
           </ul>
-        </div>
+        )}
       </div>
     </div>
   )
