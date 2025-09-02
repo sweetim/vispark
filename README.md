@@ -9,7 +9,7 @@ The Vispark monorepo is organized into the following packages:
 | Package              | Description                                                                                                                              |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `vispark-app`        | The main frontend application built with React, Vite, and Tailwind CSS. It provides the user interface for interacting with the dApp.      |
-| `compute`            | A Node.js backend service. It seems to handle tasks like fetching YouTube transcripts and other computational tasks.                       |
+| `vispark-compute`            | A Node.js backend service. It seems to handle tasks like fetching YouTube transcripts and other computational tasks.                       |
 | `vispark-contract`   | The smart contracts for the application, developed using Hardhat and Solidity.                                                           |
 
 ---

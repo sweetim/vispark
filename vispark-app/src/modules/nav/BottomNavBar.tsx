@@ -51,9 +51,7 @@ const BottomNavBar: FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-800 border-none z-50">
-      <div
-        className={`grid h-full max-w-lg grid-cols-${navBarItems.length} mx-auto font-medium`}
-      >
+      <div className={`grid h-full max-w-lg grid-cols-5 mx-auto font-medium`}>
         {navBarItems.map((item, index) => {
           const isPathMatching = currentToRoute === item.to
 
