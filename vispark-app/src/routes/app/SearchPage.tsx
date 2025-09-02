@@ -1,4 +1,4 @@
-import { BellIcon, CheckCircleIcon, CheckFatIcon } from "@phosphor-icons/react"
+import { BellIcon, CheckFatIcon } from "@phosphor-icons/react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router"
 import useYoutubeSearch from "@/hooks/useYoutubeSearch"
