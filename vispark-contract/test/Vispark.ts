@@ -3,44 +3,70 @@ import { describe, it } from "node:test"
 
 import { network } from "hardhat"
 
-describe("Counter", async () => {
+describe("Vispark", async () => {
   const { viem } = await network.connect()
-  const publicClient = await viem.getPublicClient()
 
-  it("Should emit the Increment event when calling the inc() function", async () => {
-    const counter = await viem.deployContract("Counter")
+  it("creates a user profile and emits UserProfileUpdated", async () => {
+    const vispark = await viem.deployContract("Vispark")
+
+    const userId = "alice"
 
     await viem.assertions.emitWithArgs(
-      counter.write.inc(),
-      counter,
-      "Increment",
-      [1n],
+      vispark.write.updateUserProfile([userId]),
+      vispark,
+      "UserProfileUpdated",
+      [userId],
     )
+
+    const profile = await vispark.read.userProfiles([userId])
+
+    // basic storage checks
+    assert.equal(profile.userId, userId)
+    assert(profile.dateCreation > 0n)
+    assert.equal(profile.subscribedChannels.length, 0)
+    assert.equal(profile.summaries.length, 0)
   })
 
-  it("The sum of the Increment events should match the current value", async () => {
-    const counter = await viem.deployContract("Counter")
-    const deploymentBlockNumber = await publicClient.getBlockNumber()
+  it("allows adding a summary and emits SummaryAdded", async () => {
+    const vispark = await viem.deployContract("Vispark")
+    const userId = "bob"
+    await vispark.write.updateUserProfile([userId])
 
-    // run a series of increments
-    for (let i = 1n; i <= 10n; i++) {
-      await counter.write.incBy([i])
-    }
+    const videoId = "video123"
+    const summaryText = "This is a short summary of the video."
 
-    const events = await publicClient.getContractEvents({
-      address: counter.address,
-      abi: counter.abi,
-      eventName: "Increment",
-      fromBlock: deploymentBlockNumber,
-      strict: true,
-    })
+    await viem.assertions.emitWithArgs(
+      vispark.write.addSummary([userId, videoId, summaryText]),
+      vispark,
+      "SummaryAdded",
+      [userId, videoId],
+    )
 
-    // check that the aggregated events match the current value
-    let total = 0n
-    for (const event of events) {
-      total += event.args.by
-    }
+    const profile = await vispark.read.userProfiles([userId])
+    assert.equal(profile.summaries.length, 1)
 
-    assert.equal(total, await counter.read.x())
+    const s = profile.summaries[0]
+    assert.equal(s.videoId, videoId)
+    assert.equal(s.summary, summaryText)
+    assert(s.dateCreation > 0n)
+  })
+
+  it("allows subscribing to a channel and emits SubscribedToChannel", async () => {
+    const vispark = await viem.deployContract("Vispark")
+    const userId = "carol"
+    await vispark.write.updateUserProfile([userId])
+
+    const channelId = "channel_xyz"
+
+    await viem.assertions.emitWithArgs(
+      vispark.write.subscribeToChannel([userId, channelId]),
+      vispark,
+      "SubscribedToChannel",
+      [userId, channelId],
+    )
+
+    const profile = await vispark.read.userProfiles([userId])
+    assert.equal(profile.subscribedChannels.length, 1)
+    assert.equal(profile.subscribedChannels[0], channelId)
   })
 })
