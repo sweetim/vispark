@@ -28,7 +28,7 @@ const SearchPage = () => {
     return getSubscribed().some((c) => c.id === id)
   }
 
-  const handleSubscribe = (
+  const handleSubscribe = async (
     id: string | undefined,
     name?: string,
     avatar?: string,
@@ -41,6 +41,26 @@ const SearchPage = () => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
       }
       // After successful subscribe, go to channels page
+
+      const params = new URLSearchParams({
+        "hub.callback":
+          "https://webhook.site/460656ce-c296-45c6-b19b-143eba9dd8c0",
+        "hub.topic": `https://www.youtube.com/feeds/videos.xml?channel_id=${id}`,
+        "hub.verify": "async",
+        "hub.mode": "subscribe",
+        "hub.verify_token": "",
+        "hub.secret": "",
+        "hub.lease_seconds": "",
+      })
+
+      await fetch("https://pubsubhubbub.appspot.com/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+      })
+
       navigate("/app/channel")
     } catch {
       // ignore storage errors for now
