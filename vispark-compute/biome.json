@@ -24,7 +24,8 @@
       "quoteStyle": "double",
       "semicolons": "asNeeded",
       "attributePosition": "multiline",
-      "operatorLinebreak": "before"
+      "operatorLinebreak": "before",
+      "expand": "always"
     }
   },
   "assist": {
