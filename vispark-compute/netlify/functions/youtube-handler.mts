@@ -7,61 +7,7 @@ type ChallengeUrl = {
   leaseSeconds: string | null
 }
 
-type Account = {
-  id: string
-}
-
-type Deploy = {
-  context: string
-  id: string
-  published: boolean
-}
-
-type Country = {
-  code: string
-  name: string
-}
-
-type Subdivision = {
-  code: string
-  name: string
-}
-
-type Geo = {
-  country: Country
-  subdivision: Subdivision
-  timezone: string
-  latitude: number
-  longitude: number
-}
-
-type Server = {
-  region: string
-}
-
-type Site = {
-  id: string
-  name: string
-  url: string
-}
-
-type WebhookPayload = {
-  account: Account
-  cookies: Record<string, unknown>
-  deploy: Deploy
-  flags: Record<string, unknown>
-  geo: Geo
-  ip: string
-  params: Record<string, unknown>
-  requestId: string
-  server: Server
-  site: Site
-  url: string
-}
-
-function parseWebhookPayload(input: string): ChallengeUrl {
-  const url = new URL(input)
-
+function parseWebhookPayload(url: URL): ChallengeUrl {
   return {
     challenge: url.searchParams.get("hub.challenge"),
     mode: url.searchParams.get("hub.mode"),
@@ -93,9 +39,8 @@ if (import.meta.vitest) {
 export default async (req: Request, context: Context) => {
   console.log(req.body)
   console.log(JSON.stringify(context, null, 2))
-  const body: WebhookPayload = await req.json()
 
-  const { challenge } = parseWebhookPayload(body.url)
+  const { challenge } = parseWebhookPayload(context.url)
 
   return new Response(challenge, {
     status: 200,
