@@ -23,9 +23,7 @@ export default async (req: Request, context: Context) => {
   const provider = new ethers.JsonRpcProvider("https://evmrpc-testnet.0g.ai")
   const wallet = new ethers.Wallet(process.env.PRIVATE_WALLET_KEY, provider)
 
-  const broker = await createZGComputeNetworkBroker(
-    wallet as unknown as Parameters<typeof createZGComputeNetworkBroker>[0],
-  )
+  const broker = await createZGComputeNetworkBroker(wallet)
 
   const transcripts = await fetchTranscript(videoId)
   const concatTranscripts = transcripts.map((item) => item.text).join(" ")
