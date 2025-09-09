@@ -1,17 +1,21 @@
 import { parseFeed } from "feedsmith"
 
 export type YouTubeFeed = {
+  authors: YouTubeAuthor[]
+  id: string
   links: FeedLink[]
   title: string
   updated: string
   entries: YouTubeEntry
 }
 
+export type YouTubeAuthor = {
+  name: string
+  uri: string
+}
+
 export type YouTubeEntry = {
-  authors: {
-    name: string
-    uri: string
-  }[]
+  authors: YouTubeAuthor[]
   id: string
   links: FeedLink[]
   published: string

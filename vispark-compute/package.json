@@ -26,6 +26,7 @@
     "@types/crypto-js": "^4.2.2",
     "crypto-js": "^4.2.0",
     "feedsmith": "2.0.0",
+    "ts-pattern": "^5.8.0",
     "youtube-transcript-plus": "^1.1.0"
   }
 }

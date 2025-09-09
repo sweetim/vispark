@@ -25,7 +25,8 @@ test("parseYoutubeFeeds", () => {
   </feed>
 `
   const actual = parseYoutubeFeeds(feedContent)
-  expect(actual).toEqual({
+
+  expect(actual).toStrictEqual({
     links: [
       {
         href: "https://pubsubhubbub.appspot.com",
@@ -40,21 +41,25 @@ test("parseYoutubeFeeds", () => {
     updated: "2015-04-01T19:05:24.552394234+00:00",
     entries: [
       {
-        authors: [
-          {
-            name: "Channel title",
-            uri: "http://www.youtube.com/channel/CHANNEL_ID",
-          },
-        ],
         id: "yt:video:VIDEO_ID",
+        yt: {
+          videoId: "VIDEO_ID",
+          channelId: "CHANNEL_ID",
+        },
+        title: "Video title",
         links: [
           {
             href: "http://www.youtube.com/watch?v=VIDEO_ID",
             rel: "alternate",
           },
         ],
+        authors: [
+          {
+            name: "Channel title",
+            uri: "http://www.youtube.com/channel/CHANNEL_ID",
+          },
+        ],
         published: "2015-03-06T21:40:57+00:00",
-        title: "Video title",
         updated: "2015-03-09T19:05:24.552394234+00:00",
       },
     ],

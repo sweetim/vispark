@@ -1,4 +1,6 @@
 import type { Context } from "@netlify/functions"
+import { match } from "ts-pattern"
+import { parseYoutubeFeeds } from "../../src/youtube-notification-parser.js"
 
 type ChallengeUrl = {
   challenge: string | null
@@ -38,18 +40,26 @@ if (import.meta.vitest) {
 }
 
 export default async (req: Request, context: Context) => {
-  console.log(req.body)
-  console.log(req.headers)
-  console.log(await req.text())
+  return match(context.url.searchParams.size)
+    .with(0, async () => {
+      const bodyText = await req.text()
+      const feed = parseYoutubeFeeds(bodyText)
+      console.log(feed)
+      return new Response(null, {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+    })
+    .otherwise(() => {
+      const { challenge } = parseWebhookPayload(context.url)
 
-  console.log(JSON.stringify(context, null, 2))
-
-  const { challenge } = parseWebhookPayload(context.url)
-
-  return new Response(challenge, {
-    status: 200,
-    headers: {
-      "content-type": "text/plain",
-    },
-  })
+      return new Response(challenge, {
+        status: 200,
+        headers: {
+          "content-type": "text/plain",
+        },
+      })
+    })
 }
