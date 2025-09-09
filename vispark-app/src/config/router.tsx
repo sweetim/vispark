@@ -3,8 +3,8 @@ import {
   AppRootPage,
   ChannelPage,
   RootPage,
-  SearchPage,
   SummariesPage,
+  VisparkPage,
 } from "@/routes"
 
 export const router = createBrowserRouter([
@@ -13,7 +13,7 @@ export const router = createBrowserRouter([
     element: <RootPage />,
     children: [
       {
-        path: "app",
+        path: "",
         element: (
           <AppRootPage />
           // <ProtectedRoute>
@@ -29,8 +29,8 @@ export const router = createBrowserRouter([
             element: <ChannelPage />,
           },
           {
-            path: "search",
-            element: <SearchPage />,
+            path: "vispark",
+            element: <VisparkPage />,
           },
         ],
       },

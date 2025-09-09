@@ -1,7 +1,7 @@
 import {
   type Icon,
+  LightbulbFilamentIcon,
   ListNumbersIcon,
-  MagnifyingGlassIcon,
   StackPlusIcon,
   UserCircleGearIcon,
   WalletIcon,
@@ -19,27 +19,27 @@ type NavBarItem = {
 
 const navBarItems: NavBarItem[] = [
   {
-    to: "/app",
+    to: "",
     icon: ListNumbersIcon,
     title: "Summaries",
   },
   {
-    to: "/app/channel",
+    to: "channel",
     icon: StackPlusIcon,
     title: "Channels",
   },
   {
-    to: "/app/search",
-    icon: MagnifyingGlassIcon,
-    title: "Search",
+    to: "vispark",
+    icon: LightbulbFilamentIcon,
+    title: "VISPARK",
   },
   {
-    to: "/app/wallet",
+    to: "/wallet",
     icon: WalletIcon,
     title: "Wallet",
   },
   {
-    to: "/app/account",
+    to: "/account",
     icon: UserCircleGearIcon,
     title: "Account",
   },
