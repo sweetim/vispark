@@ -20,8 +20,9 @@ if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest
 
   it("parseHubChallenge from URL string", async () => {
-    const input =
-      "https://vispark.netlify.app/.netlify/functions/youtube-handler?hub.topic=https://www.youtube.com/feeds/videos.xml%3Fchannel_id%3DUCnMn36GT_H0X-w5_ckLtlgQ&hub.challenge=18272998144577416615&hub.mode=subscribe&hub.lease_seconds=432000"
+    const input = new URL(
+      "https://vispark.netlify.app/.netlify/functions/youtube-handler?hub.topic=https://www.youtube.com/feeds/videos.xml%3Fchannel_id%3DUCnMn36GT_H0X-w5_ckLtlgQ&hub.challenge=18272998144577416615&hub.mode=subscribe&hub.lease_seconds=432000",
+    )
 
     const actual = parseWebhookPayload(input)
     const expected = {
@@ -38,6 +39,9 @@ if (import.meta.vitest) {
 
 export default async (req: Request, context: Context) => {
   console.log(req.body)
+  console.log(req.headers)
+  console.log(await req.text())
+
   console.log(JSON.stringify(context, null, 2))
 
   const { challenge } = parseWebhookPayload(context.url)
