@@ -39,9 +39,9 @@ const navBarItems: NavBarItem[] = [
     title: "Wallet",
   },
   {
-    to: "/account",
+    to: "settings",
     icon: UserCircleGearIcon,
-    title: "Account",
+    title: "Settings",
   },
 ]
 

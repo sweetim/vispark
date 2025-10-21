@@ -1,42 +1,102 @@
-import { BellIcon, CheckFatIcon } from "@phosphor-icons/react"
-import { useEffect, useId, useState } from "react"
-import Markdown from "react-markdown"
-import { useNavigate } from "react-router"
-import useYoutubeSearch from "@/hooks/useYoutubeSearch"
+import { useId, useState } from "react"
+import { supabase } from "@/config/supabaseClient.ts"
+
+type TranscriptItem = {
+  text: string
+  offset?: number
+  duration?: number
+}
+
+type TranscriptServiceResponse =
+  | {
+      data: {
+        videoId: string
+        transcript: TranscriptItem[]
+        lang?: string
+      }
+    }
+  | {
+      error: string
+      message: string
+    }
+
+const formatTranscript = (segments: TranscriptItem[]): string =>
+  segments
+    .map(({ text }) => text.trim())
+    .filter((segment) => segment.length > 0)
+    .join("\n")
 
 const VisparkPage = () => {
   const [videoId, setVideoId] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false)
-  const [response, setResponse] = useState<string>("")
+  const [transcript, setTranscript] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
 
   const reactId = useId()
   const inputId = `videoId-${reactId}`
 
-  const fetchVispark = async (id: string) => {
-    if (!id) return
+  const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault()
+
+    const trimmedVideoId = videoId.trim()
+
+    if (trimmedVideoId.length === 0) {
+      setError("Please enter a video ID before submitting.")
+      setTranscript("")
+      return
+    }
+
     setLoading(true)
     setError(null)
-    setResponse(null)
+    setTranscript("")
+
     try {
-      // https://vispark.netlify.app
-      const url = `http://localhost:9999/.netlify/functions/vispark?video-id=${encodeURIComponent(
-        id,
-      )}`
-      const res = await fetch(url)
-      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
-      const json = await res.json()
-      setResponse(json.result)
-    } catch (err: any) {
-      setError(err?.message ?? String(err))
+      const response = await fetch(
+        "http://127.0.0.1:54321/functions/v1/transcript",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+            Authorization: `Bearer ${
+              (await supabase.auth.getSession()).data.session?.access_token
+              ?? (import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+            }`,
+          },
+          body: JSON.stringify({
+            videoId: trimmedVideoId,
+          }),
+        },
+      )
+
+      const body = (await response
+        .json()
+        .catch(() => null)) as TranscriptServiceResponse | null
+
+      if (!response.ok) {
+        const message =
+          body && "message" in body && typeof body.message === "string"
+            ? body.message
+            : "Failed to fetch transcript. Please try again."
+        setError(message)
+        return
+      }
+
+      if (!body || !("data" in body) || !Array.isArray(body.data.transcript)) {
+        setError("Unexpected response format from transcript service.")
+        return
+      }
+
+      setTranscript(formatTranscript(body.data.transcript))
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred while fetching the transcript."
+      setError(message)
     } finally {
       setLoading(false)
     }
-  }
-
-  const onSubmit: React.FormEventHandler = (e) => {
-    e.preventDefault()
-    fetchVispark(videoId.trim())
   }
 
   return (
@@ -44,6 +104,7 @@ const VisparkPage = () => {
       <form
         onSubmit={onSubmit}
         className="w-full max-w-3xl"
+        aria-busy={loading}
       >
         <label
           htmlFor={inputId}
@@ -57,12 +118,13 @@ const VisparkPage = () => {
             value={videoId}
             onChange={(e) => setVideoId(e.target.value)}
             placeholder="e.g. dQw4w9WgXcQ"
-            className="flex-1 px-3 py-2 rounded-l-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 px-3 py-2 rounded-l-md bg-gray-800 border border-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-r-md text-white"
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-r-md text-white disabled:opacity-60 disabled:cursor-not-allowed"
             aria-label="Fetch vispark"
+            disabled={loading}
           >
             GO
           </button>
@@ -101,10 +163,12 @@ const VisparkPage = () => {
 
         {error && <div className="mt-2 text-red-400 text-sm">{error}</div>}
 
-        {response && (
+        {transcript && (
           <div className="mt-3">
-            <div className="text-xs text-gray-400 mb-2">Summary</div>
-            <Markdown>{response}</Markdown>
+            <div className="text-xs text-gray-400 mb-2">Transcript</div>
+            <div className="text-sm leading-relaxed whitespace-pre-wrap bg-gray-800 border border-gray-700 rounded-md p-4">
+              {transcript}
+            </div>
           </div>
         )}
       </div>

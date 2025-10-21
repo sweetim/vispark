@@ -110,6 +110,9 @@ export default async (_req: Request, context: Context) => {
       status: 200,
       headers: {
         "content-type": "application/json",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "*",
       },
     },
   )

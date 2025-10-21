@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client"
 import { RouterProvider } from "react-router"
 
 import { router } from "@/config/router.tsx"
+import { AuthProvider } from "@/modules/auth"
 import "./index.css"
 
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -14,7 +15,9 @@ createRoot(document.getElementById("root")!).render(
         algorithm: theme.darkAlgorithm,
       }}
     >
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </ConfigProvider>
   </StrictMode>,
 )

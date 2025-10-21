@@ -2,10 +2,15 @@ import { createBrowserRouter } from "react-router"
 import {
   AppRootPage,
   ChannelPage,
+  LandingPage,
+  LoginPage,
   RootPage,
+  SignUpPage,
   SummariesPage,
   VisparkPage,
+  SettingsPage,
 } from "@/routes"
+import { ProtectedRoute } from "@/modules/auth"
 
 export const router = createBrowserRouter([
   {
@@ -13,11 +18,23 @@ export const router = createBrowserRouter([
     element: <RootPage />,
     children: [
       {
-        path: "",
+        index: true,
+        element: <LandingPage />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "signup",
+        element: <SignUpPage />,
+      },
+      {
+        path: "app",
         element: (
-          <AppRootPage />
-          // <ProtectedRoute>
-          // </ProtectedRoute>
+          <ProtectedRoute>
+            <AppRootPage />
+          </ProtectedRoute>
         ),
         children: [
           {
@@ -31,6 +48,10 @@ export const router = createBrowserRouter([
           {
             path: "vispark",
             element: <VisparkPage />,
+          },
+          {
+            path: "settings",
+            element: <SettingsPage />,
           },
         ],
       },
