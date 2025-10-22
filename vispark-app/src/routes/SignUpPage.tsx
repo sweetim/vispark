@@ -2,22 +2,17 @@ import {
   Alert,
   Button,
   Card,
+  Divider,
   Form,
   Input,
+  message,
   Spin,
   Typography,
-  message,
 } from "antd"
 import { type FC, useState } from "react"
-import {
-  Navigate,
-  useLocation,
-  useNavigate,
-  type Location,
-} from "react-router"
-
-import CenterDiv from "@/modules/common/CenterDiv.tsx"
+import { type Location, Navigate, useLocation, useNavigate } from "react-router"
 import { useAuth } from "@/modules/auth/AuthProvider.tsx"
+import CenterDiv from "@/modules/common/CenterDiv.tsx"
 
 type SignUpFormValues = {
   email: string
@@ -28,7 +23,12 @@ type SignUpFormValues = {
 const { Title, Text } = Typography
 
 const SignUpPage: FC = () => {
-  const { user, loading: authLoading, signUpWithPassword } = useAuth()
+  const {
+    user,
+    loading: authLoading,
+    signUpWithPassword,
+    signInWithGoogle,
+  } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [form] = Form.useForm<SignUpFormValues>()
@@ -36,8 +36,8 @@ const SignUpPage: FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const redirectPath =
-    (location.state as { from?: Location } | undefined)?.from?.pathname ??
-    "/app"
+    (location.state as { from?: Location } | undefined)?.from?.pathname
+    ?? "/app"
 
   if (authLoading) {
     return (
@@ -48,7 +48,12 @@ const SignUpPage: FC = () => {
   }
 
   if (user) {
-    return <Navigate to={redirectPath} replace />
+    return (
+      <Navigate
+        to={redirectPath}
+        replace
+      />
+    )
   }
 
   const handleFinish = async (values: SignUpFormValues) => {
@@ -74,10 +79,24 @@ const SignUpPage: FC = () => {
     setSubmitting(false)
   }
 
+  const handleGoogle = async () => {
+    setSubmitting(true)
+    setErrorMessage(null)
+    const error = await signInWithGoogle()
+    // On success, Supabase will redirect to Google then back to our app.
+    if (error) {
+      setErrorMessage(error.message)
+      setSubmitting(false)
+    }
+  }
+
   return (
     <CenterDiv className="bg-primary">
       <Card className="w-full max-w-md mx-4 shadow-lg">
-        <Title level={3} className="!text-center">
+        <Title
+          level={3}
+          className="!text-center"
+        >
           Create your Vispark account
         </Title>
         <Text className="block text-center mb-6 text-muted-foreground">
@@ -180,6 +199,17 @@ const SignUpPage: FC = () => {
             Create account
           </Button>
         </Form>
+
+        <Divider plain>or</Divider>
+
+        <Button
+          size="large"
+          block
+          onClick={handleGoogle}
+          loading={submitting}
+        >
+          Continue with Google
+        </Button>
 
         <Text className="block text-center mt-4 text-muted-foreground">
           Already have an account?{" "}

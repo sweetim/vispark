@@ -29,7 +29,7 @@ const ProgressTimeline: FC<ProgressTimelineProps> = ({
 
   return (
     <div
-      className="bg-gray-800 border border-gray-700 rounded-md p-4"
+      className="bg-gray-800 border border-gray-700 rounded-md p-4 mb-2"
       aria-live="polite"
     >
       <div className="text-xs text-gray-400 mb-3">Progress</div>

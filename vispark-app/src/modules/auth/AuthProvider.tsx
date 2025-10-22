@@ -21,12 +21,15 @@ type AuthContextValue = {
   session: Session | null
   user: User | null
   loading: boolean
-  signInWithPassword: (
-    credentials: { email: string; password: string },
-  ) => Promise<AuthError | null>
-  signUpWithPassword: (
-    credentials: { email: string; password: string },
-  ) => Promise<AuthError | null>
+  signInWithPassword: (credentials: {
+    email: string
+    password: string
+  }) => Promise<AuthError | null>
+  signUpWithPassword: (credentials: {
+    email: string
+    password: string
+  }) => Promise<AuthError | null>
+  signInWithGoogle: () => Promise<AuthError | null>
   signOut: () => Promise<AuthError | null>
 }
 
@@ -60,10 +63,11 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
       (_event: AuthChangeEvent, nextSession: Session | null) => {
-      if (!isMounted) return
-      setSession(nextSession)
-      setLoading(false)
-    })
+        if (!isMounted) return
+        setSession(nextSession)
+        setLoading(false)
+      },
+    )
 
     return () => {
       isMounted = false
@@ -105,6 +109,23 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     [],
   )
 
+  const signInWithGoogle = useCallback(async () => {
+    const redirectTo = window.location.origin + "/app"
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo,
+      },
+    })
+
+    if (error) {
+      console.error("Supabase Google OAuth error", error)
+      return error
+    }
+
+    return null
+  }, [])
+
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut()
 
@@ -123,9 +144,17 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       loading,
       signInWithPassword,
       signUpWithPassword,
+      signInWithGoogle,
       signOut,
     }),
-    [loading, session, signInWithPassword, signOut, signUpWithPassword],
+    [
+      loading,
+      session,
+      signInWithPassword,
+      signInWithGoogle,
+      signOut,
+      signUpWithPassword,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

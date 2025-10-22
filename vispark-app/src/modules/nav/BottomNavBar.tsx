@@ -10,6 +10,7 @@ import clsx from "clsx"
 import type { FC } from "react"
 import { Link, useLocation } from "react-router"
 import { match } from "ts-pattern"
+import { useNavBarStore } from "@/modules/nav/store"
 
 type NavBarItem = {
   to: string
@@ -48,6 +49,7 @@ const navBarItems: NavBarItem[] = [
 const BottomNavBar: FC = () => {
   const location = useLocation()
   const currentToRoute = location.pathname.split("/", 3).join("/")
+  const triggerVisparkReset = useNavBarStore((s) => s.triggerVisparkReset)
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-800 border-none z-50">
@@ -80,6 +82,9 @@ const BottomNavBar: FC = () => {
               to={item.to}
               className={linkClassName}
               key={`${index}-${item.to}`}
+              onClick={
+                item.to === "vispark" ? () => triggerVisparkReset() : undefined
+              }
             >
               <NavIcon
                 size={32}

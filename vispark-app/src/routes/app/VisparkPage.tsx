@@ -1,15 +1,18 @@
-import { useId, useState } from "react"
+import { useCallback, useEffect, useId, useState } from "react"
 import ProgressTimeline from "@/components/ProgressTimeline"
 import SummaryList from "@/components/SummaryList"
 import TranscriptView from "@/components/TranscriptView"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
 import ViewToggle from "@/components/ViewToggle"
+import { useNavBarStore } from "@/modules/nav/store"
 import type { VideoMetadata } from "@/services/vispark.ts"
 import {
   fetchSummary,
   fetchTranscript,
   fetchYouTubeVideoDetails,
   formatTranscript,
+  listVisparks,
+  saveVispark,
 } from "@/services/vispark.ts"
 
 const VisparkPage = () => {
@@ -27,8 +30,70 @@ const VisparkPage = () => {
   const [view, setView] = useState<"summary" | "transcript">("transcript")
   const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(null)
 
+  type SavedVisparkItem = {
+    id: string
+    createdTime: string
+    metadata: VideoMetadata
+  }
+
+  const [savedVisparks, setSavedVisparks] = useState<SavedVisparkItem[]>([])
+
+  const refreshSavedVisparks = useCallback(async () => {
+    try {
+      const rows = await listVisparks(20)
+      const metas = await Promise.all(
+        rows.map((r) => fetchYouTubeVideoDetails(r.video_id).catch(() => null)),
+      )
+      const items: SavedVisparkItem[] = rows
+        .map((r, i) =>
+          metas[i]
+            ? {
+                id: r.id,
+                createdTime: r.created_at,
+                metadata: metas[i] as VideoMetadata,
+              }
+            : null,
+        )
+        .filter((x): x is SavedVisparkItem => x !== null)
+      setSavedVisparks(items)
+    } catch (e) {
+      if (process.env.NODE_ENV !== "production") {
+        // eslint-disable-next-line no-console
+        console.warn("Failed to load visparks:", e)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    void refreshSavedVisparks()
+  }, [refreshSavedVisparks])
+
   const reactId = useId()
   const inputId = `videoId-${reactId}`
+
+  // Reset Vispark page back to initial search view
+  const resetToSearch = useCallback(() => {
+    setVideoId("")
+    setLoading(false)
+    setTranscript("")
+    setError(null)
+    setSummary(null)
+    setVideoMetadata(null)
+    setStep("idle")
+    setErrorStep(null)
+    setView("transcript")
+  }, [])
+
+  // When the navbar's Vispark tab is pressed, navbar store bumps a token.
+  // Subscribe here and reset to initial search view on change.
+  useEffect(() => {
+    const unsubscribe = useNavBarStore.subscribe((state, prev) => {
+      if (state.visparkResetToken !== prev.visparkResetToken) {
+        resetToSearch()
+      }
+    })
+    return unsubscribe
+  }, [resetToSearch])
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
@@ -69,7 +134,21 @@ const VisparkPage = () => {
 
       try {
         const summaryResult = await fetchSummary(segments)
-        setSummary(summaryResult.bullets)
+        const bullets = summaryResult.bullets
+        setSummary(bullets)
+
+        // Persist vispark after summary is ready (best-effort)
+        try {
+          await saveVispark(trimmedVideoId, bullets)
+          // Refresh recent visparks list (non-blocking)
+          void refreshSavedVisparks()
+        } catch (persistErr) {
+          if (process.env.NODE_ENV !== "production") {
+            // eslint-disable-next-line no-console
+            console.warn("Failed to save vispark:", persistErr)
+          }
+        }
+
         setStep("complete")
         setView("summary")
       } catch (summaryErr) {
@@ -145,6 +224,27 @@ const VisparkPage = () => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {savedVisparks.length > 0 && (
+        <div className="w-full max-w-3xl mt-4">
+          <h3 className="text-sm font-semibold text-gray-300 mb-2">
+            Your Visparks
+          </h3>
+          <ul className="grid grid-cols-1 gap-3">
+            {savedVisparks.map((item) => (
+              <li key={item.id}>
+                <VideoMetadataCard
+                  metadata={item.metadata}
+                  className="mb-1"
+                />
+                <div className="text-xs text-gray-400 px-1">
+                  Saved on {new Date(item.createdTime).toLocaleString()}
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

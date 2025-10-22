@@ -3,6 +3,8 @@ import type { VideoMetadata } from "@/services/vispark.ts"
 type Props = {
   metadata: VideoMetadata
   className?: string
+  onClick?: () => void
+  isActive?: boolean
 }
 
 type ThumbnailShape = {
@@ -24,19 +26,22 @@ function selectBestThumbnailAddress(thumbnails?: ThumbnailsShape): string {
   )
 }
 
-export default function VideoMetadataCard({ metadata, className }: Props) {
+export default function VideoMetadataCard({
+  metadata,
+  className,
+  onClick,
+  isActive,
+}: Props) {
   const imageAddress = selectBestThumbnailAddress(metadata.thumbnails)
   const videoAddress = `https://www.youtube.com/watch?v=${metadata.videoId}`
+  const baseClasses =
+    "relative block aspect-video w-full overflow-hidden rounded-xl border border-gray-700 bg-gray-800 shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:ring-offset-2 focus:ring-offset-gray-900 transition-transform duration-200 hover:scale-[1.002]"
+  const composedClasses = `${baseClasses}${isActive ? " ring-2 ring-indigo-400/70" : ""}${
+    className ? ` ${className}` : ""
+  }`
 
-  return (
-    <a
-      href={videoAddress}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`${metadata.title} — ${metadata.channelTitle} on YouTube`}
-      className={`relative block aspect-video w-full overflow-hidden rounded-xl border border-gray-700 bg-gray-800 shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:ring-offset-2 focus:ring-offset-gray-900 transition-transform duration-200 hover:scale-[1.002] ${className ?? ""}`}
-      title="Open on YouTube"
-    >
+  const content = (
+    <>
       <img
         src={imageAddress}
         alt={`${metadata.title} — ${metadata.channelTitle}`}
@@ -53,6 +58,33 @@ export default function VideoMetadataCard({ metadata, className }: Props) {
           <p className="mt-1 text-xs text-gray-300">{metadata.channelTitle}</p>
         </div>
       </div>
+    </>
+  )
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={composedClasses}
+        aria-label={`View vispark summary for ${metadata.title} by ${metadata.channelTitle}`}
+        aria-pressed={Boolean(isActive)}
+      >
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <a
+      href={videoAddress}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${metadata.title} — ${metadata.channelTitle} on YouTube`}
+      className={composedClasses}
+      title="Open on YouTube"
+    >
+      {content}
     </a>
   )
 }

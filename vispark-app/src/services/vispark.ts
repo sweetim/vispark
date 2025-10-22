@@ -122,3 +122,71 @@ export const fetchYouTubeVideoDetails = async (videoId: string): Promise<VideoMe
     thumbnails,
   }
 }
+
+
+export type SaveVisparkResult = {
+  id: string
+  videoId: string
+  summaries: string[]
+  createdTime: string
+}
+
+/**
+ * Persist a user's vispark entry (videoId + summaries).
+ * Uses the authenticated session via supabase.functions.invoke.
+ */
+export const saveVispark = async (
+  videoId: string,
+  summaries: string[],
+): Promise<SaveVisparkResult> => {
+  // Ensure Authorization header is forwarded to the Edge Function
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  const accessToken = session?.access_token
+  if (!accessToken) {
+    throw new Error("You must be signed in to save a vispark.")
+  }
+
+  const { data, error } = await supabase.functions.invoke<SaveVisparkResult>("vispark", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: { videoId, summaries },
+  })
+
+  if (error) {
+    throw new Error(error.message ?? "Failed to save vispark. Please try again.")
+  }
+
+  if (!data) {
+    throw new Error("Unexpected response format from vispark service.")
+  }
+
+  return data
+}
+
+
+export type VisparkRow = {
+  id: string
+  video_id: string
+  summaries: string[]
+  created_at: string
+}
+
+/**
+ * List the authenticated user's visparks (latest first).
+ * Requires RLS policy allowing select of rows where user_id = auth.uid().
+ */
+export const listVisparks = async (limit = 10): Promise<VisparkRow[]> => {
+  const { data, error } = await supabase
+    .from("visparks")
+    .select("id, video_id, summaries, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    throw new Error(error.message ?? "Failed to list visparks. Please try again.")
+  }
+
+  return (data ?? []) as VisparkRow[]
+}
