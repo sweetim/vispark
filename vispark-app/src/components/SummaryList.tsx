@@ -10,8 +10,7 @@ const SummaryList: FC<SummaryListProps> = ({ items }) => {
   }
 
   return (
-    <div className="mt-3">
-      <div className="text-xs text-gray-400 mb-2">Summary</div>
+    <div>
       <ul className="list-disc list-inside text-sm leading-relaxed bg-gray-800 border border-gray-700 rounded-md p-4">
         {items.map((item, index) => (
           <li

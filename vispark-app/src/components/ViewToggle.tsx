@@ -24,7 +24,7 @@ const ViewToggle: FC<ViewToggleProps> = ({
   }
 
   return (
-    <div className="w-full max-w-3xl mt-4 flex items-center justify-between">
+    <div className="w-full max-w-3xl mt-2 flex items-center justify-between">
       <div className="inline-flex items-center gap-1 rounded-md p-1 bg-gray-800 border border-gray-700">
         <button
           type="button"
