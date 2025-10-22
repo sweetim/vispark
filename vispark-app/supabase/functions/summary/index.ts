@@ -27,9 +27,7 @@ type SummaryRequestPayload = {
 }
 
 type SummarySuccessResponse = {
-  data: {
-    bullets: string[]
-  }
+  bullets: string[]
 }
 
 type SummaryErrorResponse = {
@@ -200,9 +198,7 @@ serve(async (req: Request): Promise<Response> => {
 
     return respondWith(
       {
-        data: {
-          bullets,
-        },
+        bullets
       },
       200,
     )

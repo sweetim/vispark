@@ -31,11 +31,9 @@ type TranscriptSegment = {
 }
 
 type TranscriptSuccessResponse = {
-  data: {
-    videoId: string
-    transcript: TranscriptSegment[]
-    lang?: string
-  }
+  videoId: string
+  transcript: TranscriptSegment[]
+  lang?: string
 }
 
 type TranscriptErrorResponse = {
@@ -107,11 +105,9 @@ const handlePost = async (req: Request): Promise<Response> => {
               )
 
               const successResponse: TranscriptSuccessResponse = {
-                data: {
-                  videoId: trimmedVideoId,
-                  transcript,
-                  ...(normalizedLang ? { lang: normalizedLang } : {}),
-                },
+                videoId: trimmedVideoId,
+                transcript,
+                ...(normalizedLang ? { lang: normalizedLang } : {}),
               }
 
               return respondWith(successResponse, 200)
