@@ -5,7 +5,13 @@ import {
 } from "@ant-design/icons"
 import { Alert, Button, Card, Checkbox, Divider, Form, Input, Spin } from "antd"
 import { type FC, useState } from "react"
-import { type Location, Navigate, useLocation, useNavigate } from "react-router"
+import {
+  Link,
+  type Location,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router"
 import { useAuth } from "@/modules/auth/useAuth.ts"
 
 type LoginFormValues = {
@@ -54,7 +60,10 @@ const LoginPage: FC = () => {
         </div>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-4">
+            <Link
+              to="/"
+              className="flex items-center justify-center gap-4"
+            >
               <img
                 src="/logo.png"
                 alt="VISPARK Logo"
@@ -63,7 +72,7 @@ const LoginPage: FC = () => {
               <span className="text-2xl font-bold tracking-tight bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK
               </span>
-            </div>
+            </Link>
             <Spin size="large" />
           </div>
         </div>
@@ -136,7 +145,10 @@ const LoginPage: FC = () => {
         <div className="w-full max-w-md mx-auto">
           {/* Logo and Welcome Section */}
           <div className="text-center space-y-4 mb-6">
-            <div className="flex items-center justify-center gap-4">
+            <Link
+              to="/"
+              className="flex items-center justify-center gap-4"
+            >
               <img
                 src="/logo.png"
                 alt="VISPARK Logo"
@@ -145,7 +157,7 @@ const LoginPage: FC = () => {
               <span className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK
               </span>
-            </div>
+            </Link>
           </div>
 
           {/* Glassmorphic Card */}

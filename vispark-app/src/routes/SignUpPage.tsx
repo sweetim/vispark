@@ -11,7 +11,13 @@ import {
   Typography,
 } from "antd"
 import { type FC, useEffect, useState } from "react"
-import { type Location, Navigate, useLocation, useNavigate } from "react-router"
+import {
+  Link,
+  type Location,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router"
 import { useAuth } from "@/modules/auth/useAuth.ts"
 
 type SignUpFormValues = {
@@ -152,7 +158,10 @@ const SignUpPage: FC = () => {
         <div className="w-full max-w-md mx-auto">
           {/* Logo and Welcome Section */}
           <div className="text-center space-y-4 mb-6">
-            <div className="flex items-center justify-center gap-4">
+            <Link
+              to="/"
+              className="flex items-center justify-center gap-4"
+            >
               <img
                 src="/logo.png"
                 alt="VISPARK Logo"
@@ -161,7 +170,7 @@ const SignUpPage: FC = () => {
               <span className="text-3xl font-bold tracking-tight bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK
               </span>
-            </div>
+            </Link>
           </div>
 
           {/* Glassmorphic Card */}
