@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: null,
+      injectRegister: "auto",
       strategies: "generateSW",
       filename: "sw.js",
 
@@ -81,8 +81,10 @@ export default defineConfig({
 
       workbox: {
         globPatterns: [
-          "**/*.{js,css,html,svg,png,ico,jpg,jpeg,json,webmanifest}",
+          "**/*.{js,css,html,svg,png,ico,jpg,jpeg,json,webmanifest,woff,woff2,ttf}",
         ],
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\./i,

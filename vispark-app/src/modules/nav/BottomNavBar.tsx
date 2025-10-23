@@ -123,7 +123,7 @@ const BottomNavBar: FC = () => {
             return (
               <Link
                 to={item.to}
-                className="inline-flex flex-col items-center justify-center px-5 hover:bg-zinc-900 group"
+                className="inline-flex flex-col items-center justify-center px-5 hover:bg-zinc-800 group"
                 key={`${index}-${item.to}`}
               >
                 <NavIcon
