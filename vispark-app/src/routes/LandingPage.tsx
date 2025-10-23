@@ -11,9 +11,8 @@ import {
   SparkleIcon,
   StarIcon,
   TrendUpIcon,
-  UsersIcon,
 } from "@phosphor-icons/react"
-import { Button, Card, Col, Row, Typography } from "antd"
+import { Card, Typography } from "antd"
 import type { FC } from "react"
 import { useEffect, useState } from "react"
 import { Link } from "react-router"
@@ -21,9 +20,7 @@ import { Link } from "react-router"
 const { Title, Paragraph, Text } = Typography
 
 const LandingPage: FC = () => {
-  const [activeTab, setActiveTab] = useState(0)
   const [scrollY, setScrollY] = useState(0)
-  const [isPlaying, setIsPlaying] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY)
@@ -163,7 +160,7 @@ const LandingPage: FC = () => {
   ]
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden">
+    <div className="min-h-screen w-full bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden">
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div
@@ -194,7 +191,7 @@ const LandingPage: FC = () => {
               size={24}
               weight="fill"
             />
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               VISPARK
             </span>
           </Link>
@@ -207,7 +204,7 @@ const LandingPage: FC = () => {
             </Link>
             <Link
               to="/signup"
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium text-sm shadow-lg hover:shadow-xl"
+              className="px-4 py-2 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium text-sm shadow-lg hover:shadow-xl"
             >
               Get started
             </Link>
@@ -226,14 +223,14 @@ const LandingPage: FC = () => {
                     <SparkleIcon size={16} />
                     <span>Powered by Advanced AI</span>
                   </div>
-                  <Title className="!text-4xl md:!text-5xl lg:!text-6xl !text-white !leading-tight !font-bold">
+                  <Title className="text-!4xl md:text-!5xl lg:text-6xl! text-!white leading-!tight font-!bold">
                     Transform{" "}
-                    <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                       YouTube Content
                     </span>{" "}
                     into Actionable Intelligence
                   </Title>
-                  <Paragraph className="!text-lg md:!text-xl !text-zinc-300 !leading-relaxed">
+                  <Paragraph className="text-!lg md:text-!xl text-!zinc-300 leading-!relaxed">
                     Extract summaries, identify trends, and generate insights
                     from the creators you follow. Stay ahead without watching
                     every upload.
@@ -243,7 +240,7 @@ const LandingPage: FC = () => {
                 <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-center lg:justify-start">
                   <Link
                     to="/signup"
-                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium shadow-lg hover:shadow-xl group"
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium shadow-lg hover:shadow-xl group"
                   >
                     Start your free account
                     <ArrowRightIcon
@@ -254,7 +251,6 @@ const LandingPage: FC = () => {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => setIsPlaying(!isPlaying)}
                     className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-200 text-white font-medium"
                   >
                     <PlayIcon size={20} />
@@ -291,7 +287,7 @@ const LandingPage: FC = () => {
                 <Card className="bg-white/5 backdrop-blur-md border-white/10 shadow-2xl overflow-hidden">
                   <div className="p-6 space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 flex items-center justify-center">
                         <BrainIcon
                           size={24}
                           className="text-white"
@@ -300,7 +296,7 @@ const LandingPage: FC = () => {
                       <div>
                         <Title
                           level={4}
-                          className="!text-white !mb-0"
+                          className="text-!white mb-!0"
                         >
                           See VISPARK in Action
                         </Title>
@@ -319,7 +315,7 @@ const LandingPage: FC = () => {
                         />
                         <div className="flex-1">
                           <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
-                            <div className="h-full w-3/4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                            <div className="h-full w-3/4 bg-linear-to-r from-blue-500 to-purple-500 rounded-full"></div>
                           </div>
                           <Text className="text-xs text-zinc-400 mt-1">
                             Analyzing video content...
@@ -400,22 +396,22 @@ const LandingPage: FC = () => {
             <div className="text-center space-y-4 mb-12">
               <Title
                 level={2}
-                className="!text-white !text-3xl md:!text-4xl"
+                className="text-!white text-!3xl md:text-!4xl"
               >
                 Trusted by{" "}
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   10,000+
                 </span>{" "}
                 Content Professionals
               </Title>
-              <Paragraph className="!text-zinc-300 !text-lg max-w-2xl mx-auto">
+              <Paragraph className="text-!zinc-300 text-!lg max-w-2xl mx-auto">
                 Join researchers, creators, and strategists who are saving hours
                 every week with VISPARK
               </Paragraph>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((testimonial, index) => (
+              {testimonials.map((testimonial) => (
                 <Card
                   key={`testimonial-${testimonial.name}`}
                   className="bg-white/5 backdrop-blur-sm border-white/10 h-full"
@@ -433,11 +429,11 @@ const LandingPage: FC = () => {
                     size={24}
                     className="text-blue-400/20 mb-3"
                   />
-                  <Paragraph className="!text-zinc-300 !mb-4 italic">
+                  <Paragraph className="text-!zinc-300 mb-!4 italic">
                     "{testimonial.content}"
                   </Paragraph>
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                    <div className="h-10 w-10 rounded-full bg-linear-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
                       {testimonial.name.charAt(0)}
                     </div>
                     <div>
@@ -461,26 +457,26 @@ const LandingPage: FC = () => {
             <div className="text-center space-y-4 mb-12">
               <Title
                 level={2}
-                className="!text-white !text-3xl md:!text-4xl"
+                className="text-!white text-!3xl md:text-!4xl"
               >
                 Powerful Features for{" "}
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   Content Intelligence
                 </span>
               </Title>
-              <Paragraph className="!text-zinc-300 !text-lg max-w-2xl mx-auto">
+              <Paragraph className="text-!zinc-300 text-!lg max-w-2xl mx-auto">
                 Everything you need to extract maximum value from video content
               </Paragraph>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature, index) => (
+              {features.map((feature) => (
                 <Card
                   key={`feature-${feature.title}`}
                   className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 group"
                 >
                   <div
-                    className={`h-12 w-12 rounded-lg bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                    className={`h-12 w-12 rounded-lg bg-linear-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
                   >
                     <feature.icon
                       size={24}
@@ -489,11 +485,11 @@ const LandingPage: FC = () => {
                   </div>
                   <Title
                     level={4}
-                    className="!text-white !mb-2"
+                    className="text-!white mb-!2"
                   >
                     {feature.title}
                   </Title>
-                  <Paragraph className="!text-zinc-300 !mb-0">
+                  <Paragraph className="text-!zinc-300 mb-!0">
                     {feature.description}
                   </Paragraph>
                 </Card>
@@ -508,14 +504,14 @@ const LandingPage: FC = () => {
             <div className="text-center space-y-4 mb-12">
               <Title
                 level={2}
-                className="!text-white !text-3xl md:!text-4xl"
+                className="text-!white text-!3xl md:text-!4xl"
               >
                 See How It{" "}
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   Works
                 </span>
               </Title>
-              <Paragraph className="!text-zinc-300 !text-lg max-w-2xl mx-auto">
+              <Paragraph className="text-!zinc-300 text-!lg max-w-2xl mx-auto">
                 Transform any YouTube video into actionable insights in three
                 simple steps
               </Paragraph>
@@ -529,20 +525,20 @@ const LandingPage: FC = () => {
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div className="relative">
-                      <div className="h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
+                      <div className="h-16 w-16 rounded-full bg-linear-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
                         {index + 1}
                       </div>
                       {index < demoSteps.length - 1 && (
-                        <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 bg-gradient-to-r from-blue-500/50 to-purple-500/50 -translate-y-1/2"></div>
+                        <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 bg-linear-to-r from-blue-500/50 to-purple-500/50 -translate-y-1/2"></div>
                       )}
                     </div>
                     <Title
                       level={4}
-                      className="!text-white"
+                      className="text-!white"
                     >
                       {step.title}
                     </Title>
-                    <Paragraph className="!text-zinc-300">
+                    <Paragraph className="text-!zinc-300">
                       {step.description}
                     </Paragraph>
                   </div>
@@ -553,7 +549,7 @@ const LandingPage: FC = () => {
             <div className="mt-12 text-center">
               <Link
                 to="/signup"
-                className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium shadow-lg hover:shadow-xl group"
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium shadow-lg hover:shadow-xl group"
               >
                 Try it now
                 <ArrowRightIcon
@@ -572,20 +568,20 @@ const LandingPage: FC = () => {
             <div className="text-center space-y-4 mb-12">
               <Title
                 level={2}
-                className="!text-white !text-3xl md:!text-4xl"
+                className="text-!white text-!3xl md:text-!4xl"
               >
                 Simple, Transparent{" "}
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   Pricing
                 </span>
               </Title>
-              <Paragraph className="!text-zinc-300 !text-lg max-w-2xl mx-auto">
+              <Paragraph className="text-!zinc-300 text-!lg max-w-2xl mx-auto">
                 Choose the plan that works best for your content analysis needs
               </Paragraph>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {pricingTiers.map((tier, index) => (
+              {pricingTiers.map((tier) => (
                 <Card
                   key={`tier-${tier.name}`}
                   className={`bg-white/5 backdrop-blur-sm border ${
@@ -596,7 +592,7 @@ const LandingPage: FC = () => {
                 >
                   {tier.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <div className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-white text-xs font-medium">
+                      <div className="px-3 py-1 bg-linear-to-r from-blue-500 to-purple-500 rounded-full text-white text-xs font-medium">
                         Most Popular
                       </div>
                     </div>
@@ -606,7 +602,7 @@ const LandingPage: FC = () => {
                     <div>
                       <Title
                         level={3}
-                        className="!text-white !mb-1"
+                        className="text-!white mb-!1"
                       >
                         {tier.name}
                       </Title>
@@ -627,14 +623,14 @@ const LandingPage: FC = () => {
                     </div>
 
                     <ul className="space-y-3 text-left">
-                      {tier.features.map((feature, featureIndex) => (
+                      {tier.features.map((feature) => (
                         <li
                           key={`feature-${tier.name}-${feature}`}
                           className="flex items-center gap-2"
                         >
                           <CheckCircleIcon
                             size={16}
-                            className="text-green-400 flex-shrink-0"
+                            className="text-green-400 shrink-0"
                           />
                           <Text className="text-zinc-300 text-sm">
                             {feature}
@@ -647,7 +643,7 @@ const LandingPage: FC = () => {
                       to="/signup"
                       className={`w-full block px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                         tier.popular
-                          ? "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white shadow-lg"
+                          ? "bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white shadow-lg"
                           : "border border-white/20 hover:border-white/40 hover:bg-white/5 text-white"
                       }`}
                     >
@@ -661,26 +657,26 @@ const LandingPage: FC = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="px-6 py-16 md:px-12 bg-gradient-to-r from-blue-900/20 to-purple-900/20">
+        <section className="px-6 py-16 md:px-12 bg-linear-to-r from-blue-900/20 to-purple-900/20">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <Title
               level={2}
-              className="!text-white !text-3xl md:!text-4xl"
+              className="text-!white text-!3xl md:text-!4xl"
             >
               Ready to Transform Your{" "}
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 Content Workflow
               </span>
               ?
             </Title>
-            <Paragraph className="!text-zinc-300 !text-lg">
+            <Paragraph className="text-!zinc-300 text-!lg">
               Join thousands of professionals who are saving hours every week
               with VISPARK
             </Paragraph>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/signup"
-                className="flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium shadow-lg hover:shadow-xl group"
+                className="flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium shadow-lg hover:shadow-xl group"
               >
                 Start your free trial
                 <ArrowRightIcon
@@ -711,11 +707,11 @@ const LandingPage: FC = () => {
                   size={24}
                   weight="fill"
                 />
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="text-xl font-bold bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   VISPARK
                 </span>
               </div>
-              <Paragraph className="!text-zinc-400 text-sm !mb-0">
+              <Paragraph className="text-!zinc-400 text-sm mb-!0">
                 Transform YouTube content into actionable insights with
                 AI-powered analysis.
               </Paragraph>
@@ -724,7 +720,7 @@ const LandingPage: FC = () => {
             <div>
               <Title
                 level={5}
-                className="!text-white !mb-4"
+                className="text-!white mb-!4"
               >
                 Product
               </Title>
@@ -753,7 +749,7 @@ const LandingPage: FC = () => {
             <div>
               <Title
                 level={5}
-                className="!text-white !mb-4"
+                className="text-!white mb-!4"
               >
                 Company
               </Title>

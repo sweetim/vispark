@@ -176,7 +176,6 @@ const SummariesPage = () => {
                 metadataCache.set(row.video_id, metadata)
               } catch (metadataError) {
                 if (import.meta.env.DEV && metadataError) {
-                  // eslint-disable-next-line no-console
                   console.warn(
                     "Failed to fetch YouTube metadata:",
                     metadataError,

@@ -1,10 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import {
-  Navigate,
-  useNavigate,
-  useOutletContext,
-  useParams,
-} from "react-router"
+import { Navigate, useOutletContext, useParams } from "react-router"
 import ProgressTimeline from "@/components/ProgressTimeline"
 import SummaryList from "@/components/SummaryList"
 import TranscriptView from "@/components/TranscriptView"
@@ -98,7 +93,6 @@ const VisparkVideoPage = () => {
               process.env.NODE_ENV !== "production"
               && metadataError instanceof Error
             ) {
-              // eslint-disable-next-line no-console
               console.warn(
                 "Failed to fetch YouTube video metadata:",
                 metadataError,
@@ -136,7 +130,6 @@ const VisparkVideoPage = () => {
             }
           } catch (persistError) {
             if (process.env.NODE_ENV !== "production" && persistError) {
-              // eslint-disable-next-line no-console
               console.warn("Failed to save vispark:", persistError)
             }
           }
@@ -184,7 +177,6 @@ const VisparkVideoPage = () => {
   const hasSummary = Boolean(summary && summary.length > 0)
   const hasTranscript = transcript.length > 0
   const showViewToggle = hasSummary || hasTranscript
-  const summaryComplete = step === "complete" && hasSummary
 
   if (videoId.length === 0) {
     return (

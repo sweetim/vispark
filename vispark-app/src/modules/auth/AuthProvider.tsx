@@ -5,19 +5,17 @@ import type {
   User,
 } from "@supabase/supabase-js"
 import {
-  createContext,
   type FC,
   type PropsWithChildren,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
 } from "react"
-
 import { supabase } from "@/config/supabaseClient.ts"
+import { AuthContext } from "./AuthContext"
 
-type AuthContextValue = {
+export type AuthContextValue = {
   session: Session | null
   user: User | null
   loading: boolean
@@ -32,8 +30,6 @@ type AuthContextValue = {
   signInWithGoogle: () => Promise<AuthError | null>
   signOut: () => Promise<AuthError | null>
 }
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null)
@@ -110,7 +106,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   )
 
   const signInWithGoogle = useCallback(async () => {
-    const redirectTo = window.location.origin + "/app"
+    const redirectTo = `${window.location.origin}/app`
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -158,14 +154,4 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export const useAuth = (): AuthContextValue => {
-  const context = useContext(AuthContext)
-
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
-
-  return context
 }

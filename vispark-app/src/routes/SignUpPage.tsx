@@ -12,7 +12,7 @@ import {
 } from "antd"
 import { type FC, useEffect, useState } from "react"
 import { type Location, Navigate, useLocation, useNavigate } from "react-router"
-import { useAuth } from "@/modules/auth/AuthProvider.tsx"
+import { useAuth } from "@/modules/auth/useAuth.ts"
 
 type SignUpFormValues = {
   email: string
@@ -48,7 +48,7 @@ const SignUpPage: FC = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden relative">
+      <div className="min-h-screen w-full bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden relative">
         {/* Animated background elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div

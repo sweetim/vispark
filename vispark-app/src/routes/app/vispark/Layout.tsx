@@ -39,7 +39,6 @@ const VisparkLayout = () => {
             } satisfies VisparkSavedItem
           } catch (metadataError) {
             if (process.env.NODE_ENV !== "production" && metadataError) {
-              // eslint-disable-next-line no-console
               console.warn(
                 "Failed to fetch YouTube video metadata:",
                 metadataError,
@@ -58,7 +57,6 @@ const VisparkLayout = () => {
       return filtered
     } catch (error) {
       if (process.env.NODE_ENV !== "production" && error) {
-        // eslint-disable-next-line no-console
         console.warn("Failed to load visparks:", error)
       }
       setSavedVisparks([])
@@ -67,7 +65,17 @@ const VisparkLayout = () => {
   }, [])
 
   useEffect(() => {
-    void refreshSavedVisparks()
+    const controller = new AbortController()
+    const fetchData = async () => {
+      if (!controller.signal.aborted) {
+        const result = await refreshSavedVisparks()
+        if (!controller.signal.aborted) {
+          setSavedVisparks(result)
+        }
+      }
+    }
+    void fetchData()
+    return () => controller.abort()
   }, [refreshSavedVisparks])
 
   return (

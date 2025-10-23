@@ -1,19 +1,14 @@
-import { type FormEvent, useEffect, useId, useMemo, useState } from "react"
+import { type FormEvent, useId, useMemo, useState } from "react"
 import { useNavigate, useOutletContext } from "react-router"
 import HistoryList from "./components/HistoryList"
 import type { VisparkOutletContext } from "./Layout"
 
 const VisparkSearchPage = () => {
   const navigate = useNavigate()
-  const { savedVisparks, resetToken } = useOutletContext<VisparkOutletContext>()
+  const { savedVisparks } = useOutletContext<VisparkOutletContext>()
   const [videoId, setVideoId] = useState("")
   const reactId = useId()
   const inputId = useMemo(() => `vispark-video-id-${reactId}`, [reactId])
-
-  // biome-ignore lint: resetToken is intentionally observed to reset the search input when a navbar reset is triggered.
-  useEffect(() => {
-    setVideoId("")
-  }, [resetToken])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

@@ -7,7 +7,7 @@ import {
 import { Alert, Button, Card, Checkbox, Divider, Form, Input, Spin } from "antd"
 import { type FC, useState } from "react"
 import { type Location, Navigate, useLocation, useNavigate } from "react-router"
-import { useAuth } from "@/modules/auth/AuthProvider.tsx"
+import { useAuth } from "@/modules/auth/useAuth.ts"
 
 type LoginFormValues = {
   email: string
@@ -27,7 +27,7 @@ const LoginPage: FC = () => {
   const [form] = Form.useForm<LoginFormValues>()
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [scrollY, setScrollY] = useState(0)
+  const scrollY = 0
 
   const redirectPath =
     (location.state as { from?: Location } | undefined)?.from?.pathname

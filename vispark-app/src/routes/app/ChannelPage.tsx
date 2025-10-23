@@ -12,16 +12,16 @@ const ChannelPage = () => {
   const loadSubscriptions = useCallback(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return setSubscribedChannels([])
+      if (!raw) return []
       const parsed = JSON.parse(raw)
-      setSubscribedChannels(Array.isArray(parsed) ? parsed : [])
-    } catch (_err) {
-      setSubscribedChannels([])
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
     }
   }, [])
 
   useEffect(() => {
-    loadSubscriptions()
+    setSubscribedChannels(loadSubscriptions())
   }, [loadSubscriptions])
 
   // Search hook
@@ -83,10 +83,10 @@ const ChannelPage = () => {
       }
 
       // Refresh displayed subscribed channels
-      loadSubscriptions()
+      setSubscribedChannels(loadSubscriptions())
     } catch {
       // ignore storage errors
-      loadSubscriptions()
+      setSubscribedChannels(loadSubscriptions())
     }
   }
 
