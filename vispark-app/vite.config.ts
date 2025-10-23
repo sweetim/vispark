@@ -27,10 +27,16 @@ export default defineConfig({
         theme_color: "#0000ff",
         background_color: "#ffffff",
         display: "standalone",
-        orientation: "portrait",
+        display_override: ["window-controls-overlay", "standalone"],
+        orientation: "portrait-primary",
         scope: "/",
         start_url: "/",
         icons: [
+          {
+            src: "pwa-64x64.png",
+            sizes: "64x64",
+            type: "image/png",
+          },
           {
             src: "pwa-192x192.png",
             sizes: "192x192",
@@ -47,31 +53,79 @@ export default defineConfig({
             type: "image/png",
             purpose: "any maskable",
           },
+          {
+            src: "apple-touch-icon-180x180.png",
+            sizes: "180x180",
+            type: "image/png",
+            purpose: "apple touch icon",
+          },
+        ],
+        lang: "en",
+        dir: "ltr",
+        categories: ["productivity", "utilities", "education"],
+        shortcuts: [
+          {
+            name: "Search Videos",
+            short_name: "Search",
+            description: "Search for YouTube videos to summarize",
+            url: "/search",
+            icons: [
+              {
+                src: "pwa-192x192.png",
+                sizes: "192x192",
+              },
+            ],
+          },
         ],
       },
 
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,jpg,jpeg,json}"],
+        globPatterns: [
+          "**/*.{js,css,html,svg,png,ico,jpg,jpeg,json,webmanifest}",
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\./i,
             handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",
+              networkTimeoutSeconds: 3,
               expiration: {
-                maxEntries: 10,
+                maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
               },
             },
           },
           {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
             handler: "CacheFirst",
             options: {
               cacheName: "images-cache",
               expiration: {
-                maxEntries: 60,
+                maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // <== 30 days
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/css/i,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "google-fonts-stylesheets",
+              expiration: {
+                maxEntries: 5,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-fonts-webfonts",
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
               },
             },
           },
