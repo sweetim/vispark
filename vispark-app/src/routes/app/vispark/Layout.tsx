@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Outlet, useNavigate } from "react-router"
-import { useNavBarStore } from "@/modules/nav/store"
+import { Outlet } from "react-router"
 import type { VideoMetadata } from "@/services/vispark.ts"
 import { fetchYouTubeVideoDetails, listVisparks } from "@/services/vispark.ts"
 
@@ -14,13 +13,10 @@ export type VisparkSavedItem = {
 export type VisparkOutletContext = {
   savedVisparks: VisparkSavedItem[]
   refreshSavedVisparks: () => Promise<VisparkSavedItem[]>
-  resetToken: number
 }
 
 const VisparkLayout = () => {
-  const navigate = useNavigate()
   const [savedVisparks, setSavedVisparks] = useState<VisparkSavedItem[]>([])
-  const [resetToken, setResetToken] = useState(0)
 
   const refreshSavedVisparks = useCallback(async () => {
     try {
@@ -74,25 +70,12 @@ const VisparkLayout = () => {
     void refreshSavedVisparks()
   }, [refreshSavedVisparks])
 
-  useEffect(() => {
-    const unsubscribe = useNavBarStore.subscribe((state, previous) => {
-      if (state.visparkResetToken !== previous.visparkResetToken) {
-        setResetToken((token) => token + 1)
-        navigate("/app/vispark/search", { replace: true })
-        void refreshSavedVisparks()
-      }
-    })
-
-    return unsubscribe
-  }, [navigate, refreshSavedVisparks])
-
   return (
     <div className="flex flex-col items-center min-h-screen w-full bg-gray-900 text-white p-2">
       <Outlet
         context={{
           savedVisparks,
           refreshSavedVisparks,
-          resetToken,
         }}
       />
     </div>

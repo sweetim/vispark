@@ -10,7 +10,6 @@ import SummaryList from "@/components/SummaryList"
 import TranscriptView from "@/components/TranscriptView"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
 import ViewToggle from "@/components/ViewToggle"
-import { useNavBarStore } from "@/modules/nav/store"
 import {
   fetchSummary,
   fetchTranscript,
@@ -57,7 +56,6 @@ const VisparkVideoPage = () => {
   const [videoMetadata, setVideoMetadata] = useState<Awaited<
     ReturnType<typeof fetchYouTubeVideoDetails>
   > | null>(null)
-  const setSummaryComplete = useNavBarStore((s) => s.setSummaryComplete)
 
   useEffect(() => {
     if (videoId.length === 0) {
@@ -187,14 +185,6 @@ const VisparkVideoPage = () => {
   const hasTranscript = transcript.length > 0
   const showViewToggle = hasSummary || hasTranscript
   const summaryComplete = step === "complete" && hasSummary
-
-  useEffect(() => {
-    setSummaryComplete(summaryComplete)
-
-    return () => {
-      setSummaryComplete(false)
-    }
-  }, [setSummaryComplete, summaryComplete])
 
   if (videoId.length === 0) {
     return (
