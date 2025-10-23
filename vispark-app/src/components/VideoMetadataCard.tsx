@@ -1,10 +1,12 @@
+import { formatDistanceToNow } from "date-fns"
 import type { VideoMetadata } from "@/services/vispark.ts"
 
-type Props = {
+type VideoMetadataCardProps = {
   metadata: VideoMetadata
   className?: string
   onClick?: () => void
   isActive?: boolean
+  createdTime?: string
 }
 
 type ThumbnailShape = {
@@ -26,12 +28,30 @@ function selectBestThumbnailAddress(thumbnails?: ThumbnailsShape): string {
   )
 }
 
+function formatRelativeTime(createdTime?: string): string {
+  if (!createdTime) {
+    return ""
+  }
+
+  try {
+    const parsed = new Date(createdTime)
+    if (Number.isNaN(parsed.getTime())) {
+      return ""
+    }
+
+    return formatDistanceToNow(parsed, { addSuffix: true })
+  } catch {
+    return ""
+  }
+}
+
 export default function VideoMetadataCard({
   metadata,
   className,
   onClick,
   isActive,
-}: Props) {
+  createdTime,
+}: VideoMetadataCardProps) {
   const imageAddress = selectBestThumbnailAddress(metadata.thumbnails)
   const videoAddress = `https://www.youtube.com/watch?v=${metadata.videoId}`
   const baseClasses =
@@ -39,6 +59,7 @@ export default function VideoMetadataCard({
   const composedClasses = `${baseClasses}${isActive ? " ring-2 ring-indigo-400/70" : ""}${
     className ? ` ${className}` : ""
   }`
+  const relativeTimeLabel = formatRelativeTime(createdTime)
 
   const content = (
     <>
@@ -50,12 +71,30 @@ export default function VideoMetadataCard({
 
       <div className="w-full absolute inset-0 bg-linear-to-t from-black/70 via-black/25 to-transparent" />
 
-      <div className="absolute bottom-0 left-0 right-0 p-1">
-        <div className="inline-block max-w-full rounded-md bg-black/60 px-3 py-2 backdrop-blur">
-          <h2 className="text-sm font-semibold text-white leading-snug">
+      <div className="absolute top-0 left-0 right-0 p-1 flex items-start justify-between gap-2">
+        <div
+          className={`inline-flex h-7 items-center rounded-md px-3 backdrop-blur max-w-full bg-black/30`}
+        >
+          <p className="text-xs font-medium text-gray-200">
+            {metadata.channelTitle}
+          </p>
+        </div>
+        {relativeTimeLabel && (
+          <div
+            className={`inline-flex h-7 items-center rounded-md px-3 backdrop-blur shrink-0 bg-black/30 text-xs font-medium tracking-wide text-gray-200 border border-white/10`}
+          >
+            <p className="text-xs font-medium text-gray-200">
+              {relativeTimeLabel}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 p-1 flex justify-start">
+        <div className="inline-block max-w-full rounded-md bg-black/30 px-3 py-2 backdrop-blur">
+          <h2 className="text-sm font-semibold text-white leading-snug text-left truncate">
             {metadata.title}
           </h2>
-          <p className="mt-1 text-xs text-gray-300">{metadata.channelTitle}</p>
         </div>
       </div>
     </>

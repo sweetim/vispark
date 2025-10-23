@@ -1,21 +1,23 @@
-import { createBrowserRouter } from "react-router"
+import { createBrowserRouter, Navigate } from "react-router"
+import { ProtectedRoute } from "@/modules/auth"
 import {
-  AppRootPage,
+  AppLayout,
   ChannelPage,
   LandingPage,
   LoginPage,
-  RootPage,
+  RootLayout,
+  SettingsPage,
   SignUpPage,
   SummariesPage,
-  VisparkPage,
-  SettingsPage,
+  VisparkLayout,
+  VisparkSearchPage,
+  VisparkVideoPage,
 } from "@/routes"
-import { ProtectedRoute } from "@/modules/auth"
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <RootPage />,
+    element: <RootLayout />,
     children: [
       {
         index: true,
@@ -33,7 +35,7 @@ export const router = createBrowserRouter([
         path: "app",
         element: (
           <ProtectedRoute>
-            <AppRootPage />
+            <AppLayout />
           </ProtectedRoute>
         ),
         children: [
@@ -47,7 +49,26 @@ export const router = createBrowserRouter([
           },
           {
             path: "vispark",
-            element: <VisparkPage />,
+            element: <VisparkLayout />,
+            children: [
+              {
+                index: true,
+                element: (
+                  <Navigate
+                    to="search"
+                    replace
+                  />
+                ),
+              },
+              {
+                path: "search",
+                element: <VisparkSearchPage />,
+              },
+              {
+                path: "search/:videoId",
+                element: <VisparkVideoPage />,
+              },
+            ],
           },
           {
             path: "settings",

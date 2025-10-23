@@ -1,7 +1,7 @@
 import { Outlet } from "react-router"
 import BottomNavBar from "@/modules/nav/BottomNavBar"
 
-const AppRootPage = () => {
+const AppLayout = () => {
   return (
     <div className="flex flex-col h-full w-full bg-primary min-h-screen">
       <div className="flex-auto overflow-auto pb-16">
@@ -12,4 +12,4 @@ const AppRootPage = () => {
   )
 }
 
-export default AppRootPage
+export default AppLayout
