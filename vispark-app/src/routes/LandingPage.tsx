@@ -186,10 +186,10 @@ const LandingPage: FC = () => {
             to="/"
             className="flex items-center gap-2 text-xl font-bold tracking-tight"
           >
-            <SparkleIcon
-              className="text-blue-400"
-              size={24}
-              weight="fill"
+            <img
+              src="/logo.png"
+              alt="VISPARK Logo"
+              className="w-8 h-8 object-contain"
             />
             <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               VISPARK
@@ -702,10 +702,10 @@ const LandingPage: FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <SparkleIcon
-                  className="text-blue-400"
-                  size={24}
-                  weight="fill"
+                <img
+                  src="/logo.png"
+                  alt="VISPARK Logo"
+                  className="w-8 h-8 object-contain"
                 />
                 <span className="text-xl font-bold bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   VISPARK

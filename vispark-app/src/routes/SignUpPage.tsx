@@ -68,9 +68,13 @@ const SignUpPage: FC = () => {
         </div>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
-            <div className="inline-flex items-center gap-2 text-2xl font-bold tracking-tight">
-              <StarOutlined className="text-blue-400" />
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <div className="flex flex-col items-center gap-4">
+              <img
+                src="/logo.png"
+                alt="VISPARK Logo"
+                className="w-16 h-16 object-contain"
+              />
+              <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK
               </span>
             </div>
@@ -148,9 +152,13 @@ const SignUpPage: FC = () => {
         <div className="w-full max-w-md mx-auto">
           {/* Logo and Welcome Section */}
           <div className="text-center space-y-4 mb-6">
-            <div className="inline-flex items-center gap-2 text-3xl font-bold tracking-tight">
-              <StarOutlined className="text-blue-400" />
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <div className="flex flex-col items-center gap-4">
+              <img
+                src="/logo.png"
+                alt="VISPARK Logo"
+                className="w-16 h-16 object-contain"
+              />
+              <span className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK
               </span>
             </div>

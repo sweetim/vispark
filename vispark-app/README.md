@@ -1,50 +1,135 @@
-# React + TypeScript + Vite
+# VISPARK
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Transform YouTube content into actionable insights with AI-powered analysis.
 
-Currently, two official plugins are available:
+VISPARK is a powerful web application that extracts summaries, identifies trends, and generates insights from YouTube videos, helping you stay informed without watching every upload.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **AI-Powered Summaries**: Transform hours of content into concise, actionable insights with advanced AI technology
+- **Video Transcripts**: Fetch and display complete transcripts for any YouTube video
+- **Trend Detection**: Identify emerging topics and patterns across multiple channels to stay ahead of the curve
+- **Instant Processing**: Get summaries and insights in seconds, not hours
+- **Multi-Language Support**: Analyze content in multiple languages with accurate transcription
+- **Secure & Private**: Your data is encrypted and secure with user authentication
+- **History Tracking**: Keep track of all your analyzed videos and summaries
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Technology Stack
 
-- Configure the top-level `parserOptions` property like this:
+- **Frontend**: React 19 + TypeScript + Vite
+- **UI Framework**: Ant Design + Tailwind CSS
+- **Backend**: Supabase (Authentication, Database, Edge Functions)
+- **State Management**: Zustand
+- **Routing**: React Router v7
+- **Icons**: Phosphor Icons
+- **PWA**: Progressive Web App capabilities
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+- Supabase account
+- YouTube Data API v3 key
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/vispark-app.git
+cd vispark-app
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+2. Install dependencies:
+```bash
+npm install
 ```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and add the following variables:
+```
+VITE_YOUTUBE_API_KEY=your_youtube_api_key
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+4. Set up Supabase:
+   - Create a new project in Supabase
+   - Run the migration script in `supabase/migrations/`
+   - Set up the Edge Functions in `supabase/functions/`
+
+5. Start the development server:
+```bash
+npm run dev
+```
+
+## Project Structure
+
+```
+src/
+├── components/           # Reusable UI components
+├── config/              # Configuration files
+├── hooks/               # Custom React hooks
+├── modules/             # Feature modules (auth, nav, common)
+├── routes/              # Page components and routing
+│   ├── app/             # Protected application routes
+│   │   └── vispark/     # VISPARK-specific pages
+│   └── ...
+├── services/            # API service functions
+└── assets/              # Static assets
+
+supabase/
+├── functions/           # Edge Functions
+│   ├── transcript/      # YouTube transcript fetching
+│   ├── summary/         # AI-powered summarization
+│   └── vispark/         # VISPARK data management
+└── migrations/          # Database schema
+```
+
+## Key Pages
+
+- **Landing Page**: Marketing page with feature highlights and pricing
+- **Search**: Search for YouTube videos by ID
+- **Video Page**: View video metadata, transcripts, and AI-generated summaries
+- **Summaries**: Browse all your saved summaries
+- **Authentication**: Login and signup pages
+
+## API Services
+
+### YouTube Data API
+- Fetches video metadata (title, channel, thumbnails)
+- Requires a YouTube Data API v3 key
+
+### Supabase Edge Functions
+- `transcript`: Fetches video transcripts using youtube-transcript-plus
+- `summary`: Generates AI-powered summaries using GPT
+- `vispark`: Manages user's saved VISPARK entries
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the ISC License.
+
+## Support
+
+For support, please contact support@vispark.xyz or visit our documentation at https://vispark.xyz/docs.
