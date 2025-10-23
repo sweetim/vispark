@@ -5,6 +5,7 @@ import { RouterProvider } from "react-router"
 
 import { router } from "@/config/router.tsx"
 import { AuthProvider } from "@/modules/auth"
+import PWABadge from "./PWABadge"
 import "./index.css"
 
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -17,6 +18,7 @@ createRoot(document.getElementById("root")!).render(
     >
       <AuthProvider>
         <RouterProvider router={router} />
+        <PWABadge />
       </AuthProvider>
     </ConfigProvider>
   </StrictMode>,
