@@ -3,7 +3,7 @@ import type { FC, ReactElement } from "react"
 import { Navigate, useLocation } from "react-router"
 
 import CenterDiv from "@/modules/common/CenterDiv.tsx"
-import { useAuth } from "./AuthProvider.tsx"
+import { useAuth } from "./useAuth.ts"
 
 type ProtectedRouteProps = {
   children: ReactElement

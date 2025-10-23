@@ -1,7 +1,6 @@
 import { useContext } from "react";
+import { AuthContext } from "./AuthContext";
 import type { AuthContextValue } from "./AuthProvider";
-
-import { AuthContext } from "./AuthProvider";
 
 export const useAuth = (): AuthContextValue => {
   const context = useContext(AuthContext);

@@ -15,6 +15,8 @@ import {
 import { supabase } from "@/config/supabaseClient.ts"
 import { AuthContext } from "./AuthContext"
 
+export { AuthContext }
+
 export type AuthContextValue = {
   session: Session | null
   user: User | null
