@@ -2,7 +2,6 @@ import {
   EyeInvisibleOutlined,
   EyeOutlined,
   GoogleOutlined,
-  StarOutlined,
 } from "@ant-design/icons"
 import { Alert, Button, Card, Checkbox, Divider, Form, Input, Spin } from "antd"
 import { type FC, useState } from "react"
@@ -55,11 +54,11 @@ const LoginPage: FC = () => {
         </div>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center justify-center gap-4">
               <img
                 src="/logo.png"
                 alt="VISPARK Logo"
-                className="w-16 h-16 object-contain"
+                className="w-16 h-16 object-contain bg-white rounded-full"
               />
               <span className="text-2xl font-bold tracking-tight bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK
@@ -137,11 +136,11 @@ const LoginPage: FC = () => {
         <div className="w-full max-w-md mx-auto">
           {/* Logo and Welcome Section */}
           <div className="text-center space-y-4 mb-6">
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center justify-center gap-4">
               <img
                 src="/logo.png"
                 alt="VISPARK Logo"
-                className="w-16 h-16 object-contain"
+                className="w-16 h-16 object-contain bg-white rounded-full"
               />
               <span className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK

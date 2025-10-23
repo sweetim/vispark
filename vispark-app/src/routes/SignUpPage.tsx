@@ -1,4 +1,4 @@
-import { GoogleOutlined, StarOutlined } from "@ant-design/icons"
+import { GoogleOutlined } from "@ant-design/icons"
 import {
   Alert,
   Button,
@@ -72,9 +72,9 @@ const SignUpPage: FC = () => {
               <img
                 src="/logo.png"
                 alt="VISPARK Logo"
-                className="w-16 h-16 object-contain"
+                className="w-16 h-16 object-contain bg-white rounded-full"
               />
-              <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold tracking-tight bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK
               </span>
             </div>
@@ -129,7 +129,7 @@ const SignUpPage: FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden relative">
+    <div className="min-h-screen w-full bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden relative">
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div
@@ -152,13 +152,13 @@ const SignUpPage: FC = () => {
         <div className="w-full max-w-md mx-auto">
           {/* Logo and Welcome Section */}
           <div className="text-center space-y-4 mb-6">
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center justify-center gap-4">
               <img
                 src="/logo.png"
                 alt="VISPARK Logo"
-                className="w-16 h-16 object-contain"
+                className="w-16 h-16 object-contain bg-white rounded-full"
               />
-              <span className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-3xl font-bold tracking-tight bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK
               </span>
             </div>
@@ -170,12 +170,12 @@ const SignUpPage: FC = () => {
               <div className="text-center space-y-2">
                 <Title
                   level={3}
-                  className="!text-white !mb-0"
+                  className="text-white! mb-0!"
                 >
-                  Create your VISPARK account
+                  Create your VISPARK
                 </Title>
-                <Text className="text-zinc-400 text-sm">
-                  Start exploring AI-powered video insights today
+                <Text className="text-zinc-400! text-sm!">
+                  explore AI-powered video insights starting now
                 </Text>
               </div>
 
@@ -278,13 +278,13 @@ const SignUpPage: FC = () => {
                   size="large"
                   block
                   loading={submitting}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 border-0 h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-200 mt-6"
+                  className="bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 border-0 h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-200 mt-6"
                 >
                   Create account
                 </Button>
               </Form>
 
-              <Divider className="!border-zinc-700">
+              <Divider className="border-zinc-700!">
                 <span className="text-zinc-500 text-xs">OR</span>
               </Divider>
 
@@ -304,7 +304,7 @@ const SignUpPage: FC = () => {
                   Already have an account?{" "}
                   <Button
                     type="link"
-                    className="!text-blue-400 !p-0 !h-auto hover:!text-blue-300"
+                    className="text-blue-400! p-0! h-auto! hover:text-blue-300!"
                     onClick={() =>
                       navigate("/login", {
                         state: {

@@ -189,7 +189,7 @@ const LandingPage: FC = () => {
             <img
               src="/logo.png"
               alt="VISPARK Logo"
-              className="w-8 h-8 object-contain"
+              className="w-8 h-8 object-contain bg-white rounded-full"
             />
             <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               VISPARK
@@ -705,7 +705,7 @@ const LandingPage: FC = () => {
                 <img
                   src="/logo.png"
                   alt="VISPARK Logo"
-                  className="w-8 h-8 object-contain"
+                  className="w-8 h-8 object-contain bg-white rounded-full"
                 />
                 <span className="text-xl font-bold bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   VISPARK
