@@ -44,37 +44,18 @@ export default defineConfig({
             src: "pwa-512x512.png",
             sizes: "512x512",
             type: "image/png",
+            purpose: "any",
           },
           {
-            src: "pwa-512x512.png",
+            src: "maskable-icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
-          },
-          {
-            src: "pwa-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "any",
           },
         ],
         lang: "en",
         dir: "ltr",
         categories: ["productivity", "utilities", "education"],
-        shortcuts: [
-          {
-            name: "Search Videos",
-            short_name: "Search",
-            description: "Search for YouTube videos to summarize",
-            url: "/search",
-            icons: [
-              {
-                src: "pwa-192x192.png",
-                sizes: "192x192",
-              },
-            ],
-          },
-        ],
       },
 
       workbox: {
