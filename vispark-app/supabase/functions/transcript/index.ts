@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { match, P } from "npm:ts-pattern";
 import { fetchTranscript } from "npm:youtube-transcript-plus";
 
@@ -139,7 +138,7 @@ const handlePost = async (req: Request): Promise<Response> => {
     .exhaustive();
 };
 
-serve(
+Deno.serve(
   (req: Request): Promise<Response> =>
     match(req.method)
       .with("OPTIONS", async () => new Response(null, { headers: corsHeaders }))
