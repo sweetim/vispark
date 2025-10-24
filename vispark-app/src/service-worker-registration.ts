@@ -28,7 +28,6 @@ export function registerServiceWorker() {
             "New content available. Would you like to update the app?",
           )
         ) {
-          // We'll handle this in the PWABadge component
           console.log("User chose to update the app");
         }
       },

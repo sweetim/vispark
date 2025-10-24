@@ -11,7 +11,8 @@
     "supabase:fn": "supabase functions serve",
     "deploy:db": "supabase db push",
     "deploy:fn": "supabase functions deploy",
-    "screenshots": "tsx screenshots/generate-screenshots.ts"
+    "screenshots": "tsx screenshots/generate-screenshots.ts",
+    "pwa:icons": "pwa-assets-generator"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

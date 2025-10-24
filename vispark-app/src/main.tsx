@@ -5,7 +5,6 @@ import { RouterProvider } from "react-router"
 
 import { router } from "@/config/router.tsx"
 import { AuthProvider } from "@/modules/auth"
-import PWABadge from "./PWABadge"
 import { registerServiceWorker } from "./service-worker-registration"
 import "./index.css"
 
@@ -22,7 +21,6 @@ createRoot(document.getElementById("root")!).render(
     >
       <AuthProvider>
         <RouterProvider router={router} />
-        <PWABadge />
       </AuthProvider>
     </ConfigProvider>
   </StrictMode>,
