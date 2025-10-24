@@ -1,5 +1,5 @@
-import { match, P } from "npm:ts-pattern";
-import { fetchTranscript } from "npm:youtube-transcript-plus";
+import { match, P } from "npm:ts-pattern@5.8.0";
+import { fetchTranscript } from "npm:youtube-transcript-plus@1.1.1";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
