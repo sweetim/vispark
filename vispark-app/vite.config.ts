@@ -14,18 +14,16 @@ export default defineConfig({
       injectRegister: "auto",
       strategies: "generateSW",
       filename: "sw.js",
-
       pwaAssets: {
         disabled: false,
         config: true,
       },
-
       manifest: {
         name: "vispark - AI Video Summaries",
         short_name: "vispark",
         description: "AI-powered video summaries and transcripts",
         theme_color: "#101828",
-        background_color: "#ffffff",
+        background_color: "#101828",
         display: "standalone",
         display_override: ["window-controls-overlay", "standalone"],
         orientation: "portrait-primary",

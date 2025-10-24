@@ -1,67 +1,66 @@
-// @ts-expect-error: deno runtime import
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts"
-import { match, P } from "npm:ts-pattern"
-import { fetchTranscript } from "npm:youtube-transcript-plus"
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { match, P } from "npm:ts-pattern";
+import { fetchTranscript } from "npm:youtube-transcript-plus";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
-}
+};
 
 const jsonHeaders: Record<string, string> = {
   "Content-Type": "application/json",
-}
+};
 
 const buildHeaders = (): HeadersInit => ({
   ...corsHeaders,
   ...jsonHeaders,
-})
+});
 
 type TranscriptRequestPayload = {
-  videoId: string
-  lang?: string
-}
+  videoId: string;
+  lang?: string;
+};
 
 type TranscriptSegment = {
-  text: string
-  duration: number
-  offset: number
-  [key: string]: unknown
-}
+  text: string;
+  duration: number;
+  offset: number;
+  lang?: string;
+};
 
 type TranscriptSuccessResponse = {
-  videoId: string
-  transcript: TranscriptSegment[]
-  lang?: string
-}
+  videoId: string;
+  transcript: TranscriptSegment[];
+  lang?: string;
+};
 
 type TranscriptErrorResponse = {
-  error: string
-  message: string
-}
+  error: string;
+  message: string;
+};
 
 type TranscriptResponseBody =
   | TranscriptSuccessResponse
-  | TranscriptErrorResponse
+  | TranscriptErrorResponse;
 
 const respondWith = (body: TranscriptResponseBody, status: number): Response =>
   new Response(JSON.stringify(body), {
     status,
     headers: buildHeaders(),
-  })
+  });
 
-type JsonParseOutcome = { type: "success"; value: unknown } | { type: "error" }
+type JsonParseOutcome = { type: "success"; value: unknown } | { type: "error" };
 
 const handlePost = async (req: Request): Promise<Response> => {
   const jsonOutcome: JsonParseOutcome = await (async () => {
     try {
-      const value = await req.json()
-      return { type: "success", value }
+      const value = await req.json();
+      return { type: "success", value };
     } catch {
-      return { type: "error" }
+      return { type: "error" };
     }
-  })()
+  })();
 
   return match(jsonOutcome)
     .with({ type: "error" }, async () =>
@@ -71,9 +70,8 @@ const handlePost = async (req: Request): Promise<Response> => {
           message: "Request body must be valid JSON.",
         },
         400,
-      ),
-    )
-    .with({ type: "success" }, async ({ value }) =>
+      ))
+    .with({ type: "success" }, ({ value }) =>
       match(value)
         .with(
           {
@@ -81,7 +79,7 @@ const handlePost = async (req: Request): Promise<Response> => {
             lang: P.optional(P.string),
           },
           async ({ videoId, lang }: TranscriptRequestPayload) => {
-            const trimmedVideoId = videoId.trim()
+            const trimmedVideoId = videoId.trim();
 
             if (trimmedVideoId.length === 0) {
               return respondWith(
@@ -90,34 +88,33 @@ const handlePost = async (req: Request): Promise<Response> => {
                   message: "The request body must include a non-empty videoId.",
                 },
                 400,
-              )
+              );
             }
 
             const normalizedLang =
               typeof lang === "string" && lang.trim().length > 0
                 ? lang.trim()
-                : undefined
+                : undefined;
 
             try {
               const transcript = await fetchTranscript(
                 trimmedVideoId,
                 normalizedLang ? { lang: normalizedLang } : undefined,
-              )
+              );
 
               const successResponse: TranscriptSuccessResponse = {
                 videoId: trimmedVideoId,
                 transcript,
                 ...(normalizedLang ? { lang: normalizedLang } : {}),
-              }
+              };
 
-              return respondWith(successResponse, 200)
+              return respondWith(successResponse, 200);
             } catch (error) {
-              console.error("Failed to fetch transcript:", error)
+              console.error("Failed to fetch transcript:", error);
 
-              const message =
-                error instanceof Error
-                  ? error.message
-                  : "Unable to retrieve transcript for the provided video."
+              const message = error instanceof Error
+                ? error.message
+                : "Unable to retrieve transcript for the provided video.";
 
               return respondWith(
                 {
@@ -125,11 +122,11 @@ const handlePost = async (req: Request): Promise<Response> => {
                   message,
                 },
                 502,
-              )
+              );
             }
           },
         )
-        .otherwise(async () =>
+        .otherwise(() =>
           respondWith(
             {
               error: "Invalid payload",
@@ -137,17 +134,16 @@ const handlePost = async (req: Request): Promise<Response> => {
                 "Request body must include videoId as a string and optional lang as a string.",
             },
             400,
-          ),
-        )
-    )
-    .exhaustive()
-}
+          )
+        ))
+    .exhaustive();
+};
 
 serve(
   (req: Request): Promise<Response> =>
     match(req.method)
       .with("OPTIONS", async () => new Response(null, { headers: corsHeaders }))
-      .with("POST", () => handlePost(req))
+      .with("POST", async () => handlePost(req))
       .otherwise(async () =>
         respondWith(
           {
@@ -155,6 +151,6 @@ serve(
             message: "Only POST is supported.",
           },
           405,
-        ),
-      )
-)
+        )
+      ),
+);
