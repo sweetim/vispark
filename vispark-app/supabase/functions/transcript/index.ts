@@ -96,10 +96,23 @@ const handlePost = async (req: Request): Promise<Response> => {
                 : undefined;
 
             try {
-              const transcript = await fetchTranscript(
-                trimmedVideoId,
-                normalizedLang ? { lang: normalizedLang } : undefined,
-              );
+              const client = Deno.createHttpClient({
+                proxy: {
+                  url: "http://142.111.48.253:7030",
+                  basicAuth: {
+                    username: "vcvlanyt",
+                    password: "wl4eio7ghulo",
+                  },
+                },
+              });
+
+              const transcript = await fetchTranscript(trimmedVideoId, {
+                transcriptFetch: async ({ url, lang, userAgent }) => {
+                  return fetch(url, {
+                    client,
+                  });
+                },
+              });
 
               const successResponse: TranscriptSuccessResponse = {
                 videoId: trimmedVideoId,
