@@ -98,7 +98,7 @@ const handlePost = async (req: Request): Promise<Response> => {
             try {
               const client = Deno.createHttpClient({
                 proxy: {
-                  url: "http://142.111.48.253:7030",
+                  url: "http://45.38.107.97:6014",
                   basicAuth: {
                     username: "vcvlanyt",
                     password: "wl4eio7ghulo",
