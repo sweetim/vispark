@@ -1,5 +1,5 @@
+import { Supadata } from "npm:@supadata/js";
 import { match, P } from "npm:ts-pattern@5.8.0";
-import { fetchTranscript } from "npm:youtube-transcript-plus@1.1.1";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -96,23 +96,27 @@ const handlePost = async (req: Request): Promise<Response> => {
                 : undefined;
 
             try {
-              const client = Deno.createHttpClient({
-                proxy: {
-                  url: "http://45.38.107.97:6014",
-                  basicAuth: {
-                    username: "vcvlanyt",
-                    password: "wl4eio7ghulo",
-                  },
-                },
+              const supadata = new Supadata({
+                apiKey: Deno.env.get("SUPADATA_API_KEY") || "",
               });
 
-              const transcript = await fetchTranscript(trimmedVideoId, {
-                transcriptFetch: async ({ url, lang, userAgent }) => {
-                  return fetch(url, {
-                    client,
-                  });
-                },
+              const transcriptResponse = await supadata.youtube.transcript({
+                videoId: trimmedVideoId,
+                lang: normalizedLang,
               });
+
+              // Convert Supadata response to match our expected format
+              // Supadata returns { lang: string, content: Array<{text, offset, duration, lang}> }
+              const transcript = (Array.isArray(transcriptResponse.content)
+                ? transcriptResponse.content
+                : []).map(
+                  (segment: any) => ({
+                    text: segment.text,
+                    duration: segment.duration,
+                    offset: segment.offset,
+                    lang: segment.lang || normalizedLang,
+                  }),
+                );
 
               const successResponse: TranscriptSuccessResponse = {
                 videoId: trimmedVideoId,

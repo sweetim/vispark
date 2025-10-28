@@ -65,7 +65,7 @@ export const formatTranscript = (segments: TranscriptSegment[]): string =>
   segments
     .map(({ text }) => text.trim())
     .filter((segment) => segment.length > 0)
-    .join("\n");
+    .join(" ");
 
 // YouTube Video Metadata (no abbreviations in identifiers)
 type YouTubeThumbnail = {
