@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { Database } from "../types/database.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -125,7 +126,7 @@ const fetchChannelFromYouTube = async (
 
 // Get videos from channel that have summaries
 const getChannelVideosWithSummaries = async (
-  supabase: any,
+  supabase: ReturnType<typeof createClient<Database>>,
   channelId: string,
   apiKey: string,
 ): Promise<ChannelVideo[]> => {
@@ -153,7 +154,9 @@ const getChannelVideosWithSummaries = async (
   }
 
   // Get video IDs
-  const videoIds = videoItems.map((item: any) => item.id.videoId).filter(
+  const videoIds = videoItems.map((item: { id?: { videoId?: string } }) =>
+    item.id?.videoId
+  ).filter(
     Boolean,
   );
 
@@ -164,15 +167,24 @@ const getChannelVideosWithSummaries = async (
     .in("video_id", videoIds);
 
   const videosWithSummaries = new Set(
-    visparksData?.map((v: any) => v.video_id) ?? [],
+    visparksData?.map((v: { video_id: string }) => v.video_id) ?? [],
   );
 
   // Map to ChannelVideo format
   return videoItems
-    .filter((item: any) =>
+    .filter((item: { id?: { videoId?: string } }) =>
       item.id?.videoId && videosWithSummaries.has(item.id.videoId)
     )
-    .map((item: any) => ({
+    .map((
+      item: {
+        id: { videoId: string };
+        snippet: {
+          title: string;
+          thumbnails: ChannelVideo["thumbnails"];
+          publishedAt: string;
+        };
+      },
+    ) => ({
       videoId: item.id.videoId,
       title: item.snippet.title,
       thumbnails: item.snippet.thumbnails,

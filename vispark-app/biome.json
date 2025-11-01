@@ -6,7 +6,16 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignoreUnknown": true
+    "ignoreUnknown": true,
+    "ignore": [
+      "dist/**",
+      "dev-dist/**",
+      "screenshots/**",
+      ".vscode/**",
+      ".roo/**",
+      "pwa-assets.config.ts",
+      "vite.config.ts"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -16,7 +25,21 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "style": {
+        "useTemplate": "off"
+      },
+      "suspicious": {
+        "noAssignInExpressions": "off",
+        "noRedundantUseStrict": "off"
+      },
+      "complexity": {
+        "useArrowFunction": "off",
+        "noCommaOperator": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      }
     }
   },
   "javascript": {

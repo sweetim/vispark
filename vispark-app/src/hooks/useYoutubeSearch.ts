@@ -67,11 +67,15 @@ export default function useYoutubeSearch() {
     setError(null);
 
     try {
+      if (!YOUTUBE_API_KEY) {
+        throw new Error("YouTube API key is not configured");
+      }
+
       const url = new URL("https://www.googleapis.com/youtube/v3/search");
       url.searchParams.set("part", "snippet");
       url.searchParams.set("q", query);
       url.searchParams.set("type", "channel");
-      url.searchParams.set("key", YOUTUBE_API_KEY!);
+      url.searchParams.set("key", YOUTUBE_API_KEY);
 
       const res = await fetch(url.toString(), { signal: controller.signal });
       if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
@@ -84,7 +88,7 @@ export default function useYoutubeSearch() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [YOUTUBE_API_KEY]);
 
   useEffect(() => {
     fetchData(query);

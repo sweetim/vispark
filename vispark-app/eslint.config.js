@@ -5,9 +5,12 @@ import globals from "globals"
 import tseslint from "typescript-eslint"
 
 export default [
-  { ignores: ["dist", "dev-dist"] },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    ignores: ["dist", "dev-dist"],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,

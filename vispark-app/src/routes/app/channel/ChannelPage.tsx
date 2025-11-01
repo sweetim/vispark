@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   Navigate,
   useNavigate,
@@ -19,7 +19,21 @@ const ChannelPage = () => {
     useOutletContext<ChannelOutletContext>()
 
   const channelId = (rawChannelId ?? "").trim()
-  const [savedVideos, setSavedVideos] = useState<any[]>([])
+  const [savedVideos, setSavedVideos] = useState<
+    Array<{
+      videoId: string
+      title: string
+      channelId: string
+      channelTitle: string
+      thumbnails: {
+        default: { url: string }
+        medium?: { url: string }
+        high: { url: string }
+      }
+      summaries?: string[]
+      created_at?: string
+    }>
+  >([])
   const [loadingSavedVideos, setLoadingSavedVideos] = useState(false)
   const [savedVideosError, setSavedVideosError] = useState<string | null>(null)
 
@@ -54,7 +68,9 @@ const ChannelPage = () => {
         }
       })
 
-      const videos = (await Promise.all(videoPromises)).filter(Boolean)
+      const videos = (await Promise.all(videoPromises)).filter(
+        (video): video is NonNullable<typeof video> => Boolean(video),
+      )
       setSavedVideos(videos)
     } catch (error) {
       console.error("Failed to fetch saved videos:", error)

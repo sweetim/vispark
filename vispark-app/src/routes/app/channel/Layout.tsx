@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { Outlet } from "react-router"
 import type { ChannelMetadata, ChannelVideo } from "@/services/channel.ts"
 import {

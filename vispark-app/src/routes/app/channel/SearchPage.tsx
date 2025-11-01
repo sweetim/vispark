@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useId, useMemo, useState } from "react"
 import { useNavigate } from "react-router"
+import type { YouTubeSearchResult } from "@/hooks/useYoutubeSearch"
 import {
   type ChannelMetadata,
   getSubscribedChannels,
@@ -103,7 +104,7 @@ const EmptyStateIllustration = ({
 const ChannelSearchPage = () => {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<YouTubeSearchResult[]>([])
   const [subscribedChannels, setSubscribedChannels] = useState<
     ChannelMetadata[]
   >([])
@@ -164,7 +165,9 @@ const ChannelSearchPage = () => {
   }
 
   // Convert ChannelMetadata to YouTubeSearchResult format for ChannelList
-  const convertToYouTubeSearchResult = (channel: ChannelMetadata): any => {
+  const convertToYouTubeSearchResult = (
+    channel: ChannelMetadata,
+  ): YouTubeSearchResult => {
     return {
       etag: channel.channelId,
       id: {
