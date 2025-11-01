@@ -1,5 +1,6 @@
 import { type FormEvent, useId, useMemo, useState } from "react"
 import { useNavigate, useOutletContext } from "react-router"
+import { extractYouTubeVideoId } from "../../../utils/youtube"
 import HistoryList from "./components/HistoryList"
 import type { VisparkOutletContext } from "./Layout"
 
@@ -12,12 +13,20 @@ const VisparkSearchPage = () => {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const trimmedVideoId = videoId.trim()
-    if (!trimmedVideoId) {
+    const trimmedInput = videoId.trim()
+    if (!trimmedInput) {
       return
     }
 
-    navigate(`/app/vispark/search/${trimmedVideoId}`)
+    // Try to extract video ID from URL or use the input directly if it's already an ID
+    const extractedVideoId = extractYouTubeVideoId(trimmedInput)
+    const finalVideoId = extractedVideoId || trimmedInput
+
+    if (!finalVideoId) {
+      return
+    }
+
+    navigate(`/app/vispark/search/${finalVideoId}`)
   }
 
   return (
@@ -33,7 +42,7 @@ const VisparkSearchPage = () => {
               id={inputId}
               value={videoId}
               onChange={(event) => setVideoId(event.target.value)}
-              placeholder="e.g. dQw4w9WgXcQ"
+              placeholder="Video ID or YouTube URL"
               className="flex-1 px-3 py-2 rounded-l-md bg-gray-800 border border-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <button

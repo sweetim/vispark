@@ -18,11 +18,12 @@ export type SummaryResult = {
 
 export const fetchTranscript = async (
   videoId: string,
+  local?: boolean,
 ): Promise<TranscriptResult> => {
   const { data, error } = await supabase.functions.invoke<TranscriptResult>(
     "transcript",
     {
-      body: { videoId },
+      body: { videoId, local },
     },
   );
 
@@ -81,6 +82,7 @@ type YouTubeThumbnails = {
 export type VideoMetadata = {
   videoId: string;
   title: string;
+  channelId: string;
   channelTitle: string;
   thumbnails: YouTubeThumbnails;
 };
@@ -125,8 +127,9 @@ export const fetchYouTubeVideoDetails = async (
     throw new Error("Video was not found for the provided video identifier.");
   }
 
-  const { title, channelTitle, thumbnails } = item.snippet as {
+  const { title, channelId, channelTitle, thumbnails } = item.snippet as {
     title: string;
+    channelId: string;
     channelTitle: string;
     thumbnails: YouTubeThumbnails;
   };
@@ -134,6 +137,7 @@ export const fetchYouTubeVideoDetails = async (
   return {
     videoId,
     title,
+    channelId,
     channelTitle,
     thumbnails,
   };
@@ -142,16 +146,18 @@ export const fetchYouTubeVideoDetails = async (
 export type SaveVisparkResult = {
   id: string;
   videoId: string;
+  videoChannelId?: string;
   summaries: string[];
   createdTime: string;
 };
 
 /**
- * Persist a user's vispark entry (videoId + summaries).
+ * Persist a user's vispark entry (videoId + videoChannelId + summaries).
  * Uses the authenticated session via supabase.functions.invoke.
  */
 export const saveVispark = async (
   videoId: string,
+  videoChannelId: string,
   summaries: string[],
 ): Promise<SaveVisparkResult> => {
   // Ensure Authorization header is forwarded to the Edge Function
@@ -168,7 +174,7 @@ export const saveVispark = async (
     "vispark",
     {
       headers: { Authorization: `Bearer ${accessToken}` },
-      body: { videoId, summaries },
+      body: { videoId, videoChannelId, summaries },
     },
   );
 
@@ -188,6 +194,7 @@ export const saveVispark = async (
 export type VisparkRow = {
   id: string;
   video_id: string;
+  video_channel_id?: string;
   summaries: string[];
   created_at: string;
 };
@@ -199,13 +206,38 @@ export type VisparkRow = {
 export const listVisparks = async (limit = 10): Promise<VisparkRow[]> => {
   const { data, error } = await supabase
     .from("visparks")
-    .select("id, video_id, summaries, created_at")
+    .select("id, video_id, video_channel_id, summaries, created_at")
     .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {
     throw new Error(
       error.message ?? "Failed to list visparks. Please try again.",
+    );
+  }
+
+  return (data ?? []) as VisparkRow[];
+};
+
+/**
+ * List the authenticated user's visparks filtered by video channel ID.
+ * Requires RLS policy allowing select of rows where user_id = auth.uid().
+ */
+export const listVisparksByChannelId = async (
+  videoChannelId: string,
+  limit = 50,
+): Promise<VisparkRow[]> => {
+  const { data, error } = await supabase
+    .from("visparks")
+    .select("id, video_id, video_channel_id, summaries, created_at")
+    .eq("video_channel_id", videoChannelId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(
+      error.message ??
+        "Failed to list visparks by channel ID. Please try again.",
     );
   }
 

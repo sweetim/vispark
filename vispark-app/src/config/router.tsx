@@ -2,7 +2,9 @@ import { createBrowserRouter, Navigate } from "react-router"
 import { ProtectedRoute } from "@/modules/auth"
 import {
   AppLayout,
+  ChannelLayout,
   ChannelPage,
+  ChannelSearchPage,
   LandingPage,
   LoginPage,
   RootLayout,
@@ -45,7 +47,26 @@ export const router = createBrowserRouter([
           },
           {
             path: "channel",
-            element: <ChannelPage />,
+            element: <ChannelLayout />,
+            children: [
+              {
+                index: true,
+                element: (
+                  <Navigate
+                    to="search"
+                    replace
+                  />
+                ),
+              },
+              {
+                path: "search",
+                element: <ChannelSearchPage />,
+              },
+              {
+                path: ":channelId",
+                element: <ChannelPage />,
+              },
+            ],
           },
           {
             path: "vispark",

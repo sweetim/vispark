@@ -1,5 +1,6 @@
 import { Supadata } from "npm:@supadata/js";
 import { match, P } from "npm:ts-pattern@5.8.0";
+import { fetchTranscript } from "npm:youtube-transcript-plus@1.1.1";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -19,6 +20,7 @@ const buildHeaders = (): HeadersInit => ({
 type TranscriptRequestPayload = {
   videoId: string;
   lang?: string;
+  local?: boolean;
 };
 
 type TranscriptSegment = {
@@ -76,8 +78,9 @@ const handlePost = async (req: Request): Promise<Response> => {
           {
             videoId: P.string,
             lang: P.optional(P.string),
+            local: P.optional(P.boolean),
           },
-          async ({ videoId, lang }: TranscriptRequestPayload) => {
+          async ({ videoId, lang, local }: TranscriptRequestPayload) => {
             const trimmedVideoId = videoId.trim();
 
             if (trimmedVideoId.length === 0) {
@@ -96,35 +99,67 @@ const handlePost = async (req: Request): Promise<Response> => {
                 : undefined;
 
             try {
-              const supadata = new Supadata({
-                apiKey: Deno.env.get("SUPADATA_API_KEY") || "",
-              });
-
-              const transcriptResponse = await supadata.youtube.transcript({
-                videoId: trimmedVideoId,
-                lang: normalizedLang,
-              });
-
-              // Convert Supadata response to match our expected format
-              // Supadata returns { lang: string, content: Array<{text, offset, duration, lang}> }
-              const transcript = (Array.isArray(transcriptResponse.content)
-                ? transcriptResponse.content
-                : []).map(
-                  (segment: any) => ({
-                    text: segment.text,
-                    duration: segment.duration,
-                    offset: segment.offset,
-                    lang: segment.lang || normalizedLang,
-                  }),
+              // Use youtube-transcript-plus when local is true
+              if (local) {
+                const transcriptResponse = await fetchTranscript(
+                  trimmedVideoId,
+                  {
+                    lang: normalizedLang,
+                  },
                 );
 
-              const successResponse: TranscriptSuccessResponse = {
-                videoId: trimmedVideoId,
-                transcript,
-                ...(normalizedLang ? { lang: normalizedLang } : {}),
-              };
+                // Convert youtube-transcript-plus response to match our expected format
+                // youtube-transcript-plus returns Array<{text, duration, offset, lang}>
+                const transcript = Array.isArray(transcriptResponse)
+                  ? transcriptResponse.map(
+                    (segment: any) => ({
+                      text: segment.text,
+                      duration: segment.duration,
+                      offset: segment.offset,
+                      lang: segment.lang || normalizedLang,
+                    }),
+                  )
+                  : [];
 
-              return respondWith(successResponse, 200);
+                const successResponse: TranscriptSuccessResponse = {
+                  videoId: trimmedVideoId,
+                  transcript,
+                  ...(normalizedLang ? { lang: normalizedLang } : {}),
+                };
+
+                return respondWith(successResponse, 200);
+              } else {
+                // Use Supadata for non-local requests
+                const supadata = new Supadata({
+                  apiKey: Deno.env.get("SUPADATA_API_KEY") || "",
+                });
+
+                const transcriptResponse = await supadata.youtube.transcript({
+                  videoId: trimmedVideoId,
+                  lang: normalizedLang,
+                });
+
+                // Convert Supadata response to match our expected format
+                // Supadata returns { lang: string, content: Array<{text, offset, duration, lang}> }
+                const transcript = (Array.isArray(transcriptResponse.content)
+                  ? transcriptResponse.content
+                  : []).map(
+                    (segment: any) => ({
+                      text: segment.text,
+                      duration: segment.duration,
+                      offset: segment.offset,
+                      lang: segment.lang || normalizedLang,
+                    }),
+                  );
+
+                const successResponse: TranscriptSuccessResponse = {
+                  videoId: trimmedVideoId,
+                  transcript,
+                  ...(normalizedLang ? { lang: normalizedLang } : {}),
+                };
+
+                return respondWith(successResponse, 200);
+              }
             } catch (error) {
               console.error("Failed to fetch transcript:", error);
 
@@ -147,7 +182,7 @@ const handlePost = async (req: Request): Promise<Response> => {
             {
               error: "Invalid payload",
               message:
-                "Request body must include videoId as a string and optional lang as a string.",
+                "Request body must include videoId as a string and optional lang as a string and optional local as a boolean.",
             },
             400,
           )

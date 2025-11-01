@@ -76,7 +76,12 @@ const VisparkVideoPage = () => {
       const metadataPromise = fetchYouTubeVideoDetails(videoId)
 
       try {
-        const transcriptResult = await fetchTranscript(videoId)
+        // Use local transcript fetching when developing locally
+        const isLocalDevelopment = process.env.NODE_ENV !== "production"
+        const transcriptResult = await fetchTranscript(
+          videoId,
+          isLocalDevelopment,
+        )
         if (cancelled) {
           return
         }
@@ -124,7 +129,9 @@ const VisparkVideoPage = () => {
           setStep("complete")
 
           try {
-            await saveVispark(videoId, bullets)
+            // Extract channel ID from video metadata
+            const videoChannelId = resolvedMetadata?.channelId || ""
+            await saveVispark(videoId, videoChannelId, bullets)
             if (!cancelled) {
               await refreshSavedVisparks()
             }

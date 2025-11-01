@@ -17,6 +17,7 @@ const buildHeaders = (): HeadersInit => ({
 
 type VisparkRequestPayload = {
   videoId: string;
+  videoChannelId?: string;
   summaries: string[];
   // createdTime can be provided by client but will be ignored in favor of server time
   createdTime?: string;
@@ -25,6 +26,7 @@ type VisparkRequestPayload = {
 type VisparkInsert = {
   user_id: string;
   video_id: string;
+  video_channel_id?: string;
   summaries: string[];
   created_at: string;
 };
@@ -32,6 +34,7 @@ type VisparkInsert = {
 type InsertedVispark = {
   id: string;
   video_id: string;
+  video_channel_id?: string;
   summaries: string[];
   created_at: string;
 };
@@ -39,6 +42,7 @@ type InsertedVispark = {
 type VisparkSuccessResponse = {
   id: string;
   videoId: string;
+  videoChannelId?: string;
   summaries: string[];
   createdTime: string;
 };
@@ -85,7 +89,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
   }
 
-  const { videoId, summaries } = (payload ?? {}) as Partial<
+  const { videoId, videoChannelId, summaries } = (payload ?? {}) as Partial<
     VisparkRequestPayload
   >;
 
@@ -153,6 +157,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const record: VisparkInsert = {
     user_id: user.id,
     video_id: videoId.trim(),
+    video_channel_id: videoChannelId?.trim(),
     summaries,
     created_at: nowIso,
   };
@@ -161,12 +166,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
   //   id uuid default uuid_generate_v4() or gen_random_uuid()
   //   user_id uuid (RLS-enabled)
   //   video_id text
+  //   video_channel_id text (optional)
   //   summaries jsonb
   //   created_at timestamptz default now()
   const { data: inserted, error: insertError } = await supabase
     .from("visparks")
     .insert(record)
-    .select("id, video_id, summaries, created_at")
+    .select("id, video_id, video_channel_id, summaries, created_at")
     .single();
 
   if (insertError || !inserted) {
@@ -185,6 +191,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     {
       id: String((inserted as InsertedVispark).id),
       videoId: String((inserted as InsertedVispark).video_id),
+      videoChannelId: (inserted as InsertedVispark).video_channel_id,
       summaries: (inserted as InsertedVispark).summaries,
       createdTime: String((inserted as InsertedVispark).created_at),
     },
