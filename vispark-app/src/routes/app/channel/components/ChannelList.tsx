@@ -7,6 +7,7 @@ import {
   subscribeToChannel,
   unsubscribeFromChannel,
 } from "@/services/channel.ts"
+import { subscribeToYouTubePush } from "@/services/youtubePush"
 
 type ChannelInfo = {
   videoCount: number
@@ -100,6 +101,15 @@ const ChannelList = ({
             ...prev,
             [channelId]: true,
           }))
+
+          // Also subscribe to YouTube push notifications
+          try {
+            await subscribeToYouTubePush(channelId)
+            console.log(`Successfully subscribed to push notifications for channel ${channelId}`)
+          } catch (pushError) {
+            console.error("Failed to subscribe to push notifications:", pushError)
+            // Don't fail the main subscription if push subscription fails
+          }
         }
       } catch (error) {
         console.error("Failed to toggle subscription:", error)
@@ -188,10 +198,17 @@ const ChannelList = ({
                 key={item.etag}
                 className="relative group"
               >
-                <button
-                  type="button"
+                <div
+                  className="w-full text-left p-3 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 border border-gray-700/50 hover:border-indigo-500/30 cursor-pointer"
                   onClick={() => onSelect(channelId)}
-                  className="w-full text-left p-3 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 border border-gray-700/50 hover:border-indigo-500/30"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      onSelect(channelId)
+                    }
+                  }}
                   aria-label={`View channel ${channelTitle}`}
                 >
                   <div className="flex items-center space-x-3">
@@ -273,7 +290,7 @@ const ChannelList = ({
                       </button>
                     </div>
                   </div>
-                </button>
+                </div>
               </li>
             )
           })}

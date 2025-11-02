@@ -124,6 +124,34 @@ const fetchChannelFromYouTube = async (
   return channelData
 }
 
+// Subscribe to YouTube push notifications
+const subscribeToPushNotifications = async (
+  channelId: string,
+  supabaseUrl: string,
+  supabaseAnonKey: string,
+): Promise<void> => {
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/youtube-push-subscribe`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({ channelId }),
+      }
+    )
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error(`Failed to subscribe to push notifications for channel ${channelId}:`, errorData)
+    }
+  } catch (error) {
+    console.error(`Error subscribing to push notifications for channel ${channelId}:`, error)
+  }
+}
+
 // Get videos from channel that have summaries
 const getChannelVideosWithSummaries = async (
   supabase: ReturnType<typeof createClient<Database>>,
@@ -357,6 +385,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
             400,
           )
         }
+
+        // Automatically subscribe to push notifications
+        await subscribeToPushNotifications(channelId, supabaseUrl, supabaseAnonKey)
 
         return respondWith({ message: "Subscribed successfully" }, 200)
       }

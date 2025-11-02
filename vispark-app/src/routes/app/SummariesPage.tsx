@@ -11,12 +11,14 @@ type ChannelGroupEntry = {
   videoId: string
   videoTitle: string
   channelTitle: string
+  channelId: string
   createdTime: string
   thumbnailUrl: string
 }
 
 type ChannelGroup = {
   channelTitle: string
+  channelId: string
   entries: ChannelGroupEntry[]
 }
 
@@ -193,6 +195,7 @@ const SummariesPage = () => {
               videoId: row.video_id,
               videoTitle: metadata?.title ?? `Video ${row.video_id}`,
               channelTitle: metadata?.channelTitle?.trim() ?? "Unknown Channel",
+              channelId: metadata?.channelId ?? row.video_channel_id ?? "",
               createdTime: row.created_at,
               thumbnailUrl: thumbnailUrl || fallbackThumbnailUrl(row.video_id),
             } satisfies ChannelGroupEntry
@@ -217,6 +220,7 @@ const SummariesPage = () => {
           } else {
             groupedMap.set(entry.channelTitle, {
               channelTitle: entry.channelTitle,
+              channelId: entry.channelId,
               entries: [entry],
             })
           }
@@ -340,9 +344,13 @@ const SummariesPage = () => {
                           <p className="text-xs uppercase tracking-[0.35em] text-gray-200/70">
                             Channel
                           </p>
-                          <h2 className="mt-1 text-2xl font-semibold text-white sm:text-3xl">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/app/channel/${group.channelId}`)}
+                            className="mt-1 text-2xl font-semibold text-white sm:text-3xl hover:text-indigo-300 transition-colors duration-200 text-left"
+                          >
                             {group.channelTitle}
-                          </h2>
+                          </button>
                           <p className="text-sm text-gray-200/80">
                             {group.entries.length} saved{" "}
                             {group.entries.length === 1 ? "video" : "videos"}

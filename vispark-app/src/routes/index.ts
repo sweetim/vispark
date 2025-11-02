@@ -1,3 +1,4 @@
+export { default as AuthCallbackPage } from "./AuthCallbackPage.tsx"
 export * from "./app"
 export { default as LandingPage } from "./LandingPage.tsx"
 export { default as RootLayout } from "./Layout.tsx"

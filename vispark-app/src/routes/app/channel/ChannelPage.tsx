@@ -10,6 +10,9 @@ import {
   fetchYouTubeVideoDetails,
   listVisparksByChannelId,
 } from "@/services/vispark"
+import { isChannelSubscribed, subscribeToChannel, unsubscribeFromChannel } from "@/services/channel"
+import { subscribeToYouTubePush, unsubscribeFromPushNotifications } from "@/services/youtubePush"
+import { useToast } from "@/contexts/ToastContext"
 import type { ChannelOutletContext } from "./Layout"
 
 const ChannelPage = () => {
@@ -17,6 +20,7 @@ const ChannelPage = () => {
   const { channelId: rawChannelId } = useParams<{ channelId: string }>()
   const { channelDetails, refreshChannelData } =
     useOutletContext<ChannelOutletContext>()
+  const { showToast } = useToast()
 
   const channelId = (rawChannelId ?? "").trim()
   const [savedVideos, setSavedVideos] = useState<
@@ -36,12 +40,31 @@ const ChannelPage = () => {
   >([])
   const [loadingSavedVideos, setLoadingSavedVideos] = useState(false)
   const [savedVideosError, setSavedVideosError] = useState<string | null>(null)
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
+  const [loadingSubscription, setLoadingSubscription] = useState<boolean>(false)
 
   useEffect(() => {
     if (channelId.length > 0) {
       void refreshChannelData(channelId)
     }
   }, [channelId, refreshChannelData])
+
+  // Check subscription status when channel ID changes
+  useEffect(() => {
+    if (channelId.length > 0) {
+      const checkSubscriptionStatus = async () => {
+        try {
+          const subscribed = await isChannelSubscribed(channelId)
+          setIsSubscribed(subscribed)
+        } catch (error) {
+          console.error("Failed to check subscription status:", error)
+          setIsSubscribed(false)
+        }
+      }
+
+      checkSubscriptionStatus()
+    }
+  }, [channelId])
 
   const fetchSavedVideos = useCallback(async () => {
     setLoadingSavedVideos(true)
@@ -82,6 +105,53 @@ const ChannelPage = () => {
     }
   }, [channelId])
 
+  const handleSubscriptionToggle = async () => {
+    if (!channelId) return
+
+    setLoadingSubscription(true)
+    try {
+      if (isSubscribed) {
+        await unsubscribeFromChannel(channelId)
+        try {
+          await unsubscribeFromPushNotifications(channelId)
+        } catch (pushError) {
+          console.warn("Failed to unsubscribe from push notifications:", pushError)
+          // Continue with channel unsubscription even if push unsubscription fails
+        }
+        setIsSubscribed(false)
+        showToast(`Unsubscribed from ${channelDetails?.channelTitle || 'channel'}`, "success")
+        console.log(`Unsubscribed from channel ${channelId}`)
+      } else {
+        await subscribeToChannel(channelId)
+        try {
+          await subscribeToYouTubePush(channelId)
+        } catch (pushError) {
+          console.warn("Failed to subscribe to push notifications:", pushError)
+          // Continue with channel subscription even if push subscription fails
+          // Show a user-friendly message about push notifications
+          showToast(
+            `Subscribed to ${channelDetails?.channelTitle || 'channel'}, but push notifications may not work. Please contact support if this issue persists.`,
+            "warning",
+            8000
+          )
+        }
+        if (!console.warn.toString().includes("Failed to subscribe to push notifications")) {
+          showToast(`Subscribed to ${channelDetails?.channelTitle || 'channel'}`, "success")
+        }
+        setIsSubscribed(true)
+        console.log(`Subscribed to channel ${channelId}`)
+      }
+    } catch (error) {
+      console.error("Failed to toggle subscription:", error)
+      showToast(
+        `Failed to ${isSubscribed ? 'unsubscribe from' : 'subscribe to'} channel. Please try again.`,
+        "error"
+      )
+    } finally {
+      setLoadingSubscription(false)
+    }
+  }
+
   useEffect(() => {
     if (channelId.length > 0) {
       void fetchSavedVideos()
@@ -103,21 +173,49 @@ const ChannelPage = () => {
     <div className="w-full max-w-3xl space-y-6">
       {/* Channel Header */}
       {channelDetails && (
-        <div className="bg-gray-800 rounded-lg p-6">
-          <div className="flex items-center space-x-4">
-            <img
-              src={channelDetails.channelThumbnailUrl}
-              alt={channelDetails.channelTitle}
-              className="w-20 h-20 rounded-full object-cover"
-            />
-            <div>
-              <h1 className="text-2xl font-bold text-white">
-                {channelDetails.channelTitle}
-              </h1>
-              <p className="text-gray-400">
-                {channelDetails.videoCount} videos
-              </p>
+        <div className="glass-effect border-b border-gray-800 px-6 py-4">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center space-x-4">
+              <img
+                src={channelDetails.channelThumbnailUrl}
+                alt={channelDetails.channelTitle}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+              <div>
+                <h1 className="text-xl font-semibold text-white">
+                  {channelDetails.channelTitle}
+                </h1>
+                <p className="text-sm text-gray-400">
+                  {channelDetails.videoCount?.toLocaleString() || 0} videos
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={handleSubscriptionToggle}
+              disabled={loadingSubscription}
+              className={`p-2 rounded-lg transition-colors ${
+                isSubscribed
+                  ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700"
+              }`}
+              title={isSubscribed ? "Unsubscribe" : "Subscribe"}
+            >
+              {loadingSubscription ? (
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+              ) : isSubscribed ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <title>Unsubscribe</title>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <title>Subscribe</title>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router"
 import { ProtectedRoute } from "@/modules/auth"
 import {
   AppLayout,
+  AuthCallbackPage,
   ChannelLayout,
   ChannelPage,
   ChannelSearchPage,
@@ -32,6 +33,10 @@ export const router = createBrowserRouter([
       {
         path: "signup",
         element: <SignUpPage />,
+      },
+      {
+        path: "auth/callback",
+        element: <AuthCallbackPage />,
       },
       {
         path: "app",

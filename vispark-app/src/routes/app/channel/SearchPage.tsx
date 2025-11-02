@@ -164,6 +164,13 @@ const ChannelSearchPage = () => {
     navigate(`/app/channel/${channelId}`)
   }
 
+  const handleBackToInitial = () => {
+    setHasSearched(false)
+    setSearchQuery("")
+    setSearchResults([])
+    setError(null)
+  }
+
   // Convert ChannelMetadata to YouTubeSearchResult format for ChannelList
   const convertToYouTubeSearchResult = (
     channel: ChannelMetadata,
@@ -198,12 +205,39 @@ const ChannelSearchPage = () => {
       <div className="sticky top-0 z-10 animate-slideInFromTop">
         <div className="glass-effect rounded-2xl p-6 shadow-2xl border border-white/10">
           <div className="mb-4">
-            <h1 className="text-3xl font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-              Discover Channels
-            </h1>
-            <p className="text-gray-400 text-sm">
-              Explore and subscribe to your favorite YouTube creators
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                  Discover Channels
+                </h1>
+                <p className="text-gray-400 text-sm">
+                  Explore and subscribe to your favorite YouTube creators
+                </p>
+              </div>
+              {hasSearched && (
+                <button
+                  type="button"
+                  onClick={handleBackToInitial}
+                  className="px-4 py-2 bg-linear-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <title>Back arrow</title>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    />
+                  </svg>
+                  <span>Back</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <form
@@ -216,7 +250,7 @@ const ChannelSearchPage = () => {
                 id={inputId}
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder=""
+                placeholder={hasSearched ? "Search for more channels..." : "Search for channels..."}
                 className="w-full pl-4 pr-32 py-4 glass-effect rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all duration-300 text-lg shadow-xl hover:shadow-2xl hover:shadow-indigo-500/10"
               />
               <button
@@ -234,172 +268,192 @@ const ChannelSearchPage = () => {
         </div>
       </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="animate-fadeIn">
-          <div className="glass-effect rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-gray-300 mb-4 animate-pulse-slow">
-              Searching for channels...
-            </h2>
-            <LoadingSkeleton />
-          </div>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <div className="glass-effect rounded-2xl p-6 border border-red-500/20 animate-fadeIn">
-          <div className="flex items-start space-x-3">
-            <div className="p-2 rounded-lg bg-red-500/20">
-              <svg
-                className="w-5 h-5 text-red-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <title>Error warning</title>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-red-400 font-semibold mb-1">
-                Something went wrong
-              </h3>
-              <p className="text-red-300/70 text-sm">{error}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Subscribed Channels Loading State */}
-      {loadingSubscriptions && (
-        <div className="animate-fadeIn">
-          <div className="glass-effect rounded-2xl p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 rounded-lg bg-linear-to-br from-green-500/20 to-emerald-500/20">
-                <svg
-                  className="w-5 h-5 text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <title>Star icon</title>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                  />
-                </svg>
+      {/* Initial State: Show subscribed channels */}
+      {!hasSearched && (
+        <>
+          {/* Subscribed Channels Loading State */}
+          {loadingSubscriptions && (
+            <div className="animate-fadeIn">
+              <div className="glass-effect rounded-2xl p-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 rounded-lg bg-linear-to-br from-green-500/20 to-emerald-500/20">
+                    <svg
+                      className="w-5 h-5 text-green-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <title>Star icon</title>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                      />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold bg-linear-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                    Subscribed Channels
+                  </h2>
+                </div>
+                <LoadingSkeleton />
               </div>
-              <h2 className="text-2xl font-bold bg-linear-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                Subscribed Channels
-              </h2>
             </div>
-            <LoadingSkeleton />
-          </div>
-        </div>
+          )}
+
+          {/* Subscribed Channels Section */}
+          {subscribedChannels.length > 0 && !loadingSubscriptions && (
+            <div className="animate-fadeIn">
+              <div className="glass-effect rounded-2xl p-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 rounded-lg bg-linear-to-br from-green-500/20 to-emerald-500/20">
+                    <svg
+                      className="w-5 h-5 text-green-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <title>Star icon</title>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                      />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold bg-linear-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                    Subscribed Channels
+                  </h2>
+                  <span className="px-3 py-1 text-sm font-semibold bg-green-500/20 text-green-300 rounded-full">
+                    {subscribedChannels.length}
+                  </span>
+                </div>
+                <ChannelList
+                  items={subscribedChannels.map(convertToYouTubeSearchResult)}
+                  onSelect={handleChannelClick}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Empty State when no subscribed channels */}
+          {!loadingSubscriptions && subscribedChannels.length === 0 && (
+            <div className="glass-effect rounded-2xl p-8 text-center animate-fadeIn">
+              <EmptyStateIllustration type="search" />
+              <h3 className="text-xl font-semibold text-gray-300 mb-2">
+                No subscribed channels yet
+              </h3>
+              <p className="text-gray-400">
+                Search for channels above to subscribe to your favorite creators
+              </p>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Subscribed Channels Section */}
-      {subscribedChannels.length > 0
-        && !loading
-        && !loadingSubscriptions
-        && !searchQuery.trim() && (
-          <div className="animate-fadeIn">
-            <div className="glass-effect rounded-2xl p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 rounded-lg bg-linear-to-br from-green-500/20 to-emerald-500/20">
+      {/* Search State: Show search results */}
+      {hasSearched && (
+        <>
+          {/* Loading State */}
+          {loading && (
+            <div className="animate-fadeIn">
+              <div className="glass-effect rounded-2xl p-6">
+                <h2 className="text-lg font-semibold text-gray-300 mb-4 animate-pulse-slow">
+                  Searching for channels...
+                </h2>
+                <LoadingSkeleton />
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="glass-effect rounded-2xl p-6 border border-red-500/20 animate-fadeIn">
+              <div className="flex items-start space-x-3">
+                <div className="p-2 rounded-lg bg-red-500/20">
                   <svg
-                    className="w-5 h-5 text-green-400"
+                    className="w-5 h-5 text-red-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <title>Star icon</title>
+                    <title>Error warning</title>
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold bg-linear-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                  Subscribed Channels
-                </h2>
-                <span className="px-3 py-1 text-sm font-semibold bg-green-500/20 text-green-300 rounded-full">
-                  {subscribedChannels.length}
-                </span>
+                <div>
+                  <h3 className="text-red-400 font-semibold mb-1">
+                    Something went wrong
+                  </h3>
+                  <p className="text-red-300/70 text-sm">{error}</p>
+                </div>
               </div>
-              <ChannelList
-                items={subscribedChannels.map(convertToYouTubeSearchResult)}
-                onSelect={handleChannelClick}
-              />
             </div>
-          </div>
-        )}
+          )}
 
-      {/* Search Results Section */}
-      {searchResults.length > 0 && !loading && searchQuery.trim() && (
-        <div className="animate-fadeIn">
-          <div className="glass-effect rounded-2xl p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 rounded-lg bg-linear-to-br from-indigo-500/20 to-purple-500/20">
-                <svg
-                  className="w-5 h-5 text-indigo-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <title>Search icon</title>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+          {/* Search Results Section */}
+          {!loading && !error && searchResults.length > 0 && (
+            <div className="animate-fadeIn">
+              <div className="glass-effect rounded-2xl p-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 rounded-lg bg-linear-to-br from-indigo-500/20 to-purple-500/20">
+                    <svg
+                      className="w-5 h-5 text-indigo-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <title>Search icon</title>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    Results
+                  </h2>
+                  <span className="px-3 py-1 text-sm font-semibold bg-indigo-500/20 text-indigo-300 rounded-full">
+                    {searchResults.length} channels
+                  </span>
+                </div>
+                <ChannelList
+                  items={searchResults}
+                  onSelect={handleChannelClick}
+                />
               </div>
-              <h2 className="text-2xl font-bold bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                Results
-              </h2>
-              <span className="px-3 py-1 text-sm font-semibold bg-indigo-500/20 text-indigo-300 rounded-full">
-                {searchResults.length} channels
-              </span>
             </div>
-            <ChannelList
-              items={searchResults}
-              onSelect={handleChannelClick}
-            />
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* No Results State */}
-      {!loading && !error && searchResults.length === 0 && hasSearched && (
-        <div className="glass-effect rounded-2xl p-8 text-center animate-fadeIn">
-          <EmptyStateIllustration type="no-results" />
-          <h3 className="text-xl font-semibold text-gray-300 mb-2">
-            No channels found
-          </h3>
-          <p className="text-gray-400 mb-4">
-            No channels match "{searchQuery}". Try different keywords or check
-            spelling.
-          </p>
-          <button
-            type="button"
-            onClick={() => setSearchQuery("")}
-            className="px-4 py-2 bg-linear-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105"
-          >
-            Clear search
-          </button>
-        </div>
+          {/* No Results State */}
+          {!loading && !error && searchResults.length === 0 && (
+            <div className="glass-effect rounded-2xl p-8 text-center animate-fadeIn">
+              <EmptyStateIllustration type="no-results" />
+              <h3 className="text-xl font-semibold text-gray-300 mb-2">
+                No channels found
+              </h3>
+              <p className="text-gray-400 mb-4">
+                No channels match "{searchQuery}". Try different keywords or check
+                spelling.
+              </p>
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="px-4 py-2 bg-linear-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105"
+              >
+                Clear search
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
