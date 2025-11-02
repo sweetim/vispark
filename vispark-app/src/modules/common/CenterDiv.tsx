@@ -1,8 +1,5 @@
 import { Flex } from "antd"
-import {
-  FC,
-  ReactElement,
-} from "react"
+import type { FC, ReactElement } from "react"
 
 type CenterDivProps = {
   className?: string

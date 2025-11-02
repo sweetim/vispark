@@ -1,5 +1,3 @@
-s
-
 import { Supadata } from "npm:@supadata/js"
 import { match, P } from "npm:ts-pattern@5.8.0"
 import { fetchTranscript } from "npm:youtube-transcript-plus@1.1.1"
@@ -221,6 +219,4 @@ Deno.serve(
           405,
         ),
       ),
-)
-)
 )

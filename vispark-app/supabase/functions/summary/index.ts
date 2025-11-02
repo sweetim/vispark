@@ -2,75 +2,75 @@ const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
-};
+}
 
 const jsonHeaders: Record<string, string> = {
   "Content-Type": "application/json",
-};
+}
 
 const buildHeaders = (): HeadersInit => ({
   ...corsHeaders,
   ...jsonHeaders,
-});
+})
 
 type TranscriptSegment = {
-  text: string;
-  duration?: number;
-  offset?: number;
-};
+  text: string
+  duration?: number
+  offset?: number
+}
 
 type SummaryRequestPayload = {
-  transcripts: TranscriptSegment[];
-};
+  transcripts: TranscriptSegment[]
+}
 
 type SummarySuccessResponse = {
-  bullets: string[];
-};
+  bullets: string[]
+}
 
 type SummaryErrorResponse = {
-  error: string;
-  message: string;
-};
+  error: string
+  message: string
+}
 
-type SummaryResponseBody = SummarySuccessResponse | SummaryErrorResponse;
+type SummaryResponseBody = SummarySuccessResponse | SummaryErrorResponse
 
 const respondWith = (body: SummaryResponseBody, status: number): Response =>
   new Response(JSON.stringify(body), {
     status,
     headers: buildHeaders(),
-  });
+  })
 
 const extractTranscriptText = (
   payload: SummaryRequestPayload,
 ): string | null => {
   const segments = Array.isArray(payload?.transcripts)
     ? payload.transcripts
-    : null;
+    : null
 
-  if (!Array.isArray(segments) || segments.length === 0) return null;
+  if (!Array.isArray(segments) || segments.length === 0) return null
 
-  const parts: string[] = [];
+  const parts: string[] = []
   for (const seg of segments) {
     if (seg && typeof seg.text === "string") {
-      const trimmed = seg.text.trim();
-      if (trimmed.length > 0) parts.push(trimmed);
+      const trimmed = seg.text.trim()
+      if (trimmed.length > 0) parts.push(trimmed)
     }
   }
 
-  if (parts.length === 0) return null;
+  if (parts.length === 0) return null
 
   // Collapse whitespace to keep token count minimal
-  return parts.join(" ").replace(/\s+/g, " ").trim();
-};
+  return parts.join(" ").replace(/\s+/g, " ").trim()
+}
 
 const summarizeWithOpenAI = async ({
   transcriptText,
   apiKey,
   model,
 }: {
-  transcriptText: string;
-  apiKey: string;
-  model: string;
+  transcriptText: string
+  apiKey: string
+  model: string
 }): Promise<string[]> => {
   const body = {
     model,
@@ -84,11 +84,10 @@ const summarizeWithOpenAI = async ({
       },
       {
         role: "user",
-        content:
-          `Summarize the following transcript into 5–12 precise bullet points. Return a JSON object with a single field "bullets" of type string[]. Do not include any additional fields.\n\nTranscript:\n${transcriptText}`,
+        content: `Summarize the following transcript into 5–12 precise bullet points. Return a JSON object with a single field "bullets" of type string[]. Do not include any additional fields.\n\nTranscript:\n${transcriptText}`,
       },
     ],
-  };
+  }
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -97,25 +96,25 @@ const summarizeWithOpenAI = async ({
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(body),
-  });
+  })
 
   if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    throw new Error(`OpenAI request failed (${res.status}): ${errText}`);
+    const errText = await res.text().catch(() => "")
+    throw new Error(`OpenAI request failed (${res.status}): ${errText}`)
   }
 
-  const data = await res.json() as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
+  const data = (await res.json()) as {
+    choices?: Array<{ message?: { content?: string } }>
+  }
 
-  const content = data?.choices?.[0]?.message?.content ?? "";
-  let bullets: string[] | null = null;
+  const content = data?.choices?.[0]?.message?.content ?? ""
+  let bullets: string[] | null = null
 
   // Try parsing as JSON first
   try {
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(content)
     if (parsed && Array.isArray(parsed.bullets)) {
-      bullets = parsed.bullets.map((x: unknown) => String(x)).filter(Boolean);
+      bullets = parsed.bullets.map((x: unknown) => String(x)).filter(Boolean)
     }
   } catch {
     // ignore, will try fallback
@@ -126,19 +125,19 @@ const summarizeWithOpenAI = async ({
     bullets = content
       .split("\n")
       .map((l) => l.replace(/^\s*[-*•]\s*/, "").trim())
-      .filter((l) => l.length > 0);
+      .filter((l) => l.length > 0)
   }
 
   if (bullets.length === 0) {
-    throw new Error("OpenAI returned an empty summary.");
+    throw new Error("OpenAI returned an empty summary.")
   }
 
-  return bullets;
-};
+  return bullets
+}
 
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   if (req.method !== "POST") {
@@ -148,12 +147,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
         message: "Only POST is supported.",
       },
       405,
-    );
+    )
   }
 
-  let payload: SummaryRequestPayload;
+  let payload: SummaryRequestPayload
   try {
-    payload = await req.json();
+    payload = await req.json()
   } catch {
     return respondWith(
       {
@@ -161,10 +160,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
         message: "Request body must be valid JSON.",
       },
       400,
-    );
+    )
   }
 
-  const transcriptText = extractTranscriptText(payload);
+  const transcriptText = extractTranscriptText(payload)
   if (!transcriptText) {
     return respondWith(
       {
@@ -173,10 +172,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
           "The request body must include transcripts as an array of segments with a 'text' field.",
       },
       400,
-    );
+    )
   }
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  const apiKey = Deno.env.get("OPENAI_API_KEY")
   if (!apiKey) {
     return respondWith(
       {
@@ -185,35 +184,34 @@ Deno.serve(async (req: Request): Promise<Response> => {
           "OPENAI_API_KEY is not set. Configure it in your environment before calling this function.",
       },
       500,
-    );
+    )
   }
 
-  const model = "gpt-5-nano";
+  const model = "gpt-5-nano"
 
   try {
     const bullets = await summarizeWithOpenAI({
       transcriptText,
       apiKey,
       model,
-    });
+    })
 
     return respondWith(
       {
         bullets,
       },
       200,
-    );
+    )
   } catch (error) {
-    console.error("Failed to summarize transcript:", error);
-    const message = error instanceof Error
-      ? error.message
-      : "Unable to generate summary.";
+    console.error("Failed to summarize transcript:", error)
+    const message =
+      error instanceof Error ? error.message : "Unable to generate summary."
     return respondWith(
       {
         error: "Summary generation failed",
         message,
       },
       502,
-    );
+    )
   }
-});
+})

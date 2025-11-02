@@ -1,20 +1,20 @@
-import { supabase } from "@/config/supabaseClient.ts";
+import { supabase } from "@/config/supabaseClient.ts"
 
 export type TranscriptSegment = {
-  text: string;
-  offset?: number;
-  duration?: number;
-};
+  text: string
+  offset?: number
+  duration?: number
+}
 
 export type TranscriptResult = {
-  videoId: string;
-  transcript: TranscriptSegment[];
-  lang?: string;
-};
+  videoId: string
+  transcript: TranscriptSegment[]
+  lang?: string
+}
 
 export type SummaryResult = {
-  bullets: string[];
-};
+  bullets: string[]
+}
 
 export const fetchTranscript = async (
   videoId: string,
@@ -25,71 +25,72 @@ export const fetchTranscript = async (
     {
       body: { videoId, local },
     },
-  );
+  )
 
   if (error) {
     throw new Error(
       error.message ?? "Failed to fetch transcript. Please try again.",
-    );
+    )
   }
 
   if (!data) {
-    throw new Error("Unexpected response format from transcript service.");
+    throw new Error("Unexpected response format from transcript service.")
   }
 
-  return data;
-};
+  return data
+}
 
 export const fetchSummary = async (
   transcripts: TranscriptSegment[],
 ): Promise<SummaryResult> => {
-  const { data: summaryData, error } = await supabase.functions.invoke<
-    SummaryResult
-  >("summary", {
-    body: { transcripts },
-  });
+  const { data: summaryData, error } =
+    await supabase.functions.invoke<SummaryResult>("summary", {
+      body: { transcripts },
+    })
 
   if (error) {
     throw new Error(
       error.message ?? "Failed to fetch summary. Please try again.",
-    );
+    )
   }
 
   if (!summaryData) {
-    throw new Error("Unexpected response format from summary service.");
+    throw new Error("Unexpected response format from summary service.")
   }
 
-  return summaryData;
-};
+  return summaryData
+}
 
 export const formatTranscript = (segments: TranscriptSegment[]): string =>
   segments
     .map(({ text }) => text.trim())
     .filter((segment) => segment.length > 0)
-    .join(" ");
+    .join(" ")
 
 // YouTube Video Metadata (no abbreviations in identifiers)
 type YouTubeThumbnail = {
-  url: string;
-};
+  url: string
+}
 
 type YouTubeThumbnails = {
-  default: YouTubeThumbnail;
-  medium: YouTubeThumbnail;
-  high: YouTubeThumbnail;
-};
+  default: YouTubeThumbnail
+  medium: YouTubeThumbnail
+  high: YouTubeThumbnail
+}
 
 export type VideoMetadata = {
-  videoId: string;
-  title: string;
-  channelId: string;
-  channelTitle: string;
-  thumbnails: YouTubeThumbnails;
-};
+  videoId: string
+  title: string
+  channelId: string
+  channelTitle: string
+  thumbnails: YouTubeThumbnails
+}
 
 export const getBestThumbnailUrl = (thumbnails?: YouTubeThumbnails): string =>
-  thumbnails?.high?.url ?? thumbnails?.medium?.url ??
-    thumbnails?.default?.url ?? "";
+  thumbnails?.high?.url
+  ?? thumbnails?.medium?.url
+  ?? thumbnails?.default?.url
+  ?? ""
 
 /**
  * Fetch video metadata (title, channel name, thumbnails) from the YouTube Data Service.
@@ -98,41 +99,41 @@ export const getBestThumbnailUrl = (thumbnails?: YouTubeThumbnails): string =>
 export const fetchYouTubeVideoDetails = async (
   videoId: string,
 ): Promise<VideoMetadata> => {
-  const youTubeApplicationProgrammingInterfaceKey =
-    import.meta.env.VITE_YOUTUBE_API_KEY;
+  const youTubeApplicationProgrammingInterfaceKey = import.meta.env
+    .VITE_YOUTUBE_API_KEY
   if (!youTubeApplicationProgrammingInterfaceKey) {
     throw new Error(
       "VITE_YOUTUBE_API_KEY is not set. Add it to your .env file to enable video metadata retrieval.",
-    );
+    )
   }
 
-  const url = new URL("https://www.googleapis.com/youtube/v3/videos");
-  url.searchParams.set("part", "snippet");
-  url.searchParams.set("id", videoId);
+  const url = new URL("https://www.googleapis.com/youtube/v3/videos")
+  url.searchParams.set("part", "snippet")
+  url.searchParams.set("id", videoId)
   url.searchParams.set(
     "key",
     youTubeApplicationProgrammingInterfaceKey as string,
-  );
+  )
 
-  const response = await fetch(url.toString());
+  const response = await fetch(url.toString())
   if (!response.ok) {
     throw new Error(
       `YouTube service error: ${response.status} ${response.statusText}`,
-    );
+    )
   }
 
-  const json = await response.json();
-  const item = json?.items?.[0];
+  const json = await response.json()
+  const item = json?.items?.[0]
   if (!item?.snippet) {
-    throw new Error("Video was not found for the provided video identifier.");
+    throw new Error("Video was not found for the provided video identifier.")
   }
 
   const { title, channelId, channelTitle, thumbnails } = item.snippet as {
-    title: string;
-    channelId: string;
-    channelTitle: string;
-    thumbnails: YouTubeThumbnails;
-  };
+    title: string
+    channelId: string
+    channelTitle: string
+    thumbnails: YouTubeThumbnails
+  }
 
   return {
     videoId,
@@ -140,16 +141,16 @@ export const fetchYouTubeVideoDetails = async (
     channelId,
     channelTitle,
     thumbnails,
-  };
-};
+  }
+}
 
 export type SaveVisparkResult = {
-  id: string;
-  videoId: string;
-  videoChannelId?: string;
-  summaries: string[];
-  createdTime: string;
-};
+  id: string
+  videoId: string
+  videoChannelId?: string
+  summaries: string[]
+  createdTime: string
+}
 
 /**
  * Persist a user's vispark entry (videoId + videoChannelId + summaries).
@@ -163,11 +164,11 @@ export const saveVispark = async (
   // Ensure Authorization header is forwarded to the Edge Function
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getSession()
 
-  const accessToken = session?.access_token;
+  const accessToken = session?.access_token
   if (!accessToken) {
-    throw new Error("You must be signed in to save a vispark.");
+    throw new Error("You must be signed in to save a vispark.")
   }
 
   const { data, error } = await supabase.functions.invoke<SaveVisparkResult>(
@@ -176,28 +177,28 @@ export const saveVispark = async (
       headers: { Authorization: `Bearer ${accessToken}` },
       body: { videoId, videoChannelId, summaries },
     },
-  );
+  )
 
   if (error) {
     throw new Error(
       error.message ?? "Failed to save vispark. Please try again.",
-    );
+    )
   }
 
   if (!data) {
-    throw new Error("Unexpected response format from vispark service.");
+    throw new Error("Unexpected response format from vispark service.")
   }
 
-  return data;
-};
+  return data
+}
 
 export type VisparkRow = {
-  id: string;
-  video_id: string;
-  video_channel_id?: string;
-  summaries: string[];
-  created_at: string;
-};
+  id: string
+  video_id: string
+  video_channel_id?: string
+  summaries: string[]
+  created_at: string
+}
 
 /**
  * List the authenticated user's visparks (latest first).
@@ -208,16 +209,16 @@ export const listVisparks = async (limit = 10): Promise<VisparkRow[]> => {
     .from("visparks")
     .select("id, video_id, video_channel_id, summaries, created_at")
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(limit)
 
   if (error) {
     throw new Error(
       error.message ?? "Failed to list visparks. Please try again.",
-    );
+    )
   }
 
-  return (data ?? []) as VisparkRow[];
-};
+  return (data ?? []) as VisparkRow[]
+}
 
 /**
  * List the authenticated user's visparks filtered by video channel ID.
@@ -232,14 +233,14 @@ export const listVisparksByChannelId = async (
     .select("id, video_id, video_channel_id, summaries, created_at")
     .eq("video_channel_id", videoChannelId)
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(limit)
 
   if (error) {
     throw new Error(
-      error.message ??
-        "Failed to list visparks by channel ID. Please try again.",
-    );
+      error.message
+        ?? "Failed to list visparks by channel ID. Please try again.",
+    )
   }
 
-  return (data ?? []) as VisparkRow[];
-};
+  return (data ?? []) as VisparkRow[]
+}

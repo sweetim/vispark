@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "biome check .",
+    "lint": "biome check",
     "preview": "vite preview",
     "supabase:fn": "supabase functions serve",
     "deploy:db": "supabase db push",
