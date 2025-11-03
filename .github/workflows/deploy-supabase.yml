@@ -27,18 +27,21 @@ jobs:
         with:
           version: latest
 
+      - name: Change to vispark-app directory
+        run: cd vispark-app
+
       - name: Link Supabase project
-        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: cd vispark-app && supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
       - name: Deploy database migrations
-        run: supabase db push
+        run: cd vispark-app && supabase db push
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
       - name: Deploy Supabase functions
-        run: supabase functions deploy
+        run: cd vispark-app && supabase functions deploy
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
