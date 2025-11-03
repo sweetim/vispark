@@ -161,15 +161,73 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "GET") {
     const url = new URL(req.url)
     const challenge = url.searchParams.get("hub.challenge")
+    const mode = url.searchParams.get("hub.mode")
+    const topic = url.searchParams.get("hub.topic")
 
-    if (challenge) {
-      return new Response(challenge, {
-        status: 200,
-        headers: { "Content-Type": "text/plain" },
-      })
+    // Validate required parameters
+    if (!challenge || !mode || !topic) {
+      console.error("Missing required PubSubHubbub parameters")
+      return new Response("Bad Request: Missing required parameters", { status: 400 })
     }
 
-    return new Response("Bad Request", { status: 400 })
+    // Validate mode
+    if (mode !== "subscribe" && mode !== "unsubscribe") {
+      console.error(`Invalid hub.mode: ${mode}`)
+      return new Response("Bad Request: Invalid mode", { status: 400 })
+    }
+
+    // Validate topic is a YouTube feed URL
+    if (!topic.startsWith("https://www.youtube.com/feeds/videos.xml?channel_id=")) {
+      console.error(`Invalid hub.topic: ${topic}`)
+      return new Response("Bad Request: Invalid topic", { status: 400 })
+    }
+
+    // Extract channel ID from topic
+    const channelIdMatch = topic.match(/channel_id=([^&]+)/)
+    if (!channelIdMatch) {
+      console.error(`Could not extract channel ID from topic: ${topic}`)
+      return new Response("Bad Request: Invalid topic format", { status: 400 })
+    }
+
+    const channelId = channelIdMatch[1]
+
+    // For unsubscribe mode, we don't need to check if subscription exists
+    // For subscribe mode, we should verify there's a pending subscription
+    if (mode === "subscribe") {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+
+      if (!supabaseUrl || !supabaseServiceKey) {
+        console.error("Missing Supabase configuration")
+        return new Response("Internal Server Error", { status: 500 })
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+      // Check if there's a subscription for this channel
+      const { data: subscriptions, error } = await supabase
+        .from("youtube_push_subscriptions")
+        .select("id")
+        .eq("channel_id", channelId)
+        .limit(1)
+
+      if (error) {
+        console.error("Error checking subscription:", error)
+        return new Response("Internal Server Error", { status: 500 })
+      }
+
+      if (!subscriptions || subscriptions.length === 0) {
+        console.error(`No subscription found for channel: ${channelId}`)
+        return new Response("Not Found", { status: 404 })
+      }
+    }
+
+    // All validations passed, respond with the challenge
+    console.log(`PubSubHubbub verification successful for ${mode} to ${topic}`)
+    return new Response(challenge, {
+      status: 200,
+      headers: { "Content-Type": "text/plain" },
+    })
   }
 
   // Handle notification (POST)
