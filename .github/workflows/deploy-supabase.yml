@@ -23,7 +23,7 @@ jobs:
         run: cd vispark-app
 
       - name: Install dependencies
-        run: npm ci
+        run: echo "$(pwd)" && npm ci
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
