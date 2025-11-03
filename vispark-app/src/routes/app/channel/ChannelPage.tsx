@@ -11,7 +11,6 @@ import {
   listVisparksByChannelId,
 } from "@/services/vispark"
 import { isChannelSubscribed, subscribeToChannel, unsubscribeFromChannel } from "@/services/channel"
-import { subscribeToYouTubePush, unsubscribeFromPushNotifications } from "@/services/youtubePush"
 import { useToast } from "@/contexts/ToastContext"
 import type { ChannelOutletContext } from "./Layout"
 
@@ -112,32 +111,14 @@ const ChannelPage = () => {
     try {
       if (isSubscribed) {
         await unsubscribeFromChannel(channelId)
-        try {
-          await unsubscribeFromPushNotifications(channelId)
-        } catch (pushError) {
-          console.warn("Failed to unsubscribe from push notifications:", pushError)
-          // Continue with channel unsubscription even if push unsubscription fails
-        }
+        // Note: YouTube push notifications are now handled automatically in backend
         setIsSubscribed(false)
         showToast(`Unsubscribed from ${channelDetails?.channelTitle || 'channel'}`, "success")
         console.log(`Unsubscribed from channel ${channelId}`)
       } else {
         await subscribeToChannel(channelId)
-        try {
-          await subscribeToYouTubePush(channelId)
-        } catch (pushError) {
-          console.warn("Failed to subscribe to push notifications:", pushError)
-          // Continue with channel subscription even if push subscription fails
-          // Show a user-friendly message about push notifications
-          showToast(
-            `Subscribed to ${channelDetails?.channelTitle || 'channel'}, but push notifications may not work. Please contact support if this issue persists.`,
-            "warning",
-            8000
-          )
-        }
-        if (!console.warn.toString().includes("Failed to subscribe to push notifications")) {
-          showToast(`Subscribed to ${channelDetails?.channelTitle || 'channel'}`, "success")
-        }
+        // Note: YouTube push notifications are now handled automatically in the backend
+        showToast(`Subscribed to ${channelDetails?.channelTitle || 'channel'}`, "success")
         setIsSubscribed(true)
         console.log(`Subscribed to channel ${channelId}`)
       }

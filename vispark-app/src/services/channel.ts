@@ -79,16 +79,10 @@ export const searchChannels = async (
 export const getChannelDetails = async (
   channelId: string,
 ): Promise<ChannelMetadata> => {
-  console.log(`Calling getChannelDetails for ${channelId}`)
   const { data, error } = await supabase.functions.invoke<{
     channel: ChannelMetadata
   }>("channel", {
     body: { channelId, action: "getDetails" },
-  })
-
-  console.log(`Response from getChannelDetails for ${channelId}:`, {
-    data,
-    error,
   })
 
   if (error) {

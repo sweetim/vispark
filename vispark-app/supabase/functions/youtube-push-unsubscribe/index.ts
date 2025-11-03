@@ -16,72 +16,28 @@ const buildHeaders = (): HeadersInit => ({
   ...jsonHeaders,
 })
 
-type PushSubscribeRequestPayload = {
+type PushUnsubscribeRequestPayload = {
   channelId: string
 }
 
-type PushSubscribeSuccessResponse = {
+type PushUnsubscribeSuccessResponse = {
   success: true
-  subscriptionId: string
-  leaseSeconds: number
-  expiresAt: string
+  message: string
 }
 
-type PushSubscribeErrorResponse = {
+type PushUnsubscribeErrorResponse = {
   success: false
   error: string
   message: string
 }
 
-type ResponseBody = PushSubscribeSuccessResponse | PushSubscribeErrorResponse
+type ResponseBody = PushUnsubscribeSuccessResponse | PushUnsubscribeErrorResponse
 
 const respondWith = (body: ResponseBody, status: number): Response =>
   new Response(JSON.stringify(body), {
     status,
     headers: buildHeaders(),
   })
-
-// Generate a secure random secret for HMAC verification
-const generateHubSecret = (): string => {
-  const array = new Uint8Array(32)
-  crypto.getRandomValues(array)
-  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
-}
-
-// Subscribe to YouTube push notifications via PubSubHubbub
-const subscribeToYouTubePush = async (
-  channelId: string,
-  callbackUrl: string,
-  hubUrl: string,
-  leaseSeconds: number,
-): Promise<{ subscriptionId: string; expiresAt: string }> => {
-  const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
-  const hubSecret = generateHubSecret()
-
-  const formData = new FormData()
-  formData.append('hub.mode', 'subscribe')
-  formData.append('hub.callback', callbackUrl)
-  formData.append('hub.topic', topicUrl)
-  formData.append('hub.secret', hubSecret)
-  formData.append('hub.lease_seconds', leaseSeconds.toString())
-
-  const response = await fetch(hubUrl, {
-    method: 'POST',
-    body: formData,
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`YouTube push subscription failed: ${response.status} ${errorText}`)
-  }
-
-  const expiresAt = new Date(Date.now() + (leaseSeconds * 1000)).toISOString()
-
-  return {
-    subscriptionId: `${channelId}-${Date.now()}`,
-    expiresAt,
-  }
-}
 
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -114,7 +70,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  const { channelId } = (payload ?? {}) as Partial<PushSubscribeRequestPayload>
+  const { channelId } = (payload ?? {}) as Partial<PushUnsubscribeRequestPayload>
 
   if (typeof channelId !== "string" || channelId.trim().length === 0) {
     return respondWith(
@@ -129,9 +85,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")
-  const callbackUrl = Deno.env.get("YOUTUBE_PUSH_CALLBACK_URL")
-  const hubUrl = Deno.env.get("YOUTUBE_PUSH_HUB_URL")
-  const leaseSeconds = parseInt(Deno.env.get("YOUTUBE_PUSH_LEASE_SECONDS") || "864000")
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return respondWith(
@@ -139,17 +92,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
         success: false,
         error: "Server misconfiguration",
         message: "SUPABASE_URL or SUPABASE_ANON_KEY is not set.",
-      },
-      500,
-    )
-  }
-
-  if (!callbackUrl || !hubUrl) {
-    return respondWith(
-      {
-        success: false,
-        error: "Server misconfiguration",
-        message: "YOUTUBE_PUSH_CALLBACK_URL or YOUTUBE_PUSH_HUB_URL is not set.",
       },
       500,
     )
@@ -214,7 +156,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         {
           success: false,
           error: "Unauthorized",
-          message: "You must be logged in to subscribe to push notifications.",
+          message: "You must be logged in to unsubscribe from push notifications.",
         },
         401,
       )
@@ -222,52 +164,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     console.log("User authenticated successfully:", user.id)
 
-    // Check if subscription already exists
-    const { data: existingSubscription } = await supabase
+    // Delete subscription from database
+    const { error: deleteError } = await supabase
       .from("youtube_push_subscriptions")
-      .select("id")
+      .delete()
       .eq("channel_id", channelId)
       .eq("user_id", user.id)
-      .single()
 
-    if (existingSubscription) {
-      return respondWith(
-        {
-          success: false,
-          error: "Already subscribed",
-          message: "You are already subscribed to push notifications for this channel.",
-        },
-        400,
-      )
-    }
-
-    // Subscribe to YouTube push notifications
-    const { subscriptionId, expiresAt } = await subscribeToYouTubePush(
-      channelId,
-      callbackUrl,
-      hubUrl,
-      leaseSeconds,
-    )
-
-    // Store subscription in database
-    const hubSecret = generateHubSecret()
-    const { error: insertError } = await supabase
-      .from("youtube_push_subscriptions")
-      .insert({
-        channel_id: channelId,
-        user_id: user.id,
-        subscription_id: subscriptionId,
-        hub_secret: hubSecret,
-        lease_seconds: leaseSeconds,
-        expires_at: expiresAt,
-      })
-
-    if (insertError) {
+    if (deleteError) {
       return respondWith(
         {
           success: false,
           error: "Database error",
-          message: insertError.message,
+          message: deleteError.message,
         },
         500,
       )
@@ -276,14 +185,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return respondWith(
       {
         success: true,
-        subscriptionId,
-        leaseSeconds,
-        expiresAt,
+        message: "Successfully unsubscribed from push notifications",
       },
       200,
     )
   } catch (error) {
-    console.error("YouTube push subscribe error:", error)
+    console.error("YouTube push unsubscribe error:", error)
     return respondWith(
       {
         success: false,

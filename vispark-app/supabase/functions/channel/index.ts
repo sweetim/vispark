@@ -128,7 +128,7 @@ const fetchChannelFromYouTube = async (
 const subscribeToPushNotifications = async (
   channelId: string,
   supabaseUrl: string,
-  supabaseAnonKey: string,
+  authToken: string,
 ): Promise<void> => {
   try {
     const response = await fetch(
@@ -137,7 +137,7 @@ const subscribeToPushNotifications = async (
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Authorization': authToken,
         },
         body: JSON.stringify({ channelId }),
       }
@@ -146,9 +146,45 @@ const subscribeToPushNotifications = async (
     if (!response.ok) {
       const errorData = await response.json()
       console.error(`Failed to subscribe to push notifications for channel ${channelId}:`, errorData)
+      throw new Error(`Push subscription failed: ${errorData.message || 'Unknown error'}`)
     }
+
+    console.log(`Successfully subscribed to push notifications for channel ${channelId}`)
   } catch (error) {
     console.error(`Error subscribing to push notifications for channel ${channelId}:`, error)
+    throw error
+  }
+}
+
+// Unsubscribe from YouTube push notifications
+const unsubscribeFromPushNotifications = async (
+  channelId: string,
+  supabaseUrl: string,
+  authToken: string,
+): Promise<void> => {
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/youtube-push-unsubscribe`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authToken,
+        },
+        body: JSON.stringify({ channelId }),
+      }
+    )
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error(`Failed to unsubscribe from push notifications for channel ${channelId}:`, errorData)
+      throw new Error(`Push unsubscription failed: ${errorData.message || 'Unknown error'}`)
+    }
+
+    console.log(`Successfully unsubscribed from push notifications for channel ${channelId}`)
+  } catch (error) {
+    console.error(`Error unsubscribing from push notifications for channel ${channelId}:`, error)
+    throw error
   }
 }
 
@@ -387,7 +423,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
 
         // Automatically subscribe to push notifications
-        await subscribeToPushNotifications(channelId, supabaseUrl, supabaseAnonKey)
+        try {
+          await subscribeToPushNotifications(channelId, supabaseUrl, authHeader)
+        } catch (pushError) {
+          console.error("Failed to subscribe to push notifications:", pushError)
+          // Don't fail the main subscription if push subscription fails
+        }
 
         return respondWith({ message: "Subscribed successfully" }, 200)
       }
@@ -423,6 +464,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
             },
             400,
           )
+        }
+
+        // Also unsubscribe from push notifications
+        try {
+          await unsubscribeFromPushNotifications(channelId, supabaseUrl, authHeader)
+        } catch (pushError) {
+          console.error("Failed to unsubscribe from push notifications:", pushError)
+          // Don't fail the main unsubscription if push unsubscription fails
         }
 
         return respondWith({ message: "Unsubscribed successfully" }, 200)

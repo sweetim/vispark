@@ -7,7 +7,6 @@ import {
   subscribeToChannel,
   unsubscribeFromChannel,
 } from "@/services/channel.ts"
-import { subscribeToYouTubePush } from "@/services/youtubePush"
 
 type ChannelInfo = {
   videoCount: number
@@ -101,15 +100,7 @@ const ChannelList = ({
             ...prev,
             [channelId]: true,
           }))
-
-          // Also subscribe to YouTube push notifications
-          try {
-            await subscribeToYouTubePush(channelId)
-            console.log(`Successfully subscribed to push notifications for channel ${channelId}`)
-          } catch (pushError) {
-            console.error("Failed to subscribe to push notifications:", pushError)
-            // Don't fail the main subscription if push subscription fails
-          }
+          // Note: YouTube push notifications are now handled automatically in the backend
         }
       } catch (error) {
         console.error("Failed to toggle subscription:", error)
