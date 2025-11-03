@@ -13,17 +13,20 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Change to vispark-app directory
+        run: cd vispark-app
+
+      - name: Get CWD
+        run: echo "$(pwd)"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           cache: 'npm'
 
-      - name: Change to vispark-app directory
-        run: cd vispark-app
-
       - name: Install dependencies
-        run: echo "$(pwd)" && npm ci
+        run: npm ci
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
