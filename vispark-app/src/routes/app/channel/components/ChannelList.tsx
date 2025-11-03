@@ -32,6 +32,9 @@ const ChannelList = ({
   const [subscriptionStatus, setSubscriptionStatus] = useState<
     Record<string, boolean>
   >({})
+  const [loadingChannels, setLoadingChannels] = useState<
+    Record<string, boolean>
+  >({})
 
   const getChannelId = useCallback((item: YouTubeSearchResult): string => {
     return item.id?.channelId ?? ""
@@ -87,6 +90,12 @@ const ChannelList = ({
 
       const isSubscribed = subscriptionStatus[channelId] ?? false
 
+      // Set loading state for this channel
+      setLoadingChannels((prev) => ({
+        ...prev,
+        [channelId]: true,
+      }))
+
       try {
         if (isSubscribed) {
           await unsubscribeFromChannel(channelId)
@@ -104,6 +113,12 @@ const ChannelList = ({
         }
       } catch (error) {
         console.error("Failed to toggle subscription:", error)
+      } finally {
+        // Clear loading state for this channel
+        setLoadingChannels((prev) => ({
+          ...prev,
+          [channelId]: false,
+        }))
       }
     },
     [user, subscriptionStatus],
@@ -183,6 +198,7 @@ const ChannelList = ({
             const channelThumbnail = getChannelThumbnail(item)
             const channelInfo = channelInfos[channelId]
             const isSubscribed = subscriptionStatus[channelId] ?? false
+            const isLoading = loadingChannels[channelId] ?? false
 
             return (
               <li
@@ -232,18 +248,47 @@ const ChannelList = ({
                       <button
                         type="button"
                         onClick={(e) => handleSubscriptionToggle(e, channelId)}
+                        disabled={isLoading}
                         className={`p-2 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                          isSubscribed
+                          isLoading
+                            ? "bg-gray-500 cursor-not-allowed"
+                            : isSubscribed
                             ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-green-500/25"
                             : "bg-gradient-to-r from-gray-600 to-gray-700 hover:from-indigo-500 hover:to-indigo-600 shadow-md hover:shadow-indigo-500/25 group-hover:scale-105"
                         }`}
                         aria-label={
-                          isSubscribed
+                          isLoading
+                            ? "Processing subscription"
+                            : isSubscribed
                             ? "Unsubscribe from channel"
                             : "Subscribe to channel"
                         }
                       >
-                        {isSubscribed ? (
+                        {isLoading ? (
+                          // Loading spinner
+                          <svg
+                            className="w-4 h-4 text-white animate-spin"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                          >
+                            <title>Loading</title>
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                        ) : isSubscribed ? (
                           // Animated checkmark for subscribed channels
                           <svg
                             className="w-4 h-4 text-white"
