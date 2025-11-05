@@ -1,4 +1,5 @@
 import type { FC } from "react"
+import { decodeHtmlEntities } from "@/utils"
 
 type SummaryListProps = {
   items: string[]
@@ -17,7 +18,7 @@ const SummaryList: FC<SummaryListProps> = ({ items }) => {
             key={`${index}-${item.slice(0, 16)}`}
             className="mb-1"
           >
-            {item}
+            {decodeHtmlEntities(item)}
           </li>
         ))}
       </ul>

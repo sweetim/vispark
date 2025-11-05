@@ -1,4 +1,5 @@
 import { formatDistanceToNow } from "date-fns"
+import { decodeHtmlEntities } from "@/utils"
 import type { VideoMetadata } from "@/services/vispark.ts"
 
 type VideoMetadataCardProps = {
@@ -65,7 +66,7 @@ export default function VideoMetadataCard({
     <>
       <img
         src={imageAddress}
-        alt={`${metadata.title} — ${metadata.channelTitle}`}
+        alt={`${decodeHtmlEntities(metadata.title)} — ${decodeHtmlEntities(metadata.channelTitle)}`}
         className="absolute inset-0 h-full w-full object-cover"
       />
 
@@ -76,7 +77,7 @@ export default function VideoMetadataCard({
           className={`inline-flex h-7 items-center rounded-md px-3 backdrop-blur max-w-full bg-black/30`}
         >
           <p className="text-xs font-medium text-gray-200">
-            {metadata.channelTitle}
+            {decodeHtmlEntities(metadata.channelTitle)}
           </p>
         </div>
         {relativeTimeLabel && (
@@ -93,7 +94,7 @@ export default function VideoMetadataCard({
       <div className="absolute bottom-0 left-0 right-0 p-1 flex justify-start">
         <div className="inline-block max-w-full rounded-md bg-black/30 px-3 py-2 backdrop-blur">
           <h2 className="text-sm font-semibold text-white leading-snug text-left truncate">
-            {metadata.title}
+            {decodeHtmlEntities(metadata.title)}
           </h2>
         </div>
       </div>
@@ -106,7 +107,7 @@ export default function VideoMetadataCard({
         type="button"
         onClick={onClick}
         className={composedClasses}
-        aria-label={`View vispark summary for ${metadata.title} by ${metadata.channelTitle}`}
+        aria-label={`View vispark summary for ${decodeHtmlEntities(metadata.title)} by ${decodeHtmlEntities(metadata.channelTitle)}`}
         aria-pressed={Boolean(isActive)}
       >
         {content}
@@ -119,7 +120,7 @@ export default function VideoMetadataCard({
       href={videoAddress}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`${metadata.title} — ${metadata.channelTitle} on YouTube`}
+      aria-label={`${decodeHtmlEntities(metadata.title)} — ${decodeHtmlEntities(metadata.channelTitle)} on YouTube`}
       className={composedClasses}
       title="Open on YouTube"
     >

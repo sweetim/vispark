@@ -1,4 +1,5 @@
 import type { FC } from "react"
+import { decodeHtmlEntities } from "@/utils"
 
 type TranscriptViewProps = {
   transcript: string
@@ -12,7 +13,7 @@ const TranscriptView: FC<TranscriptViewProps> = ({ transcript }) => {
   return (
     <div>
       <div className="text-sm leading-relaxed whitespace-pre-wrap bg-gray-800 border border-gray-700 rounded-md p-4">
-        {transcript}
+        {decodeHtmlEntities(transcript)}
       </div>
     </div>
   )

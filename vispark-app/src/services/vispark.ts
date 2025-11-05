@@ -1,4 +1,5 @@
 import { supabase } from "@/config/supabaseClient.ts"
+import { decodeHtmlEntities } from "@/utils"
 
 export type TranscriptSegment = {
   text: string
@@ -63,7 +64,7 @@ export const fetchSummary = async (
 
 export const formatTranscript = (segments: TranscriptSegment[]): string =>
   segments
-    .map(({ text }) => text.trim())
+    .map(({ text }) => decodeHtmlEntities(text.trim()))
     .filter((segment) => segment.length > 0)
     .join(" ")
 

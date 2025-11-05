@@ -280,7 +280,7 @@ const ChannelPage = () => {
   }
 
   return (
-    <div ref={scrollContainerRef} className="w-full max-w-3xl h-full space-y-6 overflow-y-auto pb-20">
+    <div ref={scrollContainerRef} className="w-full max-w-3xl h-full space-y-2 overflow-y-auto pb-20">
       {/* Channel Header */}
       {channelDetails && (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">
@@ -331,9 +331,9 @@ const ChannelPage = () => {
       )}
 
       {/* Libraries Section */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div
-          className="flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
+          className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
           onClick={() => setIsLibraryExpanded(!isLibraryExpanded)}
         >
           <div className="flex items-center space-x-3">
@@ -352,7 +352,7 @@ const ChannelPage = () => {
         </div>
 
         {isLibraryExpanded && (
-          <div className="space-y-6 pl-4">
+          <div className="space-y-4 pl-4">
 
         {/* Loading State for Saved Videos */}
         {loadingSavedVideos && (
@@ -387,7 +387,7 @@ const ChannelPage = () => {
 
         {/* Saved Videos Grid */}
         {!loadingSavedVideos && !savedVideosError && hasSavedVideos && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {savedVideos.map((video) => (
               <div
                 key={video.videoId}
@@ -455,9 +455,9 @@ const ChannelPage = () => {
       </div>
 
       {/* Non-Vispark Videos Section */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div
-          className="flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
+          className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
           onClick={() => setIsNonVisparkExpanded(!isNonVisparkExpanded)}
         >
           <div className="flex items-center space-x-3">
@@ -471,7 +471,7 @@ const ChannelPage = () => {
         </div>
 
         {isNonVisparkExpanded && (
-          <div className="space-y-6 pl-4">
+          <div className="space-y-4 pl-4">
             {/* Loading State for Non-Vispark Videos */}
             {loadingNonVisparkVideos && (
               <div className="flex flex-col items-center justify-center py-16">
@@ -505,8 +505,8 @@ const ChannelPage = () => {
 
             {/* Non-Vispark Videos Grid with Virtual Scrolling */}
             {!loadingNonVisparkVideos && !nonVisparkVideosError && hasNonVisparkVideos && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {nonVisparkVideos.map((video) => (
                     <div
                       key={video.videoId}
