@@ -151,7 +151,7 @@ const ChannelPage = () => {
   }
 
   return (
-    <div className="w-full max-w-3xl space-y-6">
+    <div className="w-full max-w-3xl h-full space-y-6 overflow-y-auto pb-20">
       {/* Channel Header */}
       {channelDetails && (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">

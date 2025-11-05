@@ -52,7 +52,7 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4">
+    <div className="flex flex-col items-center justify-center h-full w-full bg-gray-900 text-white p-4">
       <div className="w-full max-w-lg bg-gray-800 rounded-lg shadow-lg p-6 space-y-6">
         <div className="flex flex-col items-center gap-4 text-center">
           {avatarUrl ? (

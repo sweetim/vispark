@@ -1,10 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import type { Database } from "../types/database.ts"
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-hub-signature",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 }
 
 // Verify HMAC signature from YouTube
@@ -13,26 +13,44 @@ const verifyHmacSignature = async (
   signature: string,
   secret: string,
 ): Promise<boolean> => {
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['verify'],
-  )
+  try {
+    // Convert hex signature to bytes
+    const hexSignature = signature.startsWith('sha256=')
+      ? signature.substring(7)
+      : signature
 
-  const signatureBytes = new Uint8Array(
-    signature.split('').map(c => c.charCodeAt(0))
-  )
+    // Validate hex signature format
+    if (!/^[a-fA-F0-9]+$/.test(hexSignature)) {
+      console.error("Invalid hex signature format")
+      return false
+    }
 
-  const isValid = await crypto.subtle.verify(
-    'HMAC',
-    key,
-    signatureBytes,
-    new TextEncoder().encode(payload),
-  )
+    const signatureBytes = new Uint8Array(
+      hexSignature.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []
+    )
 
-  return isValid
+    // Import the secret key
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify'],
+    )
+
+    // Verify the signature
+    const isValid = await crypto.subtle.verify(
+      { name: 'HMAC', hash: 'SHA-256' },
+      key,
+      signatureBytes,
+      new TextEncoder().encode(payload),
+    )
+
+    return isValid
+  } catch (error) {
+    console.error("Error verifying HMAC signature:", error)
+    return false
+  }
 }
 
 // Parse YouTube notification XML
@@ -158,6 +176,12 @@ const storeVispark = async (
 
 Deno.serve(async (req: Request): Promise<Response> => {
   console.log(JSON.stringify(req, null, 2))
+
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders })
+  }
+
   // Handle verification request (GET)
   if (req.method === "GET") {
     const url = new URL(req.url)
@@ -169,7 +193,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     console.log(`PubSubHubbub verification successful for ${mode} to ${topic}`)
     return new Response(challenge, {
       status: 200,
-      headers: { "Content-Type": "text/plain" },
+      headers: {
+        "Content-Type": "text/plain",
+        ...corsHeaders
+      },
     })
   }
 
@@ -179,7 +206,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const signature = req.headers.get("X-Hub-Signature")
       if (!signature) {
         console.error("Missing X-Hub-Signature header")
-        return new Response("Unauthorized", { status: 401 })
+        return new Response("Unauthorized", {
+          status: 401,
+          headers: corsHeaders
+        })
       }
 
       const body = await req.text()
@@ -190,7 +220,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       if (!supabaseUrl || !supabaseServiceKey) {
         console.error("Missing Supabase configuration")
-        return new Response("Internal Server Error", { status: 500 })
+        return new Response("Internal Server Error", {
+          status: 500,
+          headers: corsHeaders
+        })
       }
 
       const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -199,7 +232,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const notification = parseYouTubeNotification(body)
       if (!notification) {
         console.error("Failed to parse YouTube notification")
-        return new Response("Bad Request", { status: 400 })
+        return new Response("Bad Request", {
+          status: 400,
+          headers: corsHeaders
+        })
       }
 
       // Get subscription for this channel
@@ -210,7 +246,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       if (subscriptionError || !subscriptions || subscriptions.length === 0) {
         console.error("No subscription found for channel:", notification.channelId)
-        return new Response("Not Found", { status: 404 })
+        return new Response("Not Found", {
+          status: 404,
+          headers: corsHeaders
+        })
       }
 
       // Verify signature for each subscription (there might be multiple users subscribed to same channel)
@@ -218,7 +257,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       for (const subscription of subscriptions) {
         const isValid = await verifyHmacSignature(
           body,
-          signature.replace('sha256=', ''),
+          signature,
           subscription.hub_secret,
         )
         if (isValid) {
@@ -229,7 +268,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       if (!isValidSignature) {
         console.error("Invalid HMAC signature")
-        return new Response("Unauthorized", { status: 401 })
+        return new Response("Unauthorized", {
+          status: 401,
+          headers: corsHeaders
+        })
       }
 
       // Process notification for each subscribed user
@@ -293,13 +335,22 @@ Deno.serve(async (req: Request): Promise<Response> => {
           .eq("video_id", notification.videoId)
       }
 
-      return new Response("OK", { status: 200 })
+      return new Response("OK", {
+        status: 200,
+        headers: corsHeaders
+      })
     } catch (error) {
       console.error("Error processing YouTube push notification:", error)
-      return new Response("Internal Server Error", { status: 500 })
+      return new Response("Internal Server Error", {
+        status: 500,
+        headers: corsHeaders
+      })
     }
   }
 
   // Handle other methods
-  return new Response("Method Not Allowed", { status: 405 })
+  return new Response("Method Not Allowed", {
+    status: 405,
+    headers: corsHeaders
+  })
 })

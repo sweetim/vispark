@@ -4,7 +4,7 @@ import BottomNavBar from "@/modules/nav/BottomNavBar"
 const AppLayout = () => {
   return (
     <div className="flex flex-col h-screen w-full bg-primary">
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-hidden">
         <Outlet />
       </div>
       <BottomNavBar />

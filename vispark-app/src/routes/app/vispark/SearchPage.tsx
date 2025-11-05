@@ -30,7 +30,7 @@ const VisparkSearchPage = () => {
   }
 
   return (
-    <div className="w-full max-w-3xl space-y-6">
+    <div className="w-full max-w-3xl h-full space-y-6 overflow-y-auto pb-20">
       <div className="sticky top-0 z-10 bg-gray-900 py-4">
         <form
           onSubmit={handleSubmit}

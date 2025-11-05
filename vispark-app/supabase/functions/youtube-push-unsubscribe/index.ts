@@ -39,6 +39,39 @@ const respondWith = (body: ResponseBody, status: number): Response =>
     headers: buildHeaders(),
   })
 
+// Generate a secure random secret for HMAC verification
+const generateHubSecret = (): string => {
+  const array = new Uint8Array(32)
+  crypto.getRandomValues(array)
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
+}
+
+// Unsubscribe from YouTube push notifications via PubSubHubbub
+const unsubscribeFromYouTubePush = async (
+  channelId: string,
+  callbackUrl: string,
+  hubUrl: string,
+): Promise<void> => {
+  const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
+  const hubSecret = generateHubSecret()
+
+  const formData = new FormData()
+  formData.append('hub.mode', 'unsubscribe')
+  formData.append('hub.callback', callbackUrl)
+  formData.append('hub.topic', topicUrl)
+  formData.append('hub.secret', hubSecret)
+
+  const response = await fetch(hubUrl, {
+    method: 'POST',
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`YouTube push unsubscription failed: ${response.status} ${errorText}`)
+  }
+}
+
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders })
@@ -85,6 +118,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")
+  const callbackUrl = Deno.env.get("YOUTUBE_PUSH_CALLBACK_URL")
+  const hubUrl = Deno.env.get("YOUTUBE_PUSH_HUB_URL")
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return respondWith(
@@ -92,6 +127,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
         success: false,
         error: "Server misconfiguration",
         message: "SUPABASE_URL or SUPABASE_ANON_KEY is not set.",
+      },
+      500,
+    )
+  }
+
+  if (!callbackUrl || !hubUrl) {
+    return respondWith(
+      {
+        success: false,
+        error: "Server misconfiguration",
+        message: "YOUTUBE_PUSH_CALLBACK_URL or YOUTUBE_PUSH_HUB_URL is not set.",
       },
       500,
     )
@@ -163,6 +209,38 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     console.log("User authenticated successfully:", user.id)
+
+    // Check if subscription exists before unsubscribing
+    const { data: existingSubscription } = await supabase
+      .from("youtube_push_subscriptions")
+      .select("id")
+      .eq("channel_id", channelId)
+      .eq("user_id", user.id)
+      .single()
+
+    if (!existingSubscription) {
+      return respondWith(
+        {
+          success: false,
+          error: "Not subscribed",
+          message: "You are not subscribed to push notifications for this channel.",
+        },
+        400,
+      )
+    }
+
+    try {
+      // Unsubscribe from YouTube push notifications
+      await unsubscribeFromYouTubePush(
+        channelId,
+        callbackUrl,
+        hubUrl,
+      )
+    } catch (error) {
+      console.error("Failed to unsubscribe from YouTube:", error)
+      // Continue with database deletion even if YouTube unsubscription fails
+      // This prevents orphaned subscriptions in the database
+    }
 
     // Delete subscription from database
     const { error: deleteError } = await supabase

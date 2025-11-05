@@ -54,7 +54,7 @@ const subscribeToYouTubePush = async (
   callbackUrl: string,
   hubUrl: string,
   leaseSeconds: number,
-): Promise<{ subscriptionId: string; expiresAt: string }> => {
+): Promise<{ subscriptionId: string; expiresAt: string; hubSecret: string }> => {
   const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
   const hubSecret = generateHubSecret()
 
@@ -64,7 +64,7 @@ const subscribeToYouTubePush = async (
   formData.append('hub.topic', topicUrl)
   formData.append('hub.secret', hubSecret)
   formData.append('hub.lease_seconds', leaseSeconds.toString())
-
+  console.log(formData)
   const response = await fetch(hubUrl, {
     method: 'POST',
     body: formData,
@@ -80,6 +80,7 @@ const subscribeToYouTubePush = async (
   return {
     subscriptionId: `${channelId}-${Date.now()}`,
     expiresAt,
+    hubSecret,
   }
 }
 
@@ -242,15 +243,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     // Subscribe to YouTube push notifications
-    const { subscriptionId, expiresAt } = await subscribeToYouTubePush(
+    const { subscriptionId, expiresAt, hubSecret } = await subscribeToYouTubePush(
       channelId,
       callbackUrl,
       hubUrl,
       leaseSeconds,
     )
 
-    // Store subscription in database
-    const hubSecret = generateHubSecret()
+    // Store subscription in database with the same hubSecret used for YouTube subscription
     const { error: insertError } = await supabase
       .from("youtube_push_subscriptions")
       .insert({

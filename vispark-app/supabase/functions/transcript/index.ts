@@ -135,20 +135,48 @@ const handlePost = async (req: Request): Promise<Response> => {
 
                 return respondWith(successResponse, 200)
               } else {
-                // Use Supadata for non-local requests
+                // Use Supadata for non-local requests with retry logic
                 const supadata = new Supadata({
                   apiKey: Deno.env.get("SUPADATA_API_KEY") || "",
                 })
 
-                const transcriptResponse = await supadata.youtube.transcript({
-                  videoId: trimmedVideoId,
-                  lang: normalizedLang,
-                })
+                // Retry configuration for rate-limited Supadata API
+                const maxRetries = 3
+                const baseDelay = 1000 // 1 second base delay (matches rate limit)
+
+                let transcriptResponse
+                let lastError
+
+                for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                  try {
+                    transcriptResponse = await supadata.youtube.transcript({
+                      videoId: trimmedVideoId,
+                      lang: normalizedLang,
+                    })
+                    // If successful, break out of retry loop
+                    break
+                  } catch (error) {
+                    lastError = error
+                    console.error(`Supadata API attempt ${attempt + 1} failed:`, error)
+
+                    // If this is the last attempt, don't wait anymore
+                    if (attempt === maxRetries) {
+                      throw error
+                    }
+
+                    // Calculate exponential backoff delay
+                    const delay = baseDelay * Math.pow(2, attempt)
+                    console.log(`Retrying in ${delay}ms...`)
+
+                    // Wait before retrying
+                    await new Promise(resolve => setTimeout(resolve, delay))
+                  }
+                }
 
                 // Convert Supadata response to match our expected format
                 // Supadata returns { lang: string, content: Array<{text, offset, duration, lang}> }
                 const transcript = (
-                  Array.isArray(transcriptResponse.content)
+                  Array.isArray(transcriptResponse?.content)
                     ? transcriptResponse.content
                     : []
                 ).map(

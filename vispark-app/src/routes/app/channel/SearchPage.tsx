@@ -194,7 +194,8 @@ const ChannelSearchPage = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8 pattern-bg min-h-screen">
+    <div className="w-full max-w-4xl mx-auto h-full space-y-8 overflow-y-auto pb-20">
+      <div className="absolute inset-0 pattern-bg -z-10"></div>
       {/* Header Section */}
       <div className="sticky top-0 z-10 animate-slideInFromTop">
         <div className="glass-effect rounded-2xl p-6 shadow-2xl border border-white/10">
@@ -430,7 +431,7 @@ const ChannelSearchPage = () => {
           )}
         </>
       )}
-    </div>
+      </div>
   )
 }
 

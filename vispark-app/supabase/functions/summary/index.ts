@@ -187,7 +187,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  const model = "gpt-5-nano"
+  const model = Deno.env.get("OPEN_AI_MODEL") || "gpt-5-nano"
 
   try {
     const bullets = await summarizeWithOpenAI({
