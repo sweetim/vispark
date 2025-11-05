@@ -26,6 +26,8 @@ type ChannelRequestPayload = {
     | "subscribe"
     | "unsubscribe"
     | "checkSubscription"
+  pageToken?: string
+  maxResults?: number
 }
 
 type ChannelMetadata = {
@@ -52,6 +54,7 @@ type ChannelSuccessResponse = {
   videos?: ChannelVideo[]
   message?: string
   isSubscribed?: boolean
+  nextPageToken?: string
 }
 
 type ChannelErrorResponse = {
@@ -262,15 +265,21 @@ const getAllChannelVideos = async (
   supabase: ReturnType<typeof createClient<Database>>,
   channelId: string,
   apiKey: string,
-): Promise<ChannelVideo[]> => {
+  pageToken?: string,
+  maxResults: number = 10,
+): Promise<{ videos: ChannelVideo[], nextPageToken?: string }> => {
   // First get all videos from the channel
   const videosUrl = new URL("https://www.googleapis.com/youtube/v3/search")
   videosUrl.searchParams.set("part", "snippet")
   videosUrl.searchParams.set("channelId", channelId)
   videosUrl.searchParams.set("type", "video")
   videosUrl.searchParams.set("order", "date")
-  videosUrl.searchParams.set("maxResults", "50")
+  videosUrl.searchParams.set("maxResults", maxResults.toString())
   videosUrl.searchParams.set("key", apiKey)
+
+  if (pageToken) {
+    videosUrl.searchParams.set("pageToken", pageToken)
+  }
 
   const videosResponse = await fetch(videosUrl.toString())
   if (!videosResponse.ok) {
@@ -281,9 +290,10 @@ const getAllChannelVideos = async (
 
   const videosJson = await videosResponse.json()
   const videoItems = videosJson?.items ?? []
+  const nextPageToken = videosJson?.nextPageToken
 
   if (videoItems.length === 0) {
-    return []
+    return { videos: [], nextPageToken }
   }
 
   // Get video IDs
@@ -301,11 +311,11 @@ const getAllChannelVideos = async (
     visparksData?.map((v: { video_id: string }) => v.video_id) ?? [],
   )
 
-  // Map to ChannelVideo format
-  return videoItems
+  // Map to ChannelVideo format, including both videos with and without summaries
+  const videos = videoItems
     .filter(
       (item: { id?: { videoId?: string } }) =>
-        item.id?.videoId && !videosWithSummaries.has(item.id.videoId),
+        item.id?.videoId,
     )
     .map(
       (item: {
@@ -320,9 +330,11 @@ const getAllChannelVideos = async (
         title: item.snippet.title,
         thumbnails: item.snippet.thumbnails,
         publishedAt: item.snippet.publishedAt,
-        hasSummary: false,
+        hasSummary: videosWithSummaries.has(item.id.videoId),
       }),
     )
+
+  return { videos, nextPageToken }
 }
 
 Deno.serve(async (req: Request): Promise<Response> => {
@@ -354,7 +366,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  const { channelId, action } = (payload
+  const { channelId, action, pageToken, maxResults } = (payload
     ?? {}) as Partial<ChannelRequestPayload>
 
   if (typeof channelId !== "string" || channelId.trim().length === 0) {
@@ -450,12 +462,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       case "getAllVideos": {
-        const videos = await getAllChannelVideos(
+        const result = await getAllChannelVideos(
           supabase,
           channelId,
           youtubeApiKey,
+          pageToken,
+          maxResults,
         )
-        return respondWith({ videos }, 200)
+        return respondWith({
+          videos: result.videos,
+          nextPageToken: result.nextPageToken
+        }, 200)
       }
 
       case "updateInfo": {

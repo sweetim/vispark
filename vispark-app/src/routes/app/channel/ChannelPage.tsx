@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState, useRef } from "react"
 import {
   Navigate,
   useNavigate,
@@ -57,6 +57,10 @@ const ChannelPage = () => {
   >([])
   const [loadingNonVisparkVideos, setLoadingNonVisparkVideos] = useState(false)
   const [nonVisparkVideosError, setNonVisparkVideosError] = useState<string | null>(null)
+  const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined)
+  const [hasMoreVideos, setHasMoreVideos] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // State for expandable sections
   const [isLibraryExpanded, setIsLibraryExpanded] = useState(true)
@@ -124,29 +128,77 @@ const ChannelPage = () => {
     }
   }, [channelId])
 
-  const fetchNonVisparkVideos = useCallback(async () => {
-    setLoadingNonVisparkVideos(true)
-    setNonVisparkVideosError(null)
+  const fetchNonVisparkVideos = useCallback(async (reset: boolean = true) => {
+    if (reset) {
+      setLoadingNonVisparkVideos(true)
+      setNonVisparkVideosError(null)
+      setNonVisparkVideos([])
+      setNextPageToken(undefined)
+      setHasMoreVideos(true)
+    } else {
+      setIsLoadingMore(true)
+    }
 
     try {
-      const videos = await getAllChannelVideos(channelId)
-      // Transform the videos to match our state structure
-      const transformedVideos = videos.map(video => ({
-        videoId: video.videoId,
-        title: video.title,
-        thumbnails: video.thumbnails,
-        publishedAt: video.publishedAt,
-      }))
-      setNonVisparkVideos(transformedVideos)
+      let currentPageToken = reset ? undefined : nextPageToken
+      let allNewVideos: Array<{
+        videoId: string
+        title: string
+        thumbnails: {
+          default: { url: string }
+          medium?: { url: string }
+          high: { url: string }
+        }
+        publishedAt: string
+      }> = []
+
+      // Keep fetching until we find at least 10 videos without summaries or run out of pages
+      while (allNewVideos.length < 10 && currentPageToken !== null) {
+        const result = await getAllChannelVideos(channelId, currentPageToken, 50)
+
+        // Filter out videos that already have summaries and transform to match our state structure
+        const newVideos = result.videos
+          .filter(video => !video.hasSummary)
+          .map(video => ({
+            videoId: video.videoId,
+            title: video.title,
+            thumbnails: video.thumbnails,
+            publishedAt: video.publishedAt,
+          }))
+
+        allNewVideos = [...allNewVideos, ...newVideos]
+        currentPageToken = result.nextPageToken
+
+        // If we found enough videos or there's no more pages, break
+        if (allNewVideos.length >= 10 || !currentPageToken) {
+          break
+        }
+      }
+
+      // Limit to 10 videos for display
+      const videosToAdd = allNewVideos.slice(0, 10)
+
+      if (reset) {
+        setNonVisparkVideos(videosToAdd)
+      } else {
+        setNonVisparkVideos(prev => [...prev, ...videosToAdd])
+      }
+
+      setNextPageToken(currentPageToken)
+      setHasMoreVideos(currentPageToken !== null)
     } catch (error) {
       console.error("Failed to fetch non-Vispark videos:", error)
       setNonVisparkVideosError(
         error instanceof Error ? error.message : "Failed to fetch channel videos",
       )
     } finally {
-      setLoadingNonVisparkVideos(false)
+      if (reset) {
+        setLoadingNonVisparkVideos(false)
+      } else {
+        setIsLoadingMore(false)
+      }
     }
-  }, [channelId])
+  }, [channelId, nextPageToken])
 
   const handleSubscriptionToggle = async () => {
     if (!channelId) return
@@ -186,9 +238,34 @@ const ChannelPage = () => {
   // Fetch non-Vispark videos when section is expanded
   useEffect(() => {
     if (channelId.length > 0 && isNonVisparkExpanded && nonVisparkVideos.length === 0) {
-      void fetchNonVisparkVideos()
+      void fetchNonVisparkVideos(true)
     }
   }, [channelId, isNonVisparkExpanded, fetchNonVisparkVideos, nonVisparkVideos.length])
+
+  // Infinite scroll implementation
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!scrollContainerRef.current || !hasMoreVideos || isLoadingMore || !isNonVisparkExpanded) {
+        return
+      }
+
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current
+      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight
+
+      // Load more when user scrolls to 80% of the content
+      if (scrollPercentage > 0.8) {
+        void fetchNonVisparkVideos(false)
+      }
+    }
+
+    const scrollContainer = scrollContainerRef.current
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll)
+      return () => {
+        scrollContainer.removeEventListener('scroll', handleScroll)
+      }
+    }
+  }, [hasMoreVideos, isLoadingMore, isNonVisparkExpanded, fetchNonVisparkVideos])
 
   const hasSavedVideos = savedVideos.length > 0
   const hasNonVisparkVideos = nonVisparkVideos.length > 0
@@ -203,7 +280,7 @@ const ChannelPage = () => {
   }
 
   return (
-    <div className="w-full max-w-3xl h-full space-y-6 overflow-y-auto pb-20">
+    <div ref={scrollContainerRef} className="w-full max-w-3xl h-full space-y-6 overflow-y-auto pb-20">
       {/* Channel Header */}
       {channelDetails && (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">
@@ -269,7 +346,7 @@ const ChannelPage = () => {
           </div>
           {hasSavedVideos && (
             <div className="px-3 py-1 bg-indigo-600 rounded-lg text-white text-sm font-medium">
-              {savedVideos.length} videos
+              {savedVideos.length}
             </div>
           )}
         </div>
@@ -391,11 +468,6 @@ const ChannelPage = () => {
             </div>
             <h2 className="text-xl font-bold text-white">Discover Videos</h2>
           </div>
-          {hasNonVisparkVideos && (
-            <div className="px-3 py-1 bg-purple-600 rounded-lg text-white text-sm font-medium">
-              {nonVisparkVideos.length} videos
-            </div>
-          )}
         </div>
 
         {isNonVisparkExpanded && (
@@ -431,36 +503,51 @@ const ChannelPage = () => {
               </div>
             )}
 
-            {/* Non-Vispark Videos Grid */}
+            {/* Non-Vispark Videos Grid with Virtual Scrolling */}
             {!loadingNonVisparkVideos && !nonVisparkVideosError && hasNonVisparkVideos && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {nonVisparkVideos.map((video) => (
-                  <div
-                    key={video.videoId}
-                    className="group relative transform transition-all duration-300 hover:scale-105"
-                  >
-                    <div className="absolute -inset-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
-                    <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
-                      <VideoMetadataCard
-                        metadata={{
-                          videoId: video.videoId,
-                          title: video.title,
-                          channelId: channelId,
-                          channelTitle: channelDetails?.channelTitle || '',
-                          thumbnails: {
-                            default: video.thumbnails.default,
-                            medium:
-                              video.thumbnails.medium || video.thumbnails.default,
-                            high: video.thumbnails.high,
-                          },
-                        }}
-                        onClick={() =>
-                          navigate(`/app/vispark/search/${video.videoId}`)
-                        }
-                      />
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {nonVisparkVideos.map((video) => (
+                    <div
+                      key={video.videoId}
+                      className="group relative transform transition-all duration-300 hover:scale-105"
+                    >
+                      <div className="absolute -inset-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
+                      <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
+                        <VideoMetadataCard
+                          metadata={{
+                            videoId: video.videoId,
+                            title: video.title,
+                            channelId: channelId,
+                            channelTitle: channelDetails?.channelTitle || '',
+                            thumbnails: {
+                              default: video.thumbnails.default,
+                              medium:
+                                video.thumbnails.medium || video.thumbnails.default,
+                              high: video.thumbnails.high,
+                            },
+                          }}
+                          onClick={() =>
+                            navigate(`/app/vispark/search/${video.videoId}`)
+                          }
+                        />
+                      </div>
                     </div>
+                  ))}
+                </div>
+
+                {/* Loading More Indicator */}
+                {isLoadingMore && (
+                  <div className="flex justify-center pt-4">
+                    <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
                   </div>
-                ))}
+                )}
+
+                {!hasMoreVideos && nonVisparkVideos.length > 0 && (
+                  <div className="text-center py-4 text-gray-400">
+                    <p>No more videos to load</p>
+                  </div>
+                )}
               </div>
             )}
 

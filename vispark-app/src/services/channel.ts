@@ -128,11 +128,14 @@ export const getChannelVideosWithSummaries = async (
  */
 export const getAllChannelVideos = async (
   channelId: string,
-): Promise<ChannelVideo[]> => {
+  pageToken?: string,
+  maxResults: number = 10,
+): Promise<{ videos: ChannelVideo[]; nextPageToken?: string }> => {
   const { data, error } = await supabase.functions.invoke<{
     videos: ChannelVideo[]
+    nextPageToken?: string
   }>("channel", {
-    body: { channelId, action: "getAllVideos" },
+    body: { channelId, action: "getAllVideos", pageToken, maxResults },
   })
 
   if (error) {
@@ -145,7 +148,10 @@ export const getAllChannelVideos = async (
     throw new Error("Unexpected response format from channel service.")
   }
 
-  return data.videos
+  return {
+    videos: data.videos,
+    nextPageToken: data.nextPageToken,
+  }
 }
 
 /**

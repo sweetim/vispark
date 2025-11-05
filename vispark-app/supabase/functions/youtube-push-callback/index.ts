@@ -237,7 +237,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           headers: corsHeaders
         })
       }
-
+      console.log(notification)
       // Get subscription for this channel
       const { data: subscriptions, error: subscriptionError } = await supabase
         .from("youtube_push_subscriptions")
