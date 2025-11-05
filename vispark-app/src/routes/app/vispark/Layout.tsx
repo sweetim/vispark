@@ -79,7 +79,7 @@ const VisparkLayout = () => {
   }, [refreshSavedVisparks])
 
   return (
-    <div className="flex flex-col items-center min-h-screen w-full bg-gray-900 text-white p-2">
+    <div className="flex flex-col items-center h-full w-full bg-gray-900 text-white p-2">
       <Outlet
         context={{
           savedVisparks,

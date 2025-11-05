@@ -21,6 +21,7 @@ type ChannelRequestPayload = {
   action:
     | "getDetails"
     | "getVideosWithSummaries"
+    | "getAllVideos"
     | "updateInfo"
     | "subscribe"
     | "unsubscribe"
@@ -256,6 +257,74 @@ const getChannelVideosWithSummaries = async (
     )
 }
 
+// Get all videos from a channel (both with and without summaries)
+const getAllChannelVideos = async (
+  supabase: ReturnType<typeof createClient<Database>>,
+  channelId: string,
+  apiKey: string,
+): Promise<ChannelVideo[]> => {
+  // First get all videos from the channel
+  const videosUrl = new URL("https://www.googleapis.com/youtube/v3/search")
+  videosUrl.searchParams.set("part", "snippet")
+  videosUrl.searchParams.set("channelId", channelId)
+  videosUrl.searchParams.set("type", "video")
+  videosUrl.searchParams.set("order", "date")
+  videosUrl.searchParams.set("maxResults", "50")
+  videosUrl.searchParams.set("key", apiKey)
+
+  const videosResponse = await fetch(videosUrl.toString())
+  if (!videosResponse.ok) {
+    throw new Error(
+      `YouTube API error: ${videosResponse.status} ${videosResponse.statusText}`,
+    )
+  }
+
+  const videosJson = await videosResponse.json()
+  const videoItems = videosJson?.items ?? []
+
+  if (videoItems.length === 0) {
+    return []
+  }
+
+  // Get video IDs
+  const videoIds = videoItems
+    .map((item: { id?: { videoId?: string } }) => item.id?.videoId)
+    .filter(Boolean)
+
+  // Check which videos have summaries in the visparks table
+  const { data: visparksData } = await supabase
+    .from("visparks")
+    .select("video_id")
+    .in("video_id", videoIds)
+
+  const videosWithSummaries = new Set(
+    visparksData?.map((v: { video_id: string }) => v.video_id) ?? [],
+  )
+
+  // Map to ChannelVideo format
+  return videoItems
+    .filter(
+      (item: { id?: { videoId?: string } }) =>
+        item.id?.videoId && !videosWithSummaries.has(item.id.videoId),
+    )
+    .map(
+      (item: {
+        id: { videoId: string }
+        snippet: {
+          title: string
+          thumbnails: ChannelVideo["thumbnails"]
+          publishedAt: string
+        }
+      }) => ({
+        videoId: item.id.videoId,
+        title: item.snippet.title,
+        thumbnails: item.snippet.thumbnails,
+        publishedAt: item.snippet.publishedAt,
+        hasSummary: false,
+      }),
+    )
+}
+
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders })
@@ -303,6 +372,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     || ![
       "getDetails",
       "getVideosWithSummaries",
+      "getAllVideos",
       "updateInfo",
       "subscribe",
       "unsubscribe",
@@ -313,7 +383,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       {
         error: "Invalid action",
         message:
-          "Action must be one of: getDetails, getVideosWithSummaries, updateInfo, subscribe, unsubscribe, checkSubscription.",
+          "Action must be one of: getDetails, getVideosWithSummaries, getAllVideos, updateInfo, subscribe, unsubscribe, checkSubscription.",
       },
       400,
     )
@@ -372,6 +442,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       case "getVideosWithSummaries": {
         const videos = await getChannelVideosWithSummaries(
+          supabase,
+          channelId,
+          youtubeApiKey,
+        )
+        return respondWith({ videos }, 200)
+      }
+
+      case "getAllVideos": {
+        const videos = await getAllChannelVideos(
           supabase,
           channelId,
           youtubeApiKey,

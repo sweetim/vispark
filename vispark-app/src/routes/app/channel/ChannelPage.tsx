@@ -10,7 +10,7 @@ import {
   fetchYouTubeVideoDetails,
   listVisparksByChannelId,
 } from "@/services/vispark"
-import { isChannelSubscribed, subscribeToChannel, unsubscribeFromChannel } from "@/services/channel"
+import { isChannelSubscribed, subscribeToChannel, unsubscribeFromChannel, getAllChannelVideos } from "@/services/channel"
 import { useToast } from "@/contexts/ToastContext"
 import type { ChannelOutletContext } from "./Layout"
 
@@ -41,6 +41,26 @@ const ChannelPage = () => {
   const [savedVideosError, setSavedVideosError] = useState<string | null>(null)
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
   const [loadingSubscription, setLoadingSubscription] = useState<boolean>(false)
+
+  // State for non-Vispark videos section
+  const [nonVisparkVideos, setNonVisparkVideos] = useState<
+    Array<{
+      videoId: string
+      title: string
+      thumbnails: {
+        default: { url: string }
+        medium?: { url: string }
+        high: { url: string }
+      }
+      publishedAt: string
+    }>
+  >([])
+  const [loadingNonVisparkVideos, setLoadingNonVisparkVideos] = useState(false)
+  const [nonVisparkVideosError, setNonVisparkVideosError] = useState<string | null>(null)
+
+  // State for expandable sections
+  const [isLibraryExpanded, setIsLibraryExpanded] = useState(true)
+  const [isNonVisparkExpanded, setIsNonVisparkExpanded] = useState(false)
 
   useEffect(() => {
     if (channelId.length > 0) {
@@ -104,6 +124,30 @@ const ChannelPage = () => {
     }
   }, [channelId])
 
+  const fetchNonVisparkVideos = useCallback(async () => {
+    setLoadingNonVisparkVideos(true)
+    setNonVisparkVideosError(null)
+
+    try {
+      const videos = await getAllChannelVideos(channelId)
+      // Transform the videos to match our state structure
+      const transformedVideos = videos.map(video => ({
+        videoId: video.videoId,
+        title: video.title,
+        thumbnails: video.thumbnails,
+        publishedAt: video.publishedAt,
+      }))
+      setNonVisparkVideos(transformedVideos)
+    } catch (error) {
+      console.error("Failed to fetch non-Vispark videos:", error)
+      setNonVisparkVideosError(
+        error instanceof Error ? error.message : "Failed to fetch channel videos",
+      )
+    } finally {
+      setLoadingNonVisparkVideos(false)
+    }
+  }, [channelId])
+
   const handleSubscriptionToggle = async () => {
     if (!channelId) return
 
@@ -139,7 +183,15 @@ const ChannelPage = () => {
     }
   }, [channelId, fetchSavedVideos])
 
+  // Fetch non-Vispark videos when section is expanded
+  useEffect(() => {
+    if (channelId.length > 0 && isNonVisparkExpanded && nonVisparkVideos.length === 0) {
+      void fetchNonVisparkVideos()
+    }
+  }, [channelId, isNonVisparkExpanded, fetchNonVisparkVideos, nonVisparkVideos.length])
+
   const hasSavedVideos = savedVideos.length > 0
+  const hasNonVisparkVideos = nonVisparkVideos.length > 0
 
   if (channelId.length === 0) {
     return (
@@ -201,18 +253,29 @@ const ChannelPage = () => {
         </div>
       )}
 
-      {/* Saved Videos List */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-2">Library</h2>
+      {/* Libraries Section */}
+      <div className="space-y-4">
+        <div
+          className="flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
+          onClick={() => setIsLibraryExpanded(!isLibraryExpanded)}
+        >
+          <div className="flex items-center space-x-3">
+            <div className={`transform transition-transform duration-200 ${isLibraryExpanded ? 'rotate-90' : ''}`}>
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-white">Libraries</h2>
           </div>
           {hasSavedVideos && (
-            <div className="px-4 py-2 bg-linear-to-r from-indigo-500 to-purple-500 rounded-lg text-white font-medium shadow-lg">
+            <div className="px-3 py-1 bg-indigo-600 rounded-lg text-white text-sm font-medium">
               {savedVideos.length} videos
             </div>
           )}
         </div>
+
+        {isLibraryExpanded && (
+          <div className="space-y-6 pl-4">
 
         {/* Loading State for Saved Videos */}
         {loadingSavedVideos && (
@@ -308,6 +371,129 @@ const ChannelPage = () => {
                   : "Search for channels and start adding videos to create your personalized library."}
               </p>
             </div>
+          </div>
+        )}
+          </div>
+        )}
+      </div>
+
+      {/* Non-Vispark Videos Section */}
+      <div className="space-y-4">
+        <div
+          className="flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
+          onClick={() => setIsNonVisparkExpanded(!isNonVisparkExpanded)}
+        >
+          <div className="flex items-center space-x-3">
+            <div className={`transform transition-transform duration-200 ${isNonVisparkExpanded ? 'rotate-90' : ''}`}>
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-white">Discover Videos</h2>
+          </div>
+          {hasNonVisparkVideos && (
+            <div className="px-3 py-1 bg-purple-600 rounded-lg text-white text-sm font-medium">
+              {nonVisparkVideos.length} videos
+            </div>
+          )}
+        </div>
+
+        {isNonVisparkExpanded && (
+          <div className="space-y-6 pl-4">
+            {/* Loading State for Non-Vispark Videos */}
+            {loadingNonVisparkVideos && (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-purple-500/30 rounded-full"></div>
+                  <div className="w-16 h-16 border-4 border-purple-500 rounded-full animate-spin border-t-transparent absolute top-0 left-0"></div>
+                </div>
+                <p className="mt-4 text-gray-400 font-medium">
+                  Loading channel videos...
+                </p>
+              </div>
+            )}
+
+            {/* Error State for Non-Vispark Videos */}
+            {nonVisparkVideosError && (
+              <div className="relative overflow-hidden bg-red-500/10 backdrop-blur-sm border border-red-500/30 rounded-xl p-6">
+                <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-red-500 to-pink-500"></div>
+                <div className="flex items-start space-x-3">
+                  <div className="shrink-0 w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
+                    <span className="text-red-400 text-sm">!</span>
+                  </div>
+                  <div>
+                    <h3 className="text-red-400 font-medium mb-1">
+                      Error loading videos
+                    </h3>
+                    <p className="text-red-300/80 text-sm">{nonVisparkVideosError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Non-Vispark Videos Grid */}
+            {!loadingNonVisparkVideos && !nonVisparkVideosError && hasNonVisparkVideos && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {nonVisparkVideos.map((video) => (
+                  <div
+                    key={video.videoId}
+                    className="group relative transform transition-all duration-300 hover:scale-105"
+                  >
+                    <div className="absolute -inset-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
+                    <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
+                      <VideoMetadataCard
+                        metadata={{
+                          videoId: video.videoId,
+                          title: video.title,
+                          channelId: channelId,
+                          channelTitle: channelDetails?.channelTitle || '',
+                          thumbnails: {
+                            default: video.thumbnails.default,
+                            medium:
+                              video.thumbnails.medium || video.thumbnails.default,
+                            high: video.thumbnails.high,
+                          },
+                        }}
+                        onClick={() =>
+                          navigate(`/app/vispark/search/${video.videoId}`)
+                        }
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Empty State for Non-Vispark Videos */}
+            {!loadingNonVisparkVideos && !nonVisparkVideosError && !hasNonVisparkVideos && (
+              <div className="relative overflow-hidden bg-gray-800/30 backdrop-blur-sm border border-dashed border-gray-700 rounded-2xl p-12 text-center">
+                <div className="absolute inset-0 bg-linear-to-br from-purple-500/5 to-pink-500/5"></div>
+                <div className="relative">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-700/50 flex items-center justify-center">
+                    <svg
+                      className="w-10 h-10 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <title>Discover Videos Icon</title>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    No new videos to discover
+                  </h3>
+                  <p className="text-gray-400 max-w-md mx-auto">
+                    All videos from {channelDetails?.channelTitle || 'this channel'} have been summarized. Check back later for new content!
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

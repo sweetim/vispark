@@ -124,6 +124,31 @@ export const getChannelVideosWithSummaries = async (
 }
 
 /**
+ * Get all videos from a channel (both with and without summaries)
+ */
+export const getAllChannelVideos = async (
+  channelId: string,
+): Promise<ChannelVideo[]> => {
+  const { data, error } = await supabase.functions.invoke<{
+    videos: ChannelVideo[]
+  }>("channel", {
+    body: { channelId, action: "getAllVideos" },
+  })
+
+  if (error) {
+    throw new Error(
+      error.message ?? "Failed to fetch channel videos. Please try again.",
+    )
+  }
+
+  if (!data?.videos) {
+    throw new Error("Unexpected response format from channel service.")
+  }
+
+  return data.videos
+}
+
+/**
  * Update channel information in database
  */
 export const updateChannelInfo = async (
