@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.window"]
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["*.ts"]
+    }
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts"
+  },
+  "imports": {
+    "supadata": "npm:@supadata/js",
+    "ts-pattern": "npm:ts-pattern@5.8.0",
+    "youtube-transcript-plus": "npm:youtube-transcript-plus@1.1.1"
+  }
+}

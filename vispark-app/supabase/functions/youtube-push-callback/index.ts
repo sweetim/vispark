@@ -1,5 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { parseFeed } from "https://esm.sh/feedsmith@2.4.0"
+import { createClient } from "supabase"
+import { parseFeed } from "feedsmith"
 
 export type YouTubeFeed = {
   authors: YouTubeAuthor[]
@@ -37,55 +37,10 @@ export const parseYoutubeFeeds = (input: string): YouTubeFeed => {
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-hub-signature",
+    "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 }
 
-// Verify HMAC signature from YouTube
-const verifyHmacSignature = async (
-  payload: string,
-  signature: string,
-  secret: string,
-): Promise<boolean> => {
-  try {
-    // Convert hex signature to bytes
-    const hexSignature = signature.startsWith('sha256=')
-      ? signature.substring(7)
-      : signature
-
-    // Validate hex signature format
-    if (!/^[a-fA-F0-9]+$/.test(hexSignature)) {
-      console.error("Invalid hex signature format")
-      return false
-    }
-
-    const signatureBytes = new Uint8Array(
-      hexSignature.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []
-    )
-
-    // Import the secret key
-    const key = await crypto.subtle.importKey(
-      'raw',
-      new TextEncoder().encode(secret),
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['verify'],
-    )
-
-    // Verify the signature
-    const isValid = await crypto.subtle.verify(
-      { name: 'HMAC', hash: 'SHA-256' },
-      key,
-      signatureBytes,
-      new TextEncoder().encode(payload),
-    )
-
-    return isValid
-  } catch (error) {
-    console.error("Error verifying HMAC signature:", error)
-    return false
-  }
-}
 
 // Parse YouTube notification XML
 const parseYouTubeNotification = (xmlString: string): {
@@ -290,18 +245,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // Handle notification (POST)
   if (req.method === "POST") {
     try {
-      const signature = req.headers.get("X-Hub-Signature")
-      if (!signature) {
-        console.error("Missing X-Hub-Signature header")
-        return new Response("Unauthorized", {
-          status: 401,
-          headers: corsHeaders
-        })
-      }
-
       const body = await req.text()
 
-      // Get subscription details to verify signature
+      // Get subscription details
       const supabaseUrl = Deno.env.get("SUPABASE_URL")
       const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
 
@@ -328,35 +274,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
       // Get subscription for this channel
       const { data: subscriptions, error: subscriptionError } = await supabase
         .from("youtube_push_subscriptions")
-        .select("hub_secret, user_id")
+        .select("user_id")
         .eq("channel_id", notification.channelId)
 
       if (subscriptionError || !subscriptions || subscriptions.length === 0) {
         console.error("No subscription found for channel:", notification.channelId)
         return new Response("Not Found", {
           status: 404,
-          headers: corsHeaders
-        })
-      }
-
-      // Verify signature for each subscription (there might be multiple users subscribed to same channel)
-      let isValidSignature = false
-      for (const subscription of subscriptions) {
-        const isValid = await verifyHmacSignature(
-          body,
-          signature,
-          subscription.hub_secret,
-        )
-        if (isValid) {
-          isValidSignature = true
-          break
-        }
-      }
-
-      if (!isValidSignature) {
-        console.error("Invalid HMAC signature")
-        return new Response("Unauthorized", {
-          status: 401,
           headers: corsHeaders
         })
       }

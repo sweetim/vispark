@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { createClient } from "supabase"
 import type { Database } from "../types/database.ts"
 
 const corsHeaders: Record<string, string> = {

@@ -1,6 +1,6 @@
-import { Supadata } from "npm:@supadata/js"
-import { match, P } from "npm:ts-pattern@5.8.0"
-import { fetchTranscript } from "npm:youtube-transcript-plus@1.1.1"
+import { Supadata } from "supadata"
+import { match, P } from "ts-pattern"
+import { fetchTranscript } from "youtube-transcript-plus"
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
