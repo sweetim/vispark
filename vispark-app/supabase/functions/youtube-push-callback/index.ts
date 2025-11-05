@@ -1,4 +1,38 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { parseFeed } from "https://esm.sh/feedsmith@2.4.0"
+
+export type YouTubeFeed = {
+  authors: YouTubeAuthor[]
+  id: string
+  links: FeedLink[]
+  title: string
+  updated: string
+  entries: YouTubeEntry[]
+}
+
+export type YouTubeAuthor = {
+  name: string
+  uri: string
+}
+
+export type YouTubeEntry = {
+  authors: YouTubeAuthor[]
+  id: string
+  links: FeedLink[]
+  published: string
+  title: string
+  updated: string
+}
+
+export type FeedLink = {
+  href: string
+  rel: string
+}
+
+export const parseYoutubeFeeds = (input: string): YouTubeFeed => {
+  const { feed } = parseFeed(input)
+  return feed as YouTubeFeed
+}
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -61,21 +95,74 @@ const parseYouTubeNotification = (xmlString: string): {
   publishedAt: string
 } | null => {
   try {
-    // Simple XML parsing without external dependencies
-    const videoIdMatch = xmlString.match(/<yt:videoId[^>]*>([^<]+)<\/yt:videoId>/)
-    const channelIdMatch = xmlString.match(/<yt:channelId[^>]*>([^<]+)<\/yt:channelId>/)
-    const titleMatch = xmlString.match(/<title[^>]*>([^<]+)<\/title>/)
-    const publishedMatch = xmlString.match(/<published[^>]*>([^<]+)<\/published>/)
+    const feed = parseYoutubeFeeds(xmlString)
 
-    if (!videoIdMatch || !channelIdMatch || !titleMatch || !publishedMatch) {
+    // Get the first entry (most recent video)
+    if (!feed.entries || feed.entries.length === 0) {
+      console.error("No entries found in YouTube feed")
+      return null
+    }
+
+    const entry = feed.entries[0]
+
+    // Extract video ID from entry ID or link
+    let videoId = ""
+    if (entry.id) {
+      // YouTube video IDs are often in the ID or can be extracted from URLs
+      const videoIdMatch = entry.id.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|video:)([a-zA-Z0-9_-]+)/)
+      if (videoIdMatch) {
+        videoId = videoIdMatch[1]
+      }
+    }
+
+    // If not found in ID, try to extract from links
+    if (!videoId && entry.links) {
+      const videoLink = entry.links.find(link =>
+        link.href && link.href.includes("youtube.com/watch")
+      )
+      if (videoLink) {
+        const videoIdMatch = videoLink.href.match(/[?&]v=([a-zA-Z0-9_-]+)/)
+        if (videoIdMatch) {
+          videoId = videoIdMatch[1]
+        }
+      }
+    }
+
+    // Extract channel ID from feed ID or author URI
+    let channelId = ""
+    if (feed.id) {
+      const channelIdMatch = feed.id.match(/channel_id=([a-zA-Z0-9_-]+)/)
+      if (channelIdMatch) {
+        channelId = channelIdMatch[1]
+      }
+    }
+
+    // If not found in feed ID, try to extract from author URI
+    if (!channelId && feed.authors && feed.authors.length > 0) {
+      const author = feed.authors[0]
+      if (author.uri) {
+        const channelIdMatch = author.uri.match(/channel\/([a-zA-Z0-9_-]+)/)
+        if (channelIdMatch) {
+          channelId = channelIdMatch[1]
+        }
+      }
+    }
+
+    if (!videoId || !channelId || !entry.title || !entry.published) {
+      console.error("Missing required fields in YouTube feed entry", {
+        videoId,
+        channelId,
+        title: entry.title,
+        published: entry.published
+      })
       return null
     }
 
     return {
-      videoId: videoIdMatch[1],
-      channelId: channelIdMatch[1],
-      title: titleMatch[1],
-      publishedAt: publishedMatch[1],
+      videoId,
+      channelId,
+      title: entry.title,
+      publishedAt: entry.published,
     }
   } catch (error) {
     console.error("Error parsing YouTube notification:", error)
