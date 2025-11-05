@@ -3,7 +3,7 @@ import { Outlet } from "react-router"
 
 const RootLayout: FC = () => {
   return (
-    <div className="w-full h-screen bg-primary">
+    <div className="w-full h-dvh bg-primary">
       <Outlet />
     </div>
   )

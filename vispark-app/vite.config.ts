@@ -17,6 +17,7 @@ export default defineConfig({
       pwaAssets: {
         disabled: false,
         config: true,
+        includeHtmlHeadLinks: true,
       },
       manifest: {
         name: "vispark - AI Video Summaries",
@@ -50,7 +51,7 @@ export default defineConfig({
             src: "maskable-icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "maskable",
+            purpose: "any maskable",
           },
         ],
         lang: "en",
