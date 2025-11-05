@@ -15,18 +15,25 @@ import {
 import { Card, Typography } from "antd"
 import type { FC } from "react"
 import { useEffect, useState } from "react"
-import { Link } from "react-router"
+import { Link, Navigate } from "react-router"
+import { useAuth } from "@/modules/auth"
 
 const { Title, Paragraph, Text } = Typography
 
 const LandingPage: FC = () => {
   const [scrollY, setScrollY] = useState(0)
+  const { user, loading } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY)
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // If user is logged in, redirect to app
+  if (!loading && user) {
+    return <Navigate to="/app" replace />
+  }
 
   const features = [
     {
