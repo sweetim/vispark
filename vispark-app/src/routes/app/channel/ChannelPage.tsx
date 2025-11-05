@@ -6,58 +6,38 @@ import {
   useParams,
 } from "react-router"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
-import {
-  fetchYouTubeVideoDetails,
-  listVisparksByChannelId,
-} from "@/services/vispark"
-import { isChannelSubscribed, subscribeToChannel, unsubscribeFromChannel, getAllChannelVideos } from "@/services/channel"
+import { getAllChannelVideos } from "@/services/channel"
+import { useChannelSubscriptionManager, useChannelVideos } from "@/hooks/useChannels"
+import { useChannelVisparksWithMetadata } from "@/hooks/useVisparks"
 import { useToast } from "@/contexts/ToastContext"
 import type { ChannelOutletContext } from "./Layout"
 
 const ChannelPage = () => {
   const navigate = useNavigate()
   const { channelId: rawChannelId } = useParams<{ channelId: string }>()
-  const { channelDetails, refreshChannelData } =
-    useOutletContext<ChannelOutletContext>()
+  const { channelDetails, refreshChannelData } = useOutletContext<ChannelOutletContext>()
   const { showToast } = useToast()
 
   const channelId = (rawChannelId ?? "").trim()
-  const [savedVideos, setSavedVideos] = useState<
-    Array<{
-      videoId: string
-      title: string
-      channelId: string
-      channelTitle: string
-      thumbnails: {
-        default: { url: string }
-        medium?: { url: string }
-        high: { url: string }
-      }
-      summaries?: string[]
-      created_at?: string
-    }>
-  >([])
-  const [loadingSavedVideos, setLoadingSavedVideos] = useState(false)
-  const [savedVideosError, setSavedVideosError] = useState<string | null>(null)
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
-  const [loadingSubscription, setLoadingSubscription] = useState<boolean>(false)
+
+  // SWR hooks for data
+  const { visparks, isLoading: loadingSavedVideos, error: savedVideosError } = useChannelVisparksWithMetadata(channelId)
+  const { isSubscribed, toggleSubscription } = useChannelSubscriptionManager(channelId)
+  const { videos: initialNonVisparkVideos, nextPageToken, isLoading: loadingMoreVideos } = useChannelVideos(channelId)
 
   // State for non-Vispark videos section
-  const [nonVisparkVideos, setNonVisparkVideos] = useState<
-    Array<{
-      videoId: string
-      title: string
-      thumbnails: {
-        default: { url: string }
-        medium?: { url: string }
-        high: { url: string }
-      }
-      publishedAt: string
-    }>
-  >([])
+  const [nonVisparkVideos, setNonVisparkVideos] = useState<Array<{
+    videoId: string
+    title: string
+    thumbnails: {
+      default: { url: string }
+      medium?: { url: string }
+      high: { url: string }
+    }
+    publishedAt: string
+  }>>([])
   const [loadingNonVisparkVideos, setLoadingNonVisparkVideos] = useState(false)
   const [nonVisparkVideosError, setNonVisparkVideosError] = useState<string | null>(null)
-  const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined)
   const [hasMoreVideos, setHasMoreVideos] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -66,74 +46,25 @@ const ChannelPage = () => {
   const [isLibraryExpanded, setIsLibraryExpanded] = useState(true)
   const [isNonVisparkExpanded, setIsNonVisparkExpanded] = useState(false)
 
-  useEffect(() => {
-    if (channelId.length > 0) {
-      void refreshChannelData(channelId)
-    }
-  }, [channelId, refreshChannelData])
+  // Transform visparks to match expected format
+  const savedVideos = visparks.map(vispark => ({
+    videoId: vispark.videoId,
+    title: vispark.metadata.title,
+    channelId: vispark.metadata.channelId,
+    channelTitle: vispark.metadata.channelTitle,
+    thumbnails: vispark.metadata.thumbnails,
+    summaries: vispark.summaries,
+    created_at: vispark.createdTime,
+  }))
 
-  // Check subscription status when channel ID changes
-  useEffect(() => {
-    if (channelId.length > 0) {
-      const checkSubscriptionStatus = async () => {
-        try {
-          const subscribed = await isChannelSubscribed(channelId)
-          setIsSubscribed(subscribed)
-        } catch (error) {
-          console.error("Failed to check subscription status:", error)
-          setIsSubscribed(false)
-        }
-      }
-
-      checkSubscriptionStatus()
-    }
-  }, [channelId])
-
-  const fetchSavedVideos = useCallback(async () => {
-    setLoadingSavedVideos(true)
-    setSavedVideosError(null)
-
-    try {
-      const visparks = await listVisparksByChannelId(channelId)
-
-      // Fetch video metadata for each saved video
-      const videoPromises = visparks.map(async (vispark) => {
-        try {
-          const metadata = await fetchYouTubeVideoDetails(vispark.video_id)
-          return {
-            ...metadata,
-            summaries: vispark.summaries,
-            created_at: vispark.created_at,
-          }
-        } catch (error) {
-          console.error(
-            `Failed to fetch metadata for video ${vispark.video_id}:`,
-            error,
-          )
-          return null
-        }
-      })
-
-      const videos = (await Promise.all(videoPromises)).filter(
-        (video): video is NonNullable<typeof video> => Boolean(video),
-      )
-      setSavedVideos(videos)
-    } catch (error) {
-      console.error("Failed to fetch saved videos:", error)
-      setSavedVideosError(
-        error instanceof Error ? error.message : "Failed to fetch saved videos",
-      )
-    } finally {
-      setLoadingSavedVideos(false)
-    }
-  }, [channelId])
+  // Filter out videos that already have summaries
+  const filteredNonVisparkVideos = initialNonVisparkVideos.filter(video => !video.hasSummary)
 
   const fetchNonVisparkVideos = useCallback(async (reset: boolean = true) => {
     if (reset) {
       setLoadingNonVisparkVideos(true)
       setNonVisparkVideosError(null)
       setNonVisparkVideos([])
-      setNextPageToken(undefined)
       setHasMoreVideos(true)
     } else {
       setIsLoadingMore(true)
@@ -184,7 +115,7 @@ const ChannelPage = () => {
         setNonVisparkVideos(prev => [...prev, ...videosToAdd])
       }
 
-      setNextPageToken(currentPageToken)
+      // Note: setNextPageToken is not needed as we're using SWR's mutate
       setHasMoreVideos(currentPageToken !== null)
     } catch (error) {
       console.error("Failed to fetch non-Vispark videos:", error)
@@ -201,39 +132,20 @@ const ChannelPage = () => {
   }, [channelId, nextPageToken])
 
   const handleSubscriptionToggle = async () => {
-    if (!channelId) return
-
-    setLoadingSubscription(true)
     try {
-      if (isSubscribed) {
-        await unsubscribeFromChannel(channelId)
-        // Note: YouTube push notifications are now handled automatically in backend
-        setIsSubscribed(false)
-        showToast(`Unsubscribed from ${channelDetails?.channelTitle || 'channel'}`, "success")
-        console.log(`Unsubscribed from channel ${channelId}`)
-      } else {
-        await subscribeToChannel(channelId)
-        // Note: YouTube push notifications are now handled automatically in the backend
-        showToast(`Subscribed to ${channelDetails?.channelTitle || 'channel'}`, "success")
-        setIsSubscribed(true)
-        console.log(`Subscribed to channel ${channelId}`)
-      }
+      await toggleSubscription()
+      showToast(
+        `${isSubscribed ? 'Unsubscribed from' : 'Subscribed to'} ${channelDetails?.channelTitle || 'channel'}`,
+        "success"
+      )
     } catch (error) {
       console.error("Failed to toggle subscription:", error)
       showToast(
         `Failed to ${isSubscribed ? 'unsubscribe from' : 'subscribe to'} channel. Please try again.`,
         "error"
       )
-    } finally {
-      setLoadingSubscription(false)
     }
   }
-
-  useEffect(() => {
-    if (channelId.length > 0) {
-      void fetchSavedVideos()
-    }
-  }, [channelId, fetchSavedVideos])
 
   // Fetch non-Vispark videos when section is expanded
   useEffect(() => {
@@ -303,7 +215,7 @@ const ChannelPage = () => {
             <button
               type="button"
               onClick={handleSubscriptionToggle}
-              disabled={loadingSubscription}
+              disabled={false} // Loading state managed by SWR hook
               className={`p-2 rounded-lg transition-colors ${
                 isSubscribed
                   ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
@@ -311,7 +223,7 @@ const ChannelPage = () => {
               }`}
               title={isSubscribed ? "Unsubscribe" : "Subscribe"}
             >
-              {loadingSubscription ? (
+              {false ? ( // Loading state managed by SWR hook
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
               ) : isSubscribed ? (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

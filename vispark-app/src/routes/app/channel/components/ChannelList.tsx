@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { useAuth } from "@/modules/auth/useAuth.ts"
-import type { YouTubeSearchResult } from "@/services/channel.ts"
+import type { YouTubeSearchResult, ChannelMetadata } from "@/services/channel.ts"
 import {
   areChannelsSubscribed,
-  getChannelDetails,
   subscribeToChannel,
   unsubscribeFromChannel,
 } from "@/services/channel.ts"
@@ -14,6 +13,7 @@ type ChannelInfo = {
 
 type ChannelListProps = {
   items: YouTubeSearchResult[]
+  channelDetails?: ChannelMetadata[] // Pre-fetched channel details
   onSelect: (channelId: string) => void
   emptyMessage?: string
 }
@@ -22,19 +22,23 @@ const defaultEmptyMessage = "No channels found."
 
 const ChannelList = ({
   items,
+  channelDetails = [],
   onSelect,
   emptyMessage = defaultEmptyMessage,
 }: ChannelListProps) => {
   const { user } = useAuth()
-  const [channelInfos, setChannelInfos] = useState<Record<string, ChannelInfo>>(
-    {},
-  )
   const [subscriptionStatus, setSubscriptionStatus] = useState<
     Record<string, boolean>
   >({})
   const [loadingChannels, setLoadingChannels] = useState<
     Record<string, boolean>
   >({})
+
+  // Create a map of channel details for easy lookup
+  const channelDetailsMap = channelDetails.reduce((acc, channel) => {
+    acc[channel.channelId] = channel
+    return acc
+  }, {} as Record<string, ChannelMetadata>)
 
   const getChannelId = useCallback((item: YouTubeSearchResult): string => {
     return item.id?.channelId ?? ""
@@ -56,30 +60,20 @@ const ChannelList = ({
   )
 
   const getChannelInfo = useCallback(
-    async (channelId: string): Promise<ChannelInfo> => {
-      if (channelInfos[channelId]) {
-        return channelInfos[channelId]
+    (channelId: string): ChannelInfo => {
+      // Use pre-fetched channel details if available
+      if (channelDetailsMap[channelId]) {
+        return {
+          videoCount: channelDetailsMap[channelId].videoCount,
+        }
       }
 
-      try {
-        const details = await getChannelDetails(channelId)
-        const info: ChannelInfo = {
-          videoCount: details.videoCount,
-        }
-
-        setChannelInfos((prev: Record<string, ChannelInfo>) => ({
-          ...prev,
-          [channelId]: info,
-        }))
-
-        return info
-      } catch {
-        return {
-          videoCount: 0,
-        }
+      // Fallback to default values
+      return {
+        videoCount: 0,
       }
     },
-    [channelInfos],
+    [channelDetailsMap],
   )
 
   const handleSubscriptionToggle = useCallback(
@@ -124,18 +118,10 @@ const ChannelList = ({
     [user, subscriptionStatus],
   )
 
-  // Load channel info and subscription status when component mounts
+  // Load subscription status when component mounts
   useEffect(() => {
-    const loadData = async () => {
-      // Load channel info
-      for (const item of items) {
-        const channelId = getChannelId(item)
-        if (channelId && !channelInfos[channelId]) {
-          await getChannelInfo(channelId)
-        }
-      }
-
-      // Load subscription status in batch
+    const loadSubscriptionStatus = async () => {
+      // Only load subscription status in batch
       if (user) {
         const channelIds = items
           .map(getChannelId)
@@ -155,14 +141,12 @@ const ChannelList = ({
       }
     }
 
-    loadData()
+    loadSubscriptionStatus()
   }, [
     items,
-    channelInfos,
     subscriptionStatus,
     user,
     getChannelId,
-    getChannelInfo,
   ])
 
   return (
@@ -196,7 +180,7 @@ const ChannelList = ({
             const channelId = getChannelId(item)
             const channelTitle = getChannelTitle(item)
             const channelThumbnail = getChannelThumbnail(item)
-            const channelInfo = channelInfos[channelId]
+            const channelInfo = getChannelInfo(channelId)
             const isSubscribed = subscriptionStatus[channelId] ?? false
             const isLoading = loadingChannels[channelId] ?? false
 

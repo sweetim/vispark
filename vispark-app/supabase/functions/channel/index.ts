@@ -17,9 +17,11 @@ const buildHeaders = (): HeadersInit => ({
 })
 
 type ChannelRequestPayload = {
-  channelId: string
+  channelId?: string
+  channelIds?: string[]
   action:
     | "getDetails"
+    | "getBatchDetails"
     | "getVideosWithSummaries"
     | "getAllVideos"
     | "updateInfo"
@@ -51,6 +53,7 @@ type ChannelVideo = {
 
 type ChannelSuccessResponse = {
   channel?: ChannelMetadata
+  channels?: ChannelMetadata[]
   videos?: ChannelVideo[]
   message?: string
   isSubscribed?: boolean
@@ -126,6 +129,79 @@ const fetchChannelFromYouTube = async (
 
   console.log(`Processed channel data:`, channelData)
   return channelData
+}
+
+// Fetch multiple channel details from YouTube API in batch
+const fetchBatchChannelsFromYouTube = async (
+  channelIds: string[],
+  apiKey: string,
+): Promise<ChannelMetadata[]> => {
+  console.log(`Fetching ${channelIds.length} channels from YouTube API`)
+
+  // YouTube API allows up to 50 channel IDs per request
+  const batchSize = 50
+  const batches: string[][] = []
+
+  for (let i = 0; i < channelIds.length; i += batchSize) {
+    batches.push(channelIds.slice(i, i + batchSize))
+  }
+
+  const allChannels: ChannelMetadata[] = []
+
+  for (const batch of batches) {
+    const url = new URL("https://www.googleapis.com/youtube/v3/channels")
+    url.searchParams.set("part", "snippet,statistics")
+    url.searchParams.set("id", batch.join(","))
+    url.searchParams.set("key", apiKey)
+
+    console.log(`YouTube API batch URL: ${url.toString()}`)
+
+    const response = await fetch(url.toString())
+    console.log(`YouTube API batch response status: ${response.status}`)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`YouTube API batch error response: ${errorText}`)
+      throw new Error(
+        `YouTube API error: ${response.status} ${response.statusText}`,
+      )
+    }
+
+    const json = await response.json()
+    console.log(`YouTube API batch response:`, json)
+
+    const items = json?.items ?? []
+
+    for (const item of items) {
+      if (!item?.snippet || !item?.id) continue
+
+      const { title, thumbnails } = item.snippet as {
+        title: string
+        thumbnails: {
+          default: { url: string }
+          medium: { url: string }
+          high: { url: string }
+        }
+      }
+
+      const videoCount = item.statistics?.videoCount
+        ? parseInt(item.statistics.videoCount, 10)
+        : 0
+
+      const channelData = {
+        channelId: item.id,
+        channelTitle: title,
+        channelThumbnailUrl:
+          thumbnails.medium?.url ?? thumbnails.default?.url ?? "",
+        videoCount,
+      }
+
+      allChannels.push(channelData)
+    }
+  }
+
+  console.log(`Processed ${allChannels.length} channel details`)
+  return allChannels
 }
 
 // Subscribe to YouTube push notifications
@@ -366,23 +442,37 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  const { channelId, action, pageToken, maxResults } = (payload
+  const { channelId, channelIds, action, pageToken, maxResults } = (payload
     ?? {}) as Partial<ChannelRequestPayload>
 
-  if (typeof channelId !== "string" || channelId.trim().length === 0) {
-    return respondWith(
-      {
-        error: "Missing fields",
-        message: "The request body must include a non-empty channelId.",
-      },
-      400,
-    )
+  // Validate based on action type
+  if (action === "getBatchDetails") {
+    if (!Array.isArray(channelIds) || channelIds.length === 0) {
+      return respondWith(
+        {
+          error: "Missing fields",
+          message: "The request body must include a non-empty channelIds array for getBatchDetails action.",
+        },
+        400,
+      )
+    }
+  } else {
+    if (typeof channelId !== "string" || channelId.trim().length === 0) {
+      return respondWith(
+        {
+          error: "Missing fields",
+          message: "The request body must include a non-empty channelId.",
+        },
+        400,
+      )
+    }
   }
 
   if (
     !action
     || ![
       "getDetails",
+      "getBatchDetails",
       "getVideosWithSummaries",
       "getAllVideos",
       "updateInfo",
@@ -395,7 +485,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       {
         error: "Invalid action",
         message:
-          "Action must be one of: getDetails, getVideosWithSummaries, getAllVideos, updateInfo, subscribe, unsubscribe, checkSubscription.",
+          "Action must be one of: getDetails, getBatchDetails, getVideosWithSummaries, getAllVideos, updateInfo, subscribe, unsubscribe, checkSubscription.",
       },
       400,
     )
@@ -435,9 +525,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
   })
 
   try {
-    console.log(
-      `Processing request for action: ${action}, channelId: ${channelId}`,
-    )
+    if (action === "getBatchDetails") {
+      console.log(
+        `Processing request for action: ${action}, channelIds: ${channelIds?.join(", ")}`,
+      )
+    } else {
+      console.log(
+        `Processing request for action: ${action}, channelId: ${channelId}`,
+      )
+    }
 
     switch (action) {
       case "getDetails": {
@@ -452,10 +548,22 @@ Deno.serve(async (req: Request): Promise<Response> => {
         return respondWith({ channel: channelData }, 200)
       }
 
+      case "getBatchDetails": {
+        console.log(`Fetching ${channelIds!.length} channels from YouTube API`)
+        // Fetch all channels in batch
+        const channelsData = await fetchBatchChannelsFromYouTube(
+          channelIds!,
+          youtubeApiKey,
+        )
+        console.log(`Successfully fetched batch channel data:`, channelsData)
+
+        return respondWith({ channels: channelsData }, 200)
+      }
+
       case "getVideosWithSummaries": {
         const videos = await getChannelVideosWithSummaries(
           supabase,
-          channelId,
+          channelId!,
           youtubeApiKey,
         )
         return respondWith({ videos }, 200)
@@ -464,7 +572,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       case "getAllVideos": {
         const result = await getAllChannelVideos(
           supabase,
-          channelId,
+          channelId!,
           youtubeApiKey,
           pageToken,
           maxResults,
@@ -504,7 +612,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
         // Add subscription
         const { error } = await supabase.from("channels").upsert({
-          channel_id: channelId,
+          channel_id: channelId!,
           user_id: user.id,
         })
 
@@ -520,7 +628,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
         // Automatically subscribe to push notifications
         try {
-          await subscribeToPushNotifications(channelId, supabaseUrl, authHeader)
+          await subscribeToPushNotifications(channelId!, supabaseUrl, authHeader)
         } catch (pushError) {
           console.error("Failed to subscribe to push notifications:", pushError)
           // Don't fail the main subscription if push subscription fails
@@ -549,7 +657,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const { error } = await supabase
           .from("channels")
           .delete()
-          .eq("channel_id", channelId)
+          .eq("channel_id", channelId!)
           .eq("user_id", user.id)
 
         if (error) {
@@ -564,7 +672,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
         // Also unsubscribe from push notifications
         try {
-          await unsubscribeFromPushNotifications(channelId, supabaseUrl, authHeader)
+          await unsubscribeFromPushNotifications(channelId!, supabaseUrl, authHeader)
         } catch (pushError) {
           console.error("Failed to unsubscribe from push notifications:", pushError)
           // Don't fail the main unsubscription if push unsubscription fails
@@ -587,7 +695,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const { data, error } = await supabase
           .from("channels")
           .select("id")
-          .eq("channel_id", channelId)
+          .eq("channel_id", channelId!)
           .eq("user_id", user.id)
           .single()
 

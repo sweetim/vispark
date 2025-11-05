@@ -1,11 +1,6 @@
-import { type FormEvent, useEffect, useId, useMemo, useState } from "react"
+import { type FormEvent, useId, useMemo, useState } from "react"
 import { useNavigate } from "react-router"
-import type { YouTubeSearchResult } from "@/hooks/useYoutubeSearch"
-import {
-  type ChannelMetadata,
-  getSubscribedChannels,
-  searchChannels,
-} from "@/services/channel.ts"
+import { useSubscribedChannels, useChannelSearch } from "@/hooks/useChannels"
 import ChannelList from "./components/ChannelList"
 
 const SearchIcon = () => (
@@ -104,35 +99,13 @@ const EmptyStateIllustration = ({
 const ChannelSearchPage = () => {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<YouTubeSearchResult[]>([])
-  const [subscribedChannels, setSubscribedChannels] = useState<
-    ChannelMetadata[]
-  >([])
-  const [loading, setLoading] = useState(false)
-  const [loadingSubscriptions, setLoadingSubscriptions] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
   const reactId = useId()
   const inputId = useMemo(() => `channel-search-${reactId}`, [reactId])
 
-  // Load subscribed channels on component mount
-  useEffect(() => {
-    const loadSubscribedChannels = async () => {
-      setLoadingSubscriptions(true)
-      try {
-        const channels = await getSubscribedChannels()
-        setSubscribedChannels(channels)
-      } catch (error) {
-        console.error("Failed to load subscribed channels:", error)
-        // Set empty array to prevent infinite loading state
-        setSubscribedChannels([])
-      } finally {
-        setLoadingSubscriptions(false)
-      }
-    }
-
-    loadSubscribedChannels()
-  }, [])
+  // SWR hooks for data
+  const { channels: subscribedChannels, isLoading: loadingSubscriptions, error: subscriptionError } = useSubscribedChannels()
+  const { searchResults, isLoading: loadingSearch, error: searchError, mutate: mutateSearch } = useChannelSearch(searchQuery, hasSearched)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -141,34 +114,18 @@ const ChannelSearchPage = () => {
       return
     }
 
-    setLoading(true)
-    setError(null)
     setHasSearched(true)
-
-    try {
-      const results = await searchChannels(trimmedQuery)
-      setSearchResults(results)
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred while searching for channels."
-      setError(message)
-      setSearchResults([])
-    } finally {
-      setLoading(false)
-    }
+    // SWR will automatically handle the search
   }
 
   const handleChannelClick = (channelId: string) => {
     navigate(`/app/channel/${channelId}`)
   }
 
-
   // Convert ChannelMetadata to YouTubeSearchResult format for ChannelList
   const convertToYouTubeSearchResult = (
-    channel: ChannelMetadata,
-  ): YouTubeSearchResult => {
+    channel: any, // Using any to avoid type conflicts
+  ) => {
     return {
       etag: channel.channelId,
       id: {
@@ -192,6 +149,9 @@ const ChannelSearchPage = () => {
       },
     }
   }
+
+  const error = searchError || subscriptionError
+  const loading = loadingSearch || loadingSubscriptions
 
   return (
     <div className="w-full max-w-4xl mx-auto h-full space-y-8 overflow-y-auto pb-20">
@@ -305,6 +265,7 @@ const ChannelSearchPage = () => {
                 </div>
                 <ChannelList
                   items={subscribedChannels.map(convertToYouTubeSearchResult)}
+                  channelDetails={subscribedChannels}
                   onSelect={handleChannelClick}
                 />
               </div>
@@ -402,7 +363,8 @@ const ChannelSearchPage = () => {
                   </span>
                 </div>
                 <ChannelList
-                  items={searchResults}
+                  items={searchResults.map(convertToYouTubeSearchResult)}
+                  channelDetails={searchResults}
                   onSelect={handleChannelClick}
                 />
               </div>

@@ -201,11 +201,13 @@ const storeVispark = async (
   try {
     const { error } = await supabase
       .from("visparks")
-      .insert({
+      .upsert({
         user_id: userId,
         video_id: videoId,
         video_channel_id: channelId,
         summaries,
+      }, {
+        onConflict: 'user_id,video_id',
       })
 
     if (error) {

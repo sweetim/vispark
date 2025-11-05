@@ -6,6 +6,7 @@ import { RouterProvider } from "react-router"
 import { router } from "@/config/router.tsx"
 import { AuthProvider } from "@/modules/auth"
 import { ToastProvider } from "@/contexts/ToastContext"
+import { SWRProvider } from "@/config/swrConfig"
 import { registerServiceWorker } from "./service-worker-registration"
 import "./index.css"
 
@@ -20,11 +21,13 @@ createRoot(document.getElementById("root")!).render(
         algorithm: theme.darkAlgorithm,
       }}
     >
-      <AuthProvider>
-        <ToastProvider>
-          <RouterProvider router={router} />
-        </ToastProvider>
-      </AuthProvider>
+      <SWRProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
+        </AuthProvider>
+      </SWRProvider>
     </ConfigProvider>
   </StrictMode>,
 )

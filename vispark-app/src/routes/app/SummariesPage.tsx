@@ -1,10 +1,7 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { useNavigate } from "react-router"
-import {
-  fetchYouTubeVideoDetails,
-  getBestThumbnailUrl,
-  listVisparks,
-} from "@/services/vispark.ts"
+import { getBestThumbnailUrl } from "@/services/vispark.ts"
+import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 
 type ChannelGroupEntry = {
   id: string
@@ -106,10 +103,58 @@ const LoadingSkeleton = () => (
 )
 
 const SummariesPage = () => {
-  const [groups, setGroups] = useState<ChannelGroup[]>([])
-  const [status, setStatus] = useState<FetchStatus>("idle")
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
+  const { visparks, isLoading, error } = useVisparksWithMetadata(200)
+
+  // Group visparks by channel
+  const groups = useMemo(() => {
+    const groupedMap = new Map<string, ChannelGroup>()
+
+    for (const vispark of visparks) {
+      const channelTitle = vispark.metadata.channelTitle
+      const existing = groupedMap.get(channelTitle)
+
+      if (existing) {
+        existing.entries.push({
+          id: vispark.id,
+          videoId: vispark.videoId,
+          videoTitle: vispark.metadata.title,
+          channelTitle: vispark.metadata.channelTitle,
+          channelId: vispark.metadata.channelId,
+          createdTime: vispark.createdTime,
+          thumbnailUrl: getBestThumbnailUrl(vispark.metadata.thumbnails) || fallbackThumbnailUrl(vispark.videoId),
+        })
+      } else {
+        groupedMap.set(channelTitle, {
+          channelTitle: vispark.metadata.channelTitle,
+          channelId: vispark.metadata.channelId,
+          entries: [{
+            id: vispark.id,
+            videoId: vispark.videoId,
+            videoTitle: vispark.metadata.title,
+            channelTitle: vispark.metadata.channelTitle,
+            channelId: vispark.metadata.channelId,
+            createdTime: vispark.createdTime,
+            thumbnailUrl: getBestThumbnailUrl(vispark.metadata.thumbnails) || fallbackThumbnailUrl(vispark.videoId),
+          }],
+        })
+      }
+    }
+
+    // Sort entries within each group by creation time (newest first)
+    for (const group of groupedMap.values()) {
+      group.entries.sort((a, b) =>
+        new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime()
+      )
+    }
+
+    // Sort groups by latest entry time
+    return Array.from(groupedMap.values()).sort((a, b) => {
+      const latestA = new Date(a.entries[0]?.createdTime ?? 0).getTime()
+      const latestB = new Date(b.entries[0]?.createdTime ?? 0).getTime()
+      return latestB - latestA
+    })
+  }, [visparks])
 
   const stats = useMemo(() => {
     const allEntries = groups.flatMap((group) => group.entries)
@@ -139,130 +184,8 @@ const SummariesPage = () => {
     }
   }, [groups])
 
-  useEffect(() => {
-    let cancelled = false
-
-    const loadSummaries = async () => {
-      setStatus("loading")
-      setErrorMessage(null)
-
-      try {
-        const rows = await listVisparks(200)
-
-        if (cancelled) {
-          return
-        }
-
-        if (rows.length === 0) {
-          setGroups([])
-          setStatus("success")
-          return
-        }
-
-        const metadataCache = new Map<
-          string,
-          Awaited<ReturnType<typeof fetchYouTubeVideoDetails>>
-        >()
-
-        const entries = await Promise.all(
-          rows.map(async (row) => {
-            if (cancelled) {
-              return null
-            }
-
-            let metadata = metadataCache.get(row.video_id) ?? null
-
-            if (!metadata) {
-              try {
-                metadata = await fetchYouTubeVideoDetails(row.video_id)
-                metadataCache.set(row.video_id, metadata)
-              } catch (metadataError) {
-                if (import.meta.env.DEV && metadataError) {
-                  console.warn(
-                    "Failed to fetch YouTube metadata:",
-                    metadataError,
-                  )
-                }
-              }
-            }
-
-            const thumbnailUrl = metadata?.thumbnails
-              ? getBestThumbnailUrl(metadata.thumbnails)
-              : fallbackThumbnailUrl(row.video_id)
-
-            return {
-              id: row.id,
-              videoId: row.video_id,
-              videoTitle: metadata?.title ?? `Video ${row.video_id}`,
-              channelTitle: metadata?.channelTitle?.trim() ?? "Unknown Channel",
-              channelId: metadata?.channelId ?? row.video_channel_id ?? "",
-              createdTime: row.created_at,
-              thumbnailUrl: thumbnailUrl || fallbackThumbnailUrl(row.video_id),
-            } satisfies ChannelGroupEntry
-          }),
-        )
-
-        if (cancelled) {
-          return
-        }
-
-        const filteredEntries = entries.filter(
-          (entry): entry is ChannelGroupEntry => entry !== null,
-        )
-
-        const groupedMap = new Map<string, ChannelGroup>()
-
-        for (const entry of filteredEntries) {
-          const existing = groupedMap.get(entry.channelTitle)
-
-          if (existing) {
-            existing.entries.push(entry)
-          } else {
-            groupedMap.set(entry.channelTitle, {
-              channelTitle: entry.channelTitle,
-              channelId: entry.channelId,
-              entries: [entry],
-            })
-          }
-        }
-
-        const grouped = Array.from(groupedMap.values()).map((group) => ({
-          ...group,
-          entries: group.entries.sort(
-            (a, b) =>
-              new Date(b.createdTime).getTime()
-              - new Date(a.createdTime).getTime(),
-          ),
-        }))
-
-        const sortedGroups = grouped.sort((a, b) => {
-          const latestA = new Date(a.entries[0]?.createdTime ?? 0).getTime()
-          const latestB = new Date(b.entries[0]?.createdTime ?? 0).getTime()
-          return latestB - latestA
-        })
-
-        setGroups(sortedGroups)
-        setStatus("success")
-      } catch (error) {
-        if (cancelled) {
-          return
-        }
-
-        setStatus("error")
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "Failed to load vispark summaries. Please try again.",
-        )
-      }
-    }
-
-    void loadSummaries()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const status = isLoading ? "loading" : error ? "error" : "success"
+  const errorMessage = error instanceof Error ? error.message : null
 
   return (
     <div className="relative h-full overflow-hidden bg-slate-950">

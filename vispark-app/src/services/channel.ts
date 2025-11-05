@@ -99,6 +99,36 @@ export const getChannelDetails = async (
 }
 
 /**
+ * Get multiple channel details in a single batch request
+ */
+export const getBatchChannelDetails = async (
+  channelIds: string[],
+): Promise<ChannelMetadata[]> => {
+  if (channelIds.length === 0) {
+    return []
+  }
+
+  const { data, error } = await supabase.functions.invoke<{
+    channels: ChannelMetadata[]
+  }>("channel", {
+    body: { channelIds, action: "getBatchDetails" },
+  })
+
+  if (error) {
+    throw new Error(
+      error.message
+        ?? "Failed to fetch batch channel details. Please try again.",
+    )
+  }
+
+  if (!data?.channels) {
+    throw new Error("Unexpected response format from channel service.")
+  }
+
+  return data.channels
+}
+
+/**
  * Get videos from a channel that have summaries
  */
 export const getChannelVideosWithSummaries = async (
@@ -291,38 +321,67 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
     data.map((c) => c.channel_id),
   )
 
-  // Fetch channel details from YouTube API for each subscribed channel
-  const channelPromises = data.map(async (channel) => {
-    try {
-      console.log(`Fetching details for channel ${channel.channel_id}`)
-      const channelDetails = await getChannelDetails(channel.channel_id)
-      console.log(
-        `Successfully fetched details for ${channel.channel_id}:`,
-        channelDetails,
-      )
-      return {
-        ...channelDetails,
-        isSubscribed: true,
-      }
-    } catch (error) {
-      console.error(
-        `Failed to fetch details for channel ${channel.channel_id}:`,
-        error,
-      )
-      // Return a basic channel object even if API call fails
-      return {
-        channelId: channel.channel_id,
-        channelTitle: "Unknown Channel",
-        channelThumbnailUrl: "",
-        videoCount: 0,
-        isSubscribed: true,
-      }
-    }
-  })
+  // Extract channel IDs
+  const channelIds = data.map((channel) => channel.channel_id)
 
-  const channels = await Promise.all(channelPromises)
-  console.log("Final channels array:", channels)
-  return channels
+  if (channelIds.length === 0) {
+    return []
+  }
+
+  console.log("Fetching batch details for subscribed channel IDs:", channelIds)
+
+  try {
+    // Fetch all channel details in a single batch request
+    const batchChannels = await getBatchChannelDetails(channelIds)
+    console.log("Successfully fetched batch channel details:", batchChannels)
+
+    // Mark all channels as subscribed
+    const channels = batchChannels.map((channel) => ({
+      ...channel,
+      isSubscribed: true,
+    }))
+
+    console.log("Final channels array:", channels)
+    return channels
+  } catch (error) {
+    console.error(
+      "Failed to fetch batch channel details, falling back to individual requests:",
+      error,
+    )
+
+    // Fallback to individual requests if batch fails
+    const channelPromises = data.map(async (channel) => {
+      try {
+        console.log(`Fetching details for channel ${channel.channel_id}`)
+        const channelDetails = await getChannelDetails(channel.channel_id)
+        console.log(
+          `Successfully fetched details for ${channel.channel_id}:`,
+          channelDetails,
+        )
+        return {
+          ...channelDetails,
+          isSubscribed: true,
+        }
+      } catch (error) {
+        console.error(
+          `Failed to fetch details for channel ${channel.channel_id}:`,
+          error,
+        )
+        // Return a basic channel object even if API call fails
+        return {
+          channelId: channel.channel_id,
+          channelTitle: "Unknown Channel",
+          channelThumbnailUrl: "",
+          videoCount: 0,
+          isSubscribed: true,
+        }
+      }
+    })
+
+    const channels = await Promise.all(channelPromises)
+    console.log("Final channels array (fallback):", channels)
+    return channels
+  }
 }
 
 /**

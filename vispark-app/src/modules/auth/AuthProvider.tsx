@@ -36,11 +36,15 @@ export type AuthContextValue = {
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     let isMounted = true
 
     const bootstrapSession = async () => {
+      // Prevent multiple initializations
+      if (initialized) return
+
       const { data, error } = await supabase.auth.getSession()
 
       if (!isMounted) return
@@ -53,6 +57,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       }
 
       setLoading(false)
+      setInitialized(true)
     }
 
     bootstrapSession()
@@ -71,7 +76,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [])
+  }, [initialized])
 
   const signInWithPassword = useCallback(
     async ({ email, password }: { email: string; password: string }) => {
