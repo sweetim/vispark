@@ -105,7 +105,7 @@ const ChannelSearchPage = () => {
 
   // SWR hooks for data
   const { channels: subscribedChannels, isLoading: loadingSubscriptions, error: subscriptionError } = useSubscribedChannels()
-  const { searchResults, isLoading: loadingSearch, error: searchError } = useChannelSearch(searchQuery, hasSearched)
+  const { searchResults, isLoading: loadingSearch, error: searchError } = useChannelSearch(hasSearched ? searchQuery : "", hasSearched)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
