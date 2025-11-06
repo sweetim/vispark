@@ -26,10 +26,10 @@ export default defineConfig({
         theme_color: "#101828",
         background_color: "#101828",
         display: "standalone",
-        display_override: ["window-controls-overlay", "standalone"],
+        // display_override: ["window-controls-overlay", "standalone"],
         orientation: "portrait-primary",
         scope: "/",
-        start_url: "/?standalone=true",
+        start_url: "/",
         icons: [
           {
             src: "pwa-64x64.png",
