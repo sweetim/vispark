@@ -30,7 +30,7 @@ const ViewToggle: FC<ViewToggleProps> = ({
           type="button"
           onClick={() => handleSelect("summary", !hasSummary)}
           disabled={!hasSummary}
-          className={`px-3 py-1 text-sm rounded [&:not(:disabled)]:hover:bg-gray-700 transition ${
+          className={`px-3 py-1 text-sm rounded not-disabled:hover:bg-gray-700 transition ${
             view === "summary" ? "bg-indigo-600 text-white" : "text-gray-300"
           } disabled:opacity-40 disabled:cursor-not-allowed`}
         >
@@ -40,7 +40,7 @@ const ViewToggle: FC<ViewToggleProps> = ({
           type="button"
           onClick={() => handleSelect("transcript", !hasTranscript)}
           disabled={!hasTranscript}
-          className={`px-3 py-1 text-sm rounded [&:not(:disabled)]:hover:bg-gray-700 transition ${
+          className={`px-3 py-1 text-sm rounded not-disabled:hover:bg-gray-700 transition ${
             view === "transcript" ? "bg-indigo-600 text-white" : "text-gray-300"
           } disabled:opacity-40 disabled:cursor-not-allowed`}
         >

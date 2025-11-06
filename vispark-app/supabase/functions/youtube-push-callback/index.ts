@@ -248,12 +248,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "POST") {
     try {
       const body = await req.text()
-
+      console.log(body)
       // Get subscription details
       const supabaseUrl = Deno.env.get("SUPABASE_URL")
-      const supabaseSecretKey = Deno.env.get("SECRET_KEY")
+      const supabaseServiceRoleKey = Deno.env.get("NEW_SUPABASE_SERVICE_ROLE_KEY")
 
-      if (!supabaseUrl || !supabaseSecretKey) {
+      if (!supabaseUrl || !supabaseServiceRoleKey) {
         console.error("Missing Supabase configuration")
         return new Response("Internal Server Error", {
           status: 500,
@@ -261,7 +261,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         })
       }
 
-      const supabase = createClient(supabaseUrl, supabaseSecretKey)
+      const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
 
       // Parse notification to get channel ID
       const notification = parseYouTubeNotification(body)
@@ -312,7 +312,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const transcriptSegments = await triggerTranscriptGeneration(
           notification.videoId,
           supabaseUrl,
-          supabaseSecretKey,
+          supabaseServiceRoleKey,
         )
 
         // Trigger summary generation if transcript was successful
@@ -321,7 +321,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             notification.videoId,
             transcriptSegments,
             supabaseUrl,
-            supabaseSecretKey,
+            supabaseServiceRoleKey,
           )
 
           // Store the vispark with summary

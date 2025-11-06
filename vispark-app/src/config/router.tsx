@@ -15,6 +15,8 @@ import {
   VisparkLayout,
   VisparkSearchPage,
   VisparkVideoPage,
+  WalletLayout,
+  WalletPage,
 } from "@/routes"
 
 export const router = createBrowserRouter([
@@ -99,6 +101,16 @@ export const router = createBrowserRouter([
           {
             path: "settings",
             element: <SettingsPage />,
+          },
+          {
+            path: "wallet",
+            element: <WalletLayout />,
+            children: [
+              {
+                index: true,
+                element: <WalletPage />,
+              },
+            ],
           },
         ],
       },
