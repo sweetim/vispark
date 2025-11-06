@@ -1,0 +1,33 @@
+{
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account settings and preferences",
+    "anonymousUser": "Anonymous User",
+    "avatarAlt": "{{name}} avatar",
+    "profile": "Profile",
+    "account": "Account",
+    "preferences": "Preferences",
+    "logout": "Log out",
+    "signingOut": "Signing out...",
+    "signOutError": "Failed to sign out. Please try again.",
+    "unexpectedError": "Unexpected error during sign out.",
+    "language": "Language",
+    "english": "English",
+    "japanese": "Japanese",
+    "accountInfo": "Account Information",
+    "email": "Email",
+    "memberSince": "Member Since",
+    "accountType": "Account Type",
+    "personal": "Personal",
+    "notifications": "Notifications",
+    "emailNotifications": "Email Notifications",
+    "pushNotifications": "Push Notifications",
+    "security": "Security",
+    "changePassword": "Change Password",
+    "twoFactorAuth": "Two-Factor Authentication",
+    "privacy": "Privacy",
+    "dataUsage": "Data Usage",
+    "exportData": "Export Data",
+    "deleteAccount": "Delete Account"
+  }
+}

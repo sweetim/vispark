@@ -1,2 +1,5 @@
+export { default as AccountPage } from "./AccountPage"
 export { default as SettingsLayout } from "./Layout"
+export { default as PreferencesPage } from "./PreferencesPage"
+export { default as ProfilePage } from "./ProfilePage"
 export { default as SettingsPage } from "./SettingsPage"

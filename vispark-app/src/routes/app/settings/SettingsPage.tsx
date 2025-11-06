@@ -1,10 +1,12 @@
 import { useState } from "react"
 import { useNavigate } from "react-router"
 import { useAuth } from "@/modules/auth"
+import { useTranslation } from "react-i18next"
 
 const SettingsPage = () => {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [signingOut, setSigningOut] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState(false)
@@ -14,7 +16,7 @@ const SettingsPage = () => {
     ?? user?.user_metadata?.name
     ?? user?.user_metadata?.user_name
     ?? user?.email
-    ?? "Anonymous User"
+    ?? t("settings.anonymousUser")
 
   const rawAvatarUrl =
     user?.user_metadata?.avatar_url
@@ -34,7 +36,7 @@ const SettingsPage = () => {
       const error = await signOut()
       if (error) {
         setErrorMessage(
-          error.message ?? "Failed to sign out. Please try again.",
+          error.message ?? t("settings.signOutError"),
         )
         setSigningOut(false)
         return
@@ -45,49 +47,99 @@ const SettingsPage = () => {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "Unexpected error during sign out.",
+          : t("settings.unexpectedError"),
       )
       setSigningOut(false)
     }
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full bg-gray-900 text-white p-4">
-      <div className="w-full max-w-lg bg-gray-800 rounded-lg shadow-lg p-6 space-y-6">
-        <div className="flex flex-col items-center gap-4 text-center">
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={`${displayName} avatar`}
-              onError={() => setAvatarError(true)}
-              className="w-24 h-24 rounded-full object-cover border-4 border-gray-700 shadow-md"
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-3xl font-semibold">
-              {userInitial}
-            </div>
-          )}
+    <div className="relative h-full overflow-hidden bg-slate-950">
+      <div className="pointer-events-none absolute -top-48 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-purple-500/25 blur-3xl" />
+      <div className="pointer-events-none absolute top-20 left-[-12%] h-96 w-96 rounded-full bg-blue-500/20 blur-[140px]" />
+      <div className="pointer-events-none absolute bottom-[-18%] right-[-8%] h-96 w-96 rounded-full bg-emerald-500/20 blur-[140px]" />
 
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold">{displayName}</h1>
-            {user?.email && (
-              <p className="text-sm text-gray-300">{user.email}</p>
-            )}
+      <div className="relative z-10 mx-auto h-full w-full max-w-7xl overflow-y-auto px-4 py-10 pb-20 sm:px-6 lg:px-10">
+        <header className="mb-12 flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-4">
+            <h1 className="text-4xl font-black text-white sm:text-5xl lg:text-6xl">
+              {t("settings.title")}
+            </h1>
+            <p className="max-w-2xl text-base text-gray-300/90 sm:text-lg">
+              {t("settings.subtitle")}
+            </p>
+          </div>
+        </header>
+
+        <div className="flex justify-center">
+          {/* Sidebar Navigation */}
+          <div className="w-full max-w-md">
+            <div className="relative overflow-hidden rounded-4xl border border-white/10 bg-white/5 shadow-[0_24px_90px_-40px_rgba(15,23,42,0.75)] backdrop-blur-xl">
+              {/* User Profile Section */}
+              <div className="p-6 border-b border-white/10">
+                <div className="flex flex-col items-center">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={t("settings.avatarAlt", { name: displayName })}
+                      onError={() => setAvatarError(true)}
+                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-700"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-2xl font-semibold text-white">
+                      {userInitial}
+                    </div>
+                  )}
+
+                  <div className="mt-4 text-center">
+                    <h3 className="text-lg font-medium text-white">{displayName}</h3>
+                    {user?.email && (
+                      <p className="text-sm text-gray-300">{user.email}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <nav className="p-2">
+                <button
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                  onClick={() => navigate("/app/settings/profile")}
+                >
+                  {t("settings.profile")}
+                </button>
+                <button
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                  onClick={() => navigate("/app/settings/account")}
+                >
+                  {t("settings.account")}
+                </button>
+                <button
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                  onClick={() => navigate("/app/settings/preferences")}
+                >
+                  {t("settings.preferences")}
+                </button>
+              </nav>
+
+              {/* Sign Out Button */}
+              <div className="p-4 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="w-full py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {signingOut ? t("settings.signingOut") : t("settings.logout")}
+                </button>
+
+                {errorMessage && (
+                  <p className="text-sm text-red-400 text-center mt-3">{errorMessage}</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className="w-full py-3 bg-red-600 hover:bg-red-500 transition-colors rounded-lg font-medium disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {signingOut ? "Signing out..." : "Log out"}
-        </button>
-
-        {errorMessage && (
-          <p className="text-sm text-red-400 text-center">{errorMessage}</p>
-        )}
       </div>
     </div>
   )

@@ -11,6 +11,9 @@ import {
   RootLayout,
   SettingsLayout,
   SettingsPage,
+  AccountPage,
+  ProfilePage,
+  PreferencesPage,
   SignUpPage,
   SummariesLayout,
   SummariesPage,
@@ -117,6 +120,18 @@ export const router = createBrowserRouter([
               {
                 index: true,
                 element: <SettingsPage />,
+              },
+              {
+                path: "profile",
+                element: <ProfilePage />,
+              },
+              {
+                path: "account",
+                element: <AccountPage />,
+              },
+              {
+                path: "preferences",
+                element: <PreferencesPage />,
               },
             ],
           },

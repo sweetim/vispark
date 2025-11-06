@@ -1,0 +1,33 @@
+{
+  "settings": {
+    "title": "設定",
+    "subtitle": "アカウント設定とプリファレンスを管理",
+    "anonymousUser": "匿名ユーザー",
+    "avatarAlt": "{{name}}のアバター",
+    "profile": "プロフィール",
+    "account": "アカウント",
+    "preferences": "プリファレンス",
+    "logout": "ログアウト",
+    "signingOut": "ログアウト中...",
+    "signOutError": "ログアウトに失敗しました。もう一度お試しください。",
+    "unexpectedError": "ログアウト中に予期しないエラーが発生しました。",
+    "language": "言語",
+    "english": "英語",
+    "japanese": "日本語",
+    "accountInfo": "アカウント情報",
+    "email": "メールアドレス",
+    "memberSince": "登録日",
+    "accountType": "アカウントタイプ",
+    "personal": "個人",
+    "notifications": "通知",
+    "emailNotifications": "メール通知",
+    "pushNotifications": "プッシュ通知",
+    "security": "セキュリティ",
+    "changePassword": "パスワード変更",
+    "twoFactorAuth": "二要素認証",
+    "privacy": "プライバシー",
+    "dataUsage": "データ使用量",
+    "exportData": "データエクスポート",
+    "deleteAccount": "アカウント削除"
+  }
+}

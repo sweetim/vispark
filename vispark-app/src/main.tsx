@@ -7,6 +7,8 @@ import { router } from "@/config/router.tsx"
 import { AuthProvider } from "@/modules/auth"
 import { ToastProvider } from "@/contexts/ToastContext"
 import { SWRProvider } from "@/config/swrConfig"
+import { LocaleProvider } from "@/contexts/LocaleContext"
+import "@/config/i18n"
 import { registerServiceWorker } from "./service-worker-registration"
 import "./index.css"
 
@@ -23,9 +25,11 @@ createRoot(document.getElementById("root")!).render(
     >
       <SWRProvider>
         <AuthProvider>
-          <ToastProvider>
-            <RouterProvider router={router} />
-          </ToastProvider>
+          <LocaleProvider>
+            <ToastProvider>
+              <RouterProvider router={router} />
+            </ToastProvider>
+          </LocaleProvider>
         </AuthProvider>
       </SWRProvider>
     </ConfigProvider>
