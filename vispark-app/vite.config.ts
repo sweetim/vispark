@@ -25,7 +25,7 @@ export default defineConfig({
         description: "AI-powered video summaries and transcripts",
         theme_color: "#101828",
         background_color: "#101828",
-        display: "standalone",
+        display: "fullscreen",
         display_override: ["window-controls-overlay", "standalone"],
         orientation: "portrait-primary",
         scope: "/",
