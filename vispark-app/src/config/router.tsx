@@ -9,8 +9,10 @@ import {
   LandingPage,
   LoginPage,
   RootLayout,
+  SettingsLayout,
   SettingsPage,
   SignUpPage,
+  SummariesLayout,
   SummariesPage,
   VisparkLayout,
   VisparkSearchPage,
@@ -50,7 +52,17 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <SummariesPage />,
+            element: <Navigate to="summaries" replace />,
+          },
+          {
+            path: "summaries",
+            element: <SummariesLayout />,
+            children: [
+              {
+                index: true,
+                element: <SummariesPage />,
+              },
+            ],
           },
           {
             path: "channel",
@@ -100,7 +112,13 @@ export const router = createBrowserRouter([
           },
           {
             path: "settings",
-            element: <SettingsPage />,
+            element: <SettingsLayout />,
+            children: [
+              {
+                index: true,
+                element: <SettingsPage />,
+              },
+            ],
           },
           {
             path: "wallet",

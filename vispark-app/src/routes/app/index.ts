@@ -1,6 +1,6 @@
 export { ChannelLayout, ChannelPage, ChannelSearchPage } from "./channel"
 export { default as AppLayout } from "./Layout"
-export { default as SettingsPage } from "./SettingsPage"
-export { default as SummariesPage } from "./SummariesPage"
+export { SettingsLayout, SettingsPage } from "./settings"
+export { SummariesLayout, SummariesPage } from "./summaries"
 export { VisparkLayout, VisparkSearchPage, VisparkVideoPage } from "./vispark"
 export { WalletLayout, WalletPage } from "./wallet"

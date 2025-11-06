@@ -255,9 +255,9 @@ const SummariesPage = () => {
                   key={group.channelTitle}
                   className="relative"
                 >
-                  <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-[0_24px_90px_-40px_rgba(15,23,42,0.75)] backdrop-blur-xl">
+                  <div className="relative overflow-hidden rounded-4xl border border-white/10 bg-white/5 shadow-[0_24px_90px_-40px_rgba(15,23,42,0.75)] backdrop-blur-xl">
                     <div
-                      className={`pointer-events-none absolute -top-1/3 right-[-8%] h-full w-3/5 bg-gradient-to-br ${accent} opacity-60 blur-3xl`}
+                      className={`pointer-events-none absolute -top-1/3 right-[-8%] h-full w-3/5 bg-linear-to-br ${accent} opacity-60 blur-3xl`}
                     />
                     <div className="relative space-y-6 p-6 sm:p-8">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
