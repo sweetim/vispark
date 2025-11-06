@@ -129,7 +129,7 @@ const parseYouTubeNotification = (xmlString: string): {
 const triggerTranscriptGeneration = async (
   videoId: string,
   supabaseUrl: string,
-  supabaseServiceKey: string,
+  supabaseSecretKey: string,
 ): Promise<any[]> => {
   try {
     const response = await fetch(
@@ -138,7 +138,7 @@ const triggerTranscriptGeneration = async (
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'Authorization': `Bearer ${supabaseSecretKey}`,
         },
         body: JSON.stringify({ videoId }),
       }
@@ -162,7 +162,7 @@ const triggerSummaryGeneration = async (
   videoId: string,
   transcriptSegments: any[],
   supabaseUrl: string,
-  supabaseServiceKey: string,
+  supabaseSecretKey: string,
 ): Promise<string[]> => {
   try {
     const response = await fetch(
@@ -171,7 +171,7 @@ const triggerSummaryGeneration = async (
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'Authorization': `Bearer ${supabaseSecretKey}`,
         },
         body: JSON.stringify({ transcripts: transcriptSegments }),
       }
@@ -251,9 +251,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       // Get subscription details
       const supabaseUrl = Deno.env.get("SUPABASE_URL")
-      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+      const supabaseSecretKey = Deno.env.get("SECRET_KEY")
 
-      if (!supabaseUrl || !supabaseServiceKey) {
+      if (!supabaseUrl || !supabaseSecretKey) {
         console.error("Missing Supabase configuration")
         return new Response("Internal Server Error", {
           status: 500,
@@ -261,7 +261,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         })
       }
 
-      const supabase = createClient(supabaseUrl, supabaseServiceKey)
+      const supabase = createClient(supabaseUrl, supabaseSecretKey)
 
       // Parse notification to get channel ID
       const notification = parseYouTubeNotification(body)
@@ -312,7 +312,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const transcriptSegments = await triggerTranscriptGeneration(
           notification.videoId,
           supabaseUrl,
-          supabaseServiceKey,
+          supabaseSecretKey,
         )
 
         // Trigger summary generation if transcript was successful
@@ -321,7 +321,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             notification.videoId,
             transcriptSegments,
             supabaseUrl,
-            supabaseServiceKey,
+            supabaseSecretKey,
           )
 
           // Store the vispark with summary
