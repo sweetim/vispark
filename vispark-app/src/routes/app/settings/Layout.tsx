@@ -24,10 +24,10 @@ const SettingsLayout = () => {
   }
 
   return (
-    <div className="relative h-full w-full bg-slate-950 text-white flex flex-col">
+    <div className="relative h-svh w-full bg-gray-900 text-white flex flex-col">
       {/* Sticky Top Bar with Back Button and Page Title */}
       {showBackButton && (
-        <div className="flex-shrink-0 bg-slate-950/80 backdrop-blur-md border-b border-white/10">
+        <div className="shrink-0 bg-gray-900/95 backdrop-blur-md border-b border-white/10">
           <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-10">
             <div className="flex items-center justify-between">
               <button
@@ -49,8 +49,10 @@ const SettingsLayout = () => {
       )}
 
       {/* Content area with flexible height */}
-      <div className="flex-1 overflow-y-auto pb-16">
-        <Outlet />
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto">
+          <Outlet />
+        </div>
       </div>
     </div>
   )
