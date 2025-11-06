@@ -25,11 +25,11 @@ export default defineConfig({
         description: "AI-powered video summaries and transcripts",
         theme_color: "#101828",
         background_color: "#101828",
-        display: "fullscreen",
+        display: "standalone",
         display_override: ["window-controls-overlay", "standalone"],
         orientation: "portrait-primary",
         scope: "/",
-        start_url: "/",
+        start_url: "/?standalone=true",
         icons: [
           {
             src: "pwa-64x64.png",
