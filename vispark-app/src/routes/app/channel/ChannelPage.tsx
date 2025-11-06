@@ -15,7 +15,7 @@ import type { ChannelOutletContext } from "./Layout"
 const ChannelPage = () => {
   const navigate = useNavigate()
   const { channelId: rawChannelId } = useParams<{ channelId: string }>()
-  const { channelDetails, refreshChannelData } = useOutletContext<ChannelOutletContext>()
+  const { channelDetails } = useOutletContext<ChannelOutletContext>()
   const { showToast } = useToast()
 
   const channelId = (rawChannelId ?? "").trim()
@@ -23,7 +23,7 @@ const ChannelPage = () => {
   // SWR hooks for data
   const { visparks, isLoading: loadingSavedVideos, error: savedVideosError } = useChannelVisparksWithMetadata(channelId)
   const { isSubscribed, toggleSubscription } = useChannelSubscriptionManager(channelId)
-  const { videos: initialNonVisparkVideos, nextPageToken, isLoading: loadingMoreVideos } = useChannelVideos(channelId)
+  const { nextPageToken } = useChannelVideos(channelId)
 
   // State for non-Vispark videos section
   const [nonVisparkVideos, setNonVisparkVideos] = useState<Array<{
@@ -58,7 +58,6 @@ const ChannelPage = () => {
   }))
 
   // Filter out videos that already have summaries
-  const filteredNonVisparkVideos = initialNonVisparkVideos.filter(video => !video.hasSummary)
 
   const fetchNonVisparkVideos = useCallback(async (reset: boolean = true) => {
     if (reset) {

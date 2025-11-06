@@ -24,7 +24,7 @@ export type VisparkOutletContext = {
 }
 
 const VisparkLayout = () => {
-  const { visparks, isLoading, error, mutate } = useVisparksWithMetadata(20)
+  const { visparks, mutate } = useVisparksWithMetadata(20)
 
   const refreshSavedVisparks = async () => {
     await mutate()

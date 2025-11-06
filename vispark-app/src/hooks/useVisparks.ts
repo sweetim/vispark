@@ -35,7 +35,7 @@ export const useVisparks = (limit = 200) => {
 export const useVisparksByChannel = (channelId: string) => {
   const { data, error, isLoading, mutate } = useSWR<VisparkRow[]>(
     channelId ? `visparks?channelId=${channelId}` : null,
-    () => (channelId ? listVisparksByChannelId(channelId) : null),
+    channelId ? () => listVisparksByChannelId(channelId) : null,
     visparkConfig,
   )
 
@@ -58,7 +58,7 @@ const metadataConfig = {
 export const useVideoMetadata = (videoId: string) => {
   const { data, error, isLoading, mutate } = useSWR<VideoMetadata>(
     videoId ? `video-metadata?videoId=${videoId}` : null,
-    () => (videoId ? fetchYouTubeVideoDetails(videoId) : null),
+    videoId ? () => fetchYouTubeVideoDetails(videoId) : null,
     metadataConfig,
   )
 
@@ -93,7 +93,7 @@ export const useBatchVideoMetadata = (videoIds: string[]) => {
 
       const results = await Promise.allSettled(metadataPromises)
 
-      results.forEach((result, index) => {
+      results.forEach((result) => {
         if (result.status === "fulfilled" && result.value.metadata) {
           metadataMap.set(result.value.videoId, result.value.metadata)
         }

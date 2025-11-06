@@ -19,8 +19,6 @@ type ChannelGroup = {
   entries: ChannelGroupEntry[]
 }
 
-type FetchStatus = "idle" | "loading" | "success" | "error"
-
 const gradientPalette = [
   "from-indigo-500/40 via-purple-500/25 to-pink-500/30",
   "from-sky-500/40 via-cyan-500/25 to-emerald-500/30",
