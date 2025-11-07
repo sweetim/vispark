@@ -3,9 +3,9 @@ import { useNavigate } from "@tanstack/react-router"
 import { useAuth } from "@/modules/auth"
 import { useTranslation } from "react-i18next"
 import {
-  User,
-  IdentificationCard,
-  Gear
+  UserIcon,
+  IdentificationCardIcon,
+  GearIcon
 } from "@phosphor-icons/react"
 
 const SettingsPage = () => {
@@ -111,21 +111,21 @@ const SettingsPage = () => {
                   className="w-full text-left px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-3"
                   onClick={() => navigate({ to: "/app/settings/profile" })}
                 >
-                  <User size={20} weight="duotone" />
+                  <UserIcon size={20} weight="duotone" />
                   {t("settings.profile")}
                 </button>
                 <button
                   className="w-full text-left px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-3"
                   onClick={() => navigate({ to: "/app/settings/account" })}
                 >
-                  <IdentificationCard size={20} weight="duotone" />
+                  <IdentificationCardIcon size={20} weight="duotone" />
                   {t("settings.account")}
                 </button>
                 <button
                   className="w-full text-left px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-3"
                   onClick={() => navigate({ to: "/app/settings/preferences" })}
                 >
-                  <Gear size={20} weight="duotone" />
+                  <GearIcon size={20} weight="duotone" />
                   {t("settings.preferences")}
                 </button>
               </nav>
