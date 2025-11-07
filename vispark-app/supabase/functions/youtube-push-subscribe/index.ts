@@ -50,12 +50,16 @@ const generateHubSecret = (): string => {
 // Subscribe to YouTube push notifications via PubSubHubbub
 const subscribeToYouTubePush = async (
   channelId: string,
-  callbackUrl: string,
+  userId: string,
+  baseUrl: string,
   hubUrl: string,
   leaseSeconds: number,
-): Promise<{ subscriptionId: string; expiresAt: string; hubSecret: string }> => {
+): Promise<{ subscriptionId: string; expiresAt: string; hubSecret: string; callbackUrl: string }> => {
   const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
   const hubSecret = generateHubSecret()
+
+  // Create user-specific callback URL
+  const callbackUrl = `${baseUrl}/${userId}`
 
   const formData = new FormData()
   formData.append('hub.mode', 'subscribe')
@@ -80,6 +84,7 @@ const subscribeToYouTubePush = async (
     subscriptionId: `${channelId}-${Date.now()}`,
     expiresAt,
     hubSecret,
+    callbackUrl,
   }
 }
 
@@ -129,7 +134,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")
-  const callbackUrl = Deno.env.get("YOUTUBE_PUSH_CALLBACK_URL")
+  const callbackBaseUrl = Deno.env.get("YOUTUBE_PUSH_CALLBACK_URL")
   const hubUrl = Deno.env.get("YOUTUBE_PUSH_HUB_URL")
   const leaseSeconds = parseInt(Deno.env.get("YOUTUBE_PUSH_LEASE_SECONDS") || "864000")
 
@@ -144,7 +149,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  if (!callbackUrl || !hubUrl) {
+  if (!callbackBaseUrl || !hubUrl) {
     return respondWith(
       {
         success: false,
@@ -242,9 +247,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     // Subscribe to YouTube push notifications
-    const { subscriptionId, expiresAt, hubSecret } = await subscribeToYouTubePush(
+    const { subscriptionId, expiresAt, hubSecret, callbackUrl } = await subscribeToYouTubePush(
       channelId,
-      callbackUrl,
+      user.id,
+      callbackBaseUrl,
       hubUrl,
       leaseSeconds,
     )
@@ -259,6 +265,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         hub_secret: hubSecret,
         lease_seconds: leaseSeconds,
         expires_at: expiresAt,
+        callback_url: callbackUrl,
       })
 
     if (insertError) {

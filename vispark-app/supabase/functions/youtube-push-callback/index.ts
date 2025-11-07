@@ -218,8 +218,52 @@ const storeVispark = async (
   }
 }
 
+// Log callback invocation
+const logCallbackInvocation = async (
+  userId: string,
+  channelId: string,
+  videoId: string,
+  videoTitle: string,
+  processingStatus: string,
+  errorMessage: string | null,
+  supabase: any,
+): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from("youtube_push_callback_logs")
+      .insert({
+        user_id: userId,
+        channel_id: channelId,
+        video_id: videoId,
+        video_title: videoTitle,
+        processing_status: processingStatus,
+        error_message: errorMessage,
+      })
+
+    if (error) {
+      console.error("Failed to log callback invocation:", error)
+    }
+  } catch (error) {
+    console.error("Error logging callback invocation:", error)
+  }
+}
+
 Deno.serve(async (req: Request): Promise<Response> => {
   console.log(JSON.stringify(req, null, 2))
+
+  // Extract user ID from URL path
+  const url = new URL(req.url)
+  const pathSegments = url.pathname.split('/')
+  const userId = pathSegments[pathSegments.length - 1]
+
+  // Validate user ID
+  if (!userId || userId.length === 0) {
+    console.error("Missing user ID in callback URL")
+    return new Response("Bad Request: Missing user ID", {
+      status: 400,
+      headers: corsHeaders
+    })
+  }
 
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -228,13 +272,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   // Handle verification request (GET)
   if (req.method === "GET") {
-    const url = new URL(req.url)
     const challenge = url.searchParams.get("hub.challenge")
     const mode = url.searchParams.get("hub.mode")
     const topic = url.searchParams.get("hub.topic")
 
     // All validations passed, respond with the challenge
-    console.log(`PubSubHubbub verification successful for ${mode} to ${topic}`)
+    console.log(`PubSubHubbub verification successful for ${mode} to ${topic} for user ${userId}`)
     return new Response(challenge, {
       status: 200,
       headers: {
@@ -273,27 +316,52 @@ Deno.serve(async (req: Request): Promise<Response> => {
         })
       }
       console.log(notification)
-      // Get subscription for this channel
-      const { data: subscriptions, error: subscriptionError } = await supabase
-        .from("youtube_push_subscriptions")
-        .select("user_id")
-        .eq("channel_id", notification.channelId)
 
-      if (subscriptionError || !subscriptions || subscriptions.length === 0) {
-        console.error("No subscription found for channel:", notification.channelId)
+      // Verify that this user has a subscription for this channel
+      const { data: subscription, error: subscriptionError } = await supabase
+        .from("youtube_push_subscriptions")
+        .select("*")
+        .eq("channel_id", notification.channelId)
+        .eq("user_id", userId)
+        .single()
+
+      if (subscriptionError || !subscription) {
+        console.error(`No subscription found for user ${userId} and channel ${notification.channelId}`)
         return new Response("Not Found", {
           status: 404,
           headers: corsHeaders
         })
       }
 
-      // Process notification for each subscribed user
-      for (const subscription of subscriptions) {
+      // Log the callback invocation as pending
+      await logCallbackInvocation(
+        userId,
+        notification.channelId,
+        notification.videoId,
+        notification.title,
+        'pending',
+        null,
+        supabase
+      )
+
+      // Update the log to processing status
+      await supabase
+        .from("youtube_push_callback_logs")
+        .update({
+          processing_status: 'processing',
+          processed_at: new Date().toISOString()
+        })
+        .eq("user_id", userId)
+        .eq("video_id", notification.videoId)
+        .eq("processing_status", 'pending')
+
+      // Process notification for this specific user
+      try {
         // Create video notification record
         const { error: notificationError } = await supabase
           .from("video_notifications")
           .upsert({
-            user_id: subscription.user_id,
+            user_id: userId,
             video_id: notification.videoId,
             channel_id: notification.channelId,
             video_title: notification.title,
@@ -305,7 +373,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
         if (notificationError) {
           console.error("Failed to create video notification:", notificationError)
-          continue
+          throw notificationError
         }
 
         // Trigger transcript generation
@@ -327,7 +395,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           // Store the vispark with summary
           if (summaries.length > 0) {
             await storeVispark(
-              subscription.user_id,
+              userId,
               notification.videoId,
               notification.channelId,
               summaries,
@@ -344,8 +412,34 @@ Deno.serve(async (req: Request): Promise<Response> => {
             notification_sent: true,
             updated_at: new Date().toISOString()
           })
-          .eq("user_id", subscription.user_id)
+          .eq("user_id", userId)
           .eq("video_id", notification.videoId)
+
+        // Update the log to completed status
+        await supabase
+          .from("youtube_push_callback_logs")
+          .update({
+            processing_status: 'completed',
+            processed_at: new Date().toISOString()
+          })
+          .eq("user_id", userId)
+          .eq("video_id", notification.videoId)
+          .eq("processing_status", 'processing')
+
+      } catch (error) {
+        console.error(`Error processing notification for user ${userId}:`, error)
+
+        // Update the log to failed status
+        await supabase
+          .from("youtube_push_callback_logs")
+          .update({
+            processing_status: 'failed',
+            error_message: error instanceof Error ? error.message : "Unknown error",
+            processed_at: new Date().toISOString()
+          })
+          .eq("user_id", userId)
+          .eq("video_id", notification.videoId)
+          .eq("processing_status", 'processing')
       }
 
       return new Response("OK", {

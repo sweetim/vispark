@@ -82,12 +82,171 @@ export type Database = {
         }
         Relationships: []
       }
+      youtube_push_callback_logs: {
+        Row: {
+          id: string
+          user_id: string
+          channel_id: string
+          video_id: string
+          video_title: string
+          processed_at: string
+          processing_status: string
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          channel_id: string
+          video_id: string
+          video_title: string
+          processed_at?: string
+          processing_status?: string
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          channel_id?: string
+          video_id?: string
+          video_title?: string
+          processed_at?: string
+          processing_status?: string
+          error_message?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      youtube_push_subscriptions: {
+        Row: {
+          id: string
+          channel_id: string
+          user_id: string
+          subscription_id: string
+          hub_secret: string
+          lease_seconds: number
+          created_at: string
+          expires_at: string
+          updated_at: string
+          callback_url: string
+          status: string
+          retry_count: number
+          last_retry_at: string | null
+          renewal_error: string | null
+          auto_renewal_enabled: boolean
+          expires_at_buffer_days: number
+        }
+        Insert: {
+          id?: string
+          channel_id: string
+          user_id: string
+          subscription_id: string
+          hub_secret: string
+          lease_seconds?: number
+          created_at?: string
+          expires_at: string
+          updated_at?: string
+          callback_url?: string
+          status?: string
+          retry_count?: number
+          last_retry_at?: string | null
+          renewal_error?: string | null
+          auto_renewal_enabled?: boolean
+          expires_at_buffer_days?: number
+        }
+        Update: {
+          id?: string
+          channel_id?: string
+          user_id?: string
+          subscription_id?: string
+          hub_secret?: string
+          lease_seconds?: number
+          created_at?: string
+          expires_at?: string
+          updated_at?: string
+          callback_url?: string
+          status?: string
+          retry_count?: number
+          last_retry_at?: string | null
+          renewal_error?: string | null
+          auto_renewal_enabled?: boolean
+          expires_at_buffer_days?: number
+        }
+        Relationships: []
+      }
+      video_notifications: {
+        Row: {
+          id: string
+          user_id: string
+          video_id: string
+          channel_id: string
+          video_title: string
+          video_url: string
+          published_at: string
+          summary_generated: boolean
+          notification_sent: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          video_id: string
+          channel_id: string
+          video_title: string
+          video_url: string
+          published_at: string
+          summary_generated?: boolean
+          notification_sent?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          video_id?: string
+          channel_id?: string
+          video_title?: string
+          video_url?: string
+          published_at?: string
+          summary_generated?: boolean
+          notification_sent?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_subscriptions_needing_renewal: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          channel_id: string
+          user_id: string
+          subscription_id: string
+          hub_secret: string
+          lease_seconds: number
+          expires_at: string
+          status: string
+          retry_count: number
+          last_retry_at: string | null
+          renewal_error: string | null
+          auto_renewal_enabled: boolean
+        }[]
+      }
+      handle_updated_at: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
+      }
+      update_subscription_status: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
+      }
     }
     Enums: {
       [_ in never]: never

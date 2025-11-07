@@ -46,12 +46,16 @@ const generateHubSecret = (): string => {
 // Subscribe to YouTube push notifications via PubSubHubbub
 const subscribeToYouTubePush = async (
   channelId: string,
-  callbackUrl: string,
+  userId: string,
+  baseUrl: string,
   hubUrl: string,
   leaseSeconds: number,
-): Promise<{ subscriptionId: string; expiresAt: string; hubSecret: string }> => {
+): Promise<{ subscriptionId: string; expiresAt: string; hubSecret: string; callbackUrl: string }> => {
   const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
   const hubSecret = generateHubSecret()
+
+  // Create user-specific callback URL
+  const callbackUrl = `${baseUrl}/${userId}`
 
   const formData = new FormData()
   formData.append('hub.mode', 'subscribe')
@@ -76,6 +80,7 @@ const subscribeToYouTubePush = async (
     subscriptionId: `${channelId}-${Date.now()}`,
     expiresAt,
     hubSecret,
+    callbackUrl,
   }
 }
 
@@ -101,7 +106,7 @@ const updateSubscription = async (
 const processSubscriptionRenewal = async (
   subscription: any,
   supabase: any,
-  callbackUrl: string,
+  callbackBaseUrl: string,
   hubUrl: string,
   leaseSeconds: number
 ): Promise<{ success: boolean; error?: string }> => {
@@ -115,9 +120,10 @@ const processSubscriptionRenewal = async (
     })
 
     // Attempt to renew the subscription
-    const { subscriptionId: newSubscriptionId, expiresAt, hubSecret } = await subscribeToYouTubePush(
+    const { subscriptionId: newSubscriptionId, expiresAt, hubSecret, callbackUrl } = await subscribeToYouTubePush(
       subscription.channel_id,
-      callbackUrl,
+      subscription.user_id,
+      callbackBaseUrl,
       hubUrl,
       leaseSeconds,
     )
@@ -128,6 +134,7 @@ const processSubscriptionRenewal = async (
       hub_secret: hubSecret,
       lease_seconds: leaseSeconds,
       expires_at: expiresAt,
+      callback_url: callbackUrl,
       status: 'active',
       retry_count: 0,
       renewal_error: null,
@@ -181,7 +188,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // Get environment variables
   const supabaseUrl = Deno.env.get("SUPABASE_URL")
   const supabaseServiceRoleKey = Deno.env.get("NEW_SUPABASE_SERVICE_ROLE_KEY")
-  const callbackUrl = Deno.env.get("YOUTUBE_PUSH_CALLBACK_URL")
+  const callbackBaseUrl = Deno.env.get("YOUTUBE_PUSH_CALLBACK_URL")
   const hubUrl = Deno.env.get("YOUTUBE_PUSH_HUB_URL")
   const leaseSeconds = parseInt(Deno.env.get("YOUTUBE_PUSH_LEASE_SECONDS") || "864000")
 
@@ -196,7 +203,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  if (!callbackUrl || !hubUrl) {
+  if (!callbackBaseUrl || !hubUrl) {
     return respondWith(
       {
         success: false,
@@ -252,7 +259,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const result = await processSubscriptionRenewal(
         subscription,
         supabase,
-        callbackUrl,
+        callbackBaseUrl,
         hubUrl,
         leaseSeconds
       )

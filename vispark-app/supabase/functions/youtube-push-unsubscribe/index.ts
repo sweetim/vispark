@@ -48,11 +48,15 @@ const generateHubSecret = (): string => {
 // Unsubscribe from YouTube push notifications via PubSubHubbub
 const unsubscribeFromYouTubePush = async (
   channelId: string,
-  callbackUrl: string,
+  userId: string,
+  baseUrl: string,
   hubUrl: string,
 ): Promise<void> => {
   const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
   const hubSecret = generateHubSecret()
+
+  // Create user-specific callback URL
+  const callbackUrl = `${baseUrl}/${userId}`
 
   const formData = new FormData()
   formData.append('hub.mode', 'unsubscribe')
@@ -117,7 +121,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")
-  const callbackUrl = Deno.env.get("YOUTUBE_PUSH_CALLBACK_URL")
+  const callbackBaseUrl = Deno.env.get("YOUTUBE_PUSH_CALLBACK_URL")
   const hubUrl = Deno.env.get("YOUTUBE_PUSH_HUB_URL")
 
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -131,7 +135,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  if (!callbackUrl || !hubUrl) {
+  if (!callbackBaseUrl || !hubUrl) {
     return respondWith(
       {
         success: false,
@@ -232,7 +236,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
       // Unsubscribe from YouTube push notifications
       await unsubscribeFromYouTubePush(
         channelId,
-        callbackUrl,
+        user.id,
+        callbackBaseUrl,
         hubUrl,
       )
     } catch (error) {
