@@ -8,8 +8,7 @@ import {
 } from "@phosphor-icons/react"
 import clsx from "clsx"
 import type { FC } from "react"
-import { Link, useLocation } from "react-router"
-import { match, P } from "ts-pattern"
+import { Link, useLocation } from "@tanstack/react-router"
 
 type NavBarItem = {
   to: string
@@ -19,27 +18,27 @@ type NavBarItem = {
 
 const navBarItems: NavBarItem[] = [
   {
-    to: "",
+    to: "/app/summaries",
     icon: ListNumbersIcon,
     title: "Summaries",
   },
   {
-    to: "channel",
+    to: "/app/channels",
     icon: StackPlusIcon,
     title: "Channels",
   },
   {
-    to: "vispark",
+    to: "/app/videos",
     icon: LightbulbFilamentIcon,
     title: "VISPARK",
   },
   {
-    to: "wallet",
+    to: "/app/wallet",
     icon: WalletIcon,
     title: "Wallet",
   },
   {
-    to: "settings",
+    to: "/app/settings",
     icon: UserCircleGearIcon,
     title: "Settings",
   },
@@ -47,7 +46,6 @@ const navBarItems: NavBarItem[] = [
 
 const BottomNavBar: FC = () => {
   const location = useLocation()
-  const currentToRoute = location.pathname.split("/", 3).pop() ?? ""
   return (
     <>
       <style>{`
@@ -104,20 +102,7 @@ const BottomNavBar: FC = () => {
       <div className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-800 border-none z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className={`grid h-full max-w-lg grid-cols-5 mx-auto font-medium`}>
           {navBarItems.map((item, index) => {
-            const isPathMatching = match([item.to, currentToRoute])
-              .with(["", ""], () => true)
-              .with(
-                ["", P.string],
-                () =>
-                  location.pathname === "/app" || location.pathname === "/app/",
-              )
-              .with([P.string, P.string], () => currentToRoute === item.to)
-              .otherwise(() => false)
-
-            const navIconColor = match(isPathMatching)
-              .with(true, () => "#ffffff")
-              .otherwise(() => "#6b7280")
-
+            const isActive = location.pathname.startsWith(item.to)
             const NavIcon = item.icon
 
             return (
@@ -128,10 +113,10 @@ const BottomNavBar: FC = () => {
               >
                 <NavIcon
                   size={32}
-                  color={navIconColor}
+                  color={isActive ? "#ffffff" : "#6b7280"}
                   weight="fill"
                   className={clsx("group-hover:fill-[#ffebeb]", {
-                    "active-icon": isPathMatching,
+                    "active-icon": isActive,
                   })}
                 />
               </Link>

@@ -1,12 +1,37 @@
 import { type FormEvent, useId, useMemo, useState } from "react"
-import { useNavigate, useOutletContext } from "react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { extractYouTubeVideoId } from "../../../utils/youtube"
+import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 import HistoryList from "./components/HistoryList"
-import type { VisparkOutletContext } from "./Layout"
+
+export type VisparkSavedItem = {
+  id: string
+  createdTime: string
+  metadata: {
+    videoId: string
+    title: string
+    channelId: string
+    channelTitle: string
+    thumbnails: {
+      default: { url: string }
+      medium: { url: string }
+      high: { url: string }
+    }
+  }
+  summaries: string[]
+}
 
 const VisparkSearchPage = () => {
   const navigate = useNavigate()
-  const { savedVisparks } = useOutletContext<VisparkOutletContext>()
+  // For now, we'll get saved visparks directly from the hook
+  // TODO: Implement proper context sharing with TanStack Router
+  const { visparks } = useVisparksWithMetadata(20)
+  const savedVisparks: VisparkSavedItem[] = visparks.map((vispark) => ({
+    id: vispark.id,
+    createdTime: vispark.createdTime,
+    metadata: vispark.metadata,
+    summaries: vispark.summaries,
+  }))
   const [videoId, setVideoId] = useState("")
   const reactId = useId()
   const inputId = useMemo(() => `vispark-video-id-${reactId}`, [reactId])
@@ -26,7 +51,7 @@ const VisparkSearchPage = () => {
       return
     }
 
-    navigate(`/app/vispark/search/${finalVideoId}`)
+    navigate({ to: `/app/videos/${finalVideoId}` })
   }
 
   return (
@@ -59,7 +84,7 @@ const VisparkSearchPage = () => {
 
       <HistoryList
         items={savedVisparks}
-        onSelect={(id) => navigate(`/app/vispark/search/${id}`)}
+        onSelect={(id) => navigate({ to: `/app/videos/${id}` })}
       />
     </div>
   )

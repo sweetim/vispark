@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { supabase } from "@/config/supabaseClient"
 
 const AuthCallbackPage = () => {
@@ -13,20 +13,20 @@ const AuthCallbackPage = () => {
 
         if (error) {
           console.error("Error during auth callback:", error)
-          navigate("/login?error=auth_failed")
+          navigate({ to: "/login", search: { error: "auth_failed" } })
           return
         }
 
         if (data.session) {
           // Successfully authenticated
-          navigate("/app")
+          navigate({ to: "/app" })
         } else {
           // No session found, redirect to login
-          navigate("/login?error=no_session")
+          navigate({ to: "/login", search: { error: "no_session" } })
         }
       } catch (error) {
         console.error("Unexpected error during auth callback:", error)
-        navigate("/login?error=unexpected_error")
+        navigate({ to: "/login", search: { error: "unexpected_error" } })
       }
     }
 

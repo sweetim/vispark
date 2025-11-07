@@ -1,5 +1,4 @@
-import { Outlet } from "react-router"
-import { useVisparksWithMetadata } from "@/hooks/useVisparks"
+import { Outlet } from "@tanstack/react-router"
 
 export type VisparkSavedItem = {
   id: string
@@ -18,34 +17,10 @@ export type VisparkSavedItem = {
   summaries: string[]
 }
 
-export type VisparkOutletContext = {
-  savedVisparks: VisparkSavedItem[]
-  refreshSavedVisparks: () => Promise<void>
-}
-
 const VisparkLayout = () => {
-  const { visparks, mutate } = useVisparksWithMetadata(20)
-
-  const refreshSavedVisparks = async () => {
-    await mutate()
-  }
-
-  // Transform visparks to match expected format
-  const savedVisparks: VisparkSavedItem[] = visparks.map((vispark) => ({
-    id: vispark.id,
-    createdTime: vispark.createdTime,
-    metadata: vispark.metadata,
-    summaries: vispark.summaries,
-  }))
-
   return (
     <div className="flex flex-col items-center h-full w-full bg-gray-900 text-white p-2">
-      <Outlet
-        context={{
-          savedVisparks,
-          refreshSavedVisparks,
-        }}
-      />
+      <Outlet />
     </div>
   )
 }

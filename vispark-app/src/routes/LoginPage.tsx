@@ -7,11 +7,10 @@ import { Alert, Button, Card, Checkbox, Divider, Form, Input, Spin } from "antd"
 import { type FC, useState } from "react"
 import {
   Link,
-  type Location,
   Navigate,
   useLocation,
   useNavigate,
-} from "react-router"
+} from "@tanstack/react-router"
 import { useAuth } from "@/modules/auth/useAuth.ts"
 
 type LoginFormValues = {
@@ -35,7 +34,7 @@ const LoginPage: FC = () => {
   const scrollY = 0
 
   const redirectPath =
-    (location.state as { from?: Location } | undefined)?.from?.pathname
+    (location.state as any)?.from?.pathname
     ?? "/app"
 
   if (authLoading) {
@@ -102,7 +101,7 @@ const LoginPage: FC = () => {
       setErrorMessage(error.message)
     } else {
       form.resetFields()
-      navigate(redirectPath, { replace: true })
+      navigate({ to: redirectPath, replace: true })
     }
 
     setSubmitting(false)
@@ -278,10 +277,8 @@ const LoginPage: FC = () => {
                     type="link"
                     className="!text-blue-400 !p-0 !h-auto hover:!text-blue-300"
                     onClick={() =>
-                      navigate("/signup", {
-                        state: {
-                          from: location.state?.from ?? { pathname: "/app" },
-                        },
+                      navigate({
+                        to: "/signup",
                       })
                     }
                   >

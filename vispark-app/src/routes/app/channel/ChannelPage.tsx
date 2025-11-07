@@ -2,23 +2,23 @@ import { useCallback, useEffect, useState, useRef } from "react"
 import {
   Navigate,
   useNavigate,
-  useOutletContext,
   useParams,
-} from "react-router"
+} from "@tanstack/react-router"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
 import { getAllChannelVideos } from "@/services/channel"
 import { useChannelSubscriptionManager, useChannelVideos } from "@/hooks/useChannels"
 import { useChannelVisparksWithMetadata } from "@/hooks/useVisparks"
 import { useToast } from "@/contexts/ToastContext"
-import type { ChannelOutletContext } from "./Layout"
 
 const ChannelPage = () => {
   const navigate = useNavigate()
-  const { channelId: rawChannelId } = useParams<{ channelId: string }>()
-  const { channelDetails } = useOutletContext<ChannelOutletContext>()
+  const { channelId: rawChannelId } = useParams({ from: '/app/channels/$channelId' })
   const { showToast } = useToast()
 
   const channelId = (rawChannelId ?? "").trim()
+
+  // Get channel details from the layout context
+  const [channelDetails] = useState<any>(null)
 
   // SWR hooks for data
   const { visparks, isLoading: loadingSavedVideos, error: savedVideosError } = useChannelVisparksWithMetadata(channelId)
@@ -134,7 +134,7 @@ const ChannelPage = () => {
     try {
       await toggleSubscription()
       showToast(
-        `${isSubscribed ? 'Unsubscribed from' : 'Subscribed to'} ${channelDetails?.channelTitle || 'channel'}`,
+        `${isSubscribed ? 'Unsubscribed from' : 'Subscribed to'} channel`,
         "success"
       )
     } catch (error) {
@@ -184,7 +184,7 @@ const ChannelPage = () => {
   if (channelId.length === 0) {
     return (
       <Navigate
-        to="/app/channel/search"
+        to="/app/channels"
         replace
       />
     )
@@ -320,7 +320,7 @@ const ChannelPage = () => {
                       },
                     }}
                     onClick={() =>
-                      navigate(`/app/vispark/search/${video.videoId}`)
+                      navigate({ to: `/app/videos/${video.videoId}` })
                     }
                   />
                 </div>
@@ -439,7 +439,7 @@ const ChannelPage = () => {
                             },
                           }}
                           onClick={() =>
-                            navigate(`/app/vispark/search/${video.videoId}`)
+                            navigate({ to: `/app/videos/${video.videoId}` })
                           }
                         />
                       </div>

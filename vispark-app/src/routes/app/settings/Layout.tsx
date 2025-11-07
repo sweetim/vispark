@@ -1,5 +1,8 @@
-import { Outlet, useNavigate, useLocation } from "react-router"
+import { Outlet, useNavigate, useLocation } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
+import { match } from "ts-pattern"
+
+type SettingsRoute = "/app/settings" | "/app/settings/profile" | "/app/settings/account" | "/app/settings/preferences"
 
 const SettingsLayout = () => {
   const navigate = useNavigate()
@@ -7,20 +10,18 @@ const SettingsLayout = () => {
   const { t } = useTranslation()
 
   // Show back button only on child pages, not on the main settings page
-  const showBackButton = location.pathname !== "/app/settings"
+  const showBackButton = match(location.pathname as SettingsRoute)
+    .with("/app/settings", () => false)
+    .otherwise(() => true)
 
-  // Get page title based on current route
-  const getPageTitle = () => {
-    switch (location.pathname) {
-      case "/app/settings/profile":
-        return t("settings.profile")
-      case "/app/settings/account":
-        return t("settings.account")
-      case "/app/settings/preferences":
-        return t("settings.preferences")
-      default:
-        return ""
-    }
+  // Get page title based on current route using ts-pattern
+  const getPageTitle = (): string => {
+    return match(location.pathname as SettingsRoute)
+      .with("/app/settings/profile", () => t("settings.profile"))
+      .with("/app/settings/account", () => t("settings.account"))
+      .with("/app/settings/preferences", () => t("settings.preferences"))
+      .with("/app/settings", () => "")
+      .exhaustive()
   }
 
   return (
@@ -31,18 +32,14 @@ const SettingsLayout = () => {
           <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-10">
             <div className="flex items-center justify-between">
               <button
-                onClick={() => navigate("/app/settings")}
+                onClick={() => navigate({ to: "/app/settings" })}
                 className="flex items-center gap-3 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-sm text-gray-300 hover:text-white transition-all duration-200 shadow-lg"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span>{t("settings.title")}</span>
+                <span>{getPageTitle()}</span>
               </button>
-
-              <h1 className="text-2xl font-bold text-white">
-                {getPageTitle()}
-              </h1>
             </div>
           </div>
         </div>

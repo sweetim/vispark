@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { getBestThumbnailUrl } from "@/services/vispark.ts"
 import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 
@@ -267,7 +267,7 @@ const SummariesPage = () => {
                           </p>
                           <button
                             type="button"
-                            onClick={() => navigate(`/app/channel/${group.channelId}`)}
+                            onClick={() => navigate({ to: `/app/channels/${group.channelId}` })}
                             className="mt-1 text-2xl font-semibold text-white sm:text-3xl hover:text-indigo-300 transition-colors duration-200 text-left"
                           >
                             {group.channelTitle}
@@ -285,7 +285,7 @@ const SummariesPage = () => {
                             key={entry.id}
                             type="button"
                             onClick={() =>
-                              navigate(`/app/vispark/search/${entry.videoId}`)
+                              navigate({ to: `/app/videos/${entry.videoId}` })
                             }
                             className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-gray-900/70 p-4 text-left shadow-[0_12px_40px_-20px_rgba(15,23,42,0.9)] backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:shadow-[0_28px_70px_-40px_rgba(129,140,248,0.55)]"
                           >

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { Navigate, useOutletContext, useParams } from "react-router"
+import { Navigate, useParams } from "@tanstack/react-router"
 import ProgressTimeline from "@/components/ProgressTimeline"
 import SummaryList from "@/components/SummaryList"
 import TranscriptView from "@/components/TranscriptView"
@@ -12,7 +12,7 @@ import {
   formatTranscript,
   saveVispark,
 } from "@/services/vispark.ts"
-import type { VisparkOutletContext } from "./Layout"
+import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 
 const VideoMetadataSkeleton = () => (
   <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-gray-700 bg-gray-800 shadow-lg">
@@ -30,15 +30,18 @@ type Step = "idle" | "gathering" | "summarizing" | "complete" | "error"
 type ErrorStep = "gathering" | "summarizing" | null
 
 const VisparkVideoPage = () => {
-  const { videoId: rawVideoId } = useParams<{ videoId: string }>()
-  const { savedVisparks, refreshSavedVisparks } =
-    useOutletContext<VisparkOutletContext>()
+  const { videoId } = useParams({ from: '/app/videos/$videoId' })
+  const { visparks: savedVisparks, mutate } = useVisparksWithMetadata(20)
 
-  const videoId = (rawVideoId ?? "").trim()
+  const refreshSavedVisparks = async () => {
+    await mutate()
+  }
+
+  const rawVideoId = videoId ?? ""
 
   const existingVispark = useMemo(
-    () => savedVisparks.find((entry) => entry.metadata.videoId === videoId),
-    [savedVisparks, videoId],
+    () => savedVisparks.find((entry: any) => entry.videoId === rawVideoId),
+    [savedVisparks, rawVideoId],
   )
 
   const [loading, setLoading] = useState(false)
@@ -53,7 +56,7 @@ const VisparkVideoPage = () => {
   > | null>(null)
 
   useEffect(() => {
-    if (videoId.length === 0) {
+    if (rawVideoId.length === 0) {
       return
     }
 
@@ -73,13 +76,13 @@ const VisparkVideoPage = () => {
       setVideoMetadata(existingVispark?.metadata ?? null)
       setStep("gathering")
 
-      const metadataPromise = fetchYouTubeVideoDetails(videoId)
+      const metadataPromise = fetchYouTubeVideoDetails(rawVideoId)
 
       try {
         // Use local transcript fetching when developing locally
         const isLocalDevelopment = process.env.NODE_ENV !== "production"
         const transcriptResult = await fetchTranscript(
-          videoId,
+          rawVideoId,
           isLocalDevelopment,
         )
         if (cancelled) {
@@ -131,7 +134,7 @@ const VisparkVideoPage = () => {
           try {
             // Extract channel ID from video metadata
             const videoChannelId = resolvedMetadata?.channelId || ""
-            await saveVispark(videoId, videoChannelId, bullets)
+            await saveVispark(rawVideoId, videoChannelId, bullets)
             if (!cancelled) {
               await refreshSavedVisparks()
             }
@@ -177,7 +180,7 @@ const VisparkVideoPage = () => {
     return () => {
       cancelled = true
     }
-  }, [existingVispark, refreshSavedVisparks, videoId])
+  }, [existingVispark, refreshSavedVisparks, rawVideoId])
 
   const isGenerating =
     !existingVispark && (step === "gathering" || step === "summarizing")
@@ -185,11 +188,12 @@ const VisparkVideoPage = () => {
   const hasTranscript = transcript.length > 0
   const showViewToggle = hasSummary || hasTranscript
 
-  if (videoId.length === 0) {
+  if (rawVideoId.length === 0) {
     return (
       <Navigate
-        to="/app/vispark/search"
+        to="/app/videos"
         replace
+        search={{ q: undefined }}
       />
     )
   }

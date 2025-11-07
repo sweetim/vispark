@@ -1,5 +1,5 @@
 import type { FC } from "react"
-import { Outlet } from "react-router"
+import { Outlet } from "@tanstack/react-router"
 
 const RootLayout: FC = () => {
   return (

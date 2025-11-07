@@ -13,11 +13,10 @@ import {
 import { type FC, useEffect, useState } from "react"
 import {
   Link,
-  type Location,
   Navigate,
   useLocation,
   useNavigate,
-} from "react-router"
+} from "@tanstack/react-router"
 import { useAuth } from "@/modules/auth/useAuth.ts"
 
 type SignUpFormValues = {
@@ -49,7 +48,7 @@ const SignUpPage: FC = () => {
   }, [])
 
   const redirectPath =
-    (location.state as { from?: Location } | undefined)?.from?.pathname
+    (location.state as any)?.from?.pathname
     ?? "/app"
 
   if (authLoading) {
@@ -114,9 +113,9 @@ const SignUpPage: FC = () => {
         "Account created. Check your email to confirm before signing in.",
       )
       form.resetFields()
-      navigate("/login", {
+      navigate({
+        to: "/login",
         replace: true,
-        state: { from: location.state?.from ?? { pathname: "/app" } },
       })
     }
 
@@ -315,10 +314,8 @@ const SignUpPage: FC = () => {
                     type="link"
                     className="text-blue-400! p-0! h-auto! hover:text-blue-300!"
                     onClick={() =>
-                      navigate("/login", {
-                        state: {
-                          from: location.state?.from ?? { pathname: "/app" },
-                        },
+                      navigate({
+                        to: "/login",
                       })
                     }
                   >

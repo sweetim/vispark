@@ -15,7 +15,7 @@ import {
 import { Card, Typography } from "antd"
 import type { FC } from "react"
 import { useEffect, useState } from "react"
-import { Link, Navigate } from "react-router"
+import { Link, Navigate } from "@tanstack/react-router"
 import { useAuth } from "@/modules/auth"
 
 const { Title, Paragraph, Text } = Typography
@@ -724,63 +724,6 @@ const LandingPage: FC = () => {
               </Paragraph>
             </div>
 
-            <div>
-              <Title
-                level={5}
-                className="text-!white mb-!4"
-              >
-                Product
-              </Title>
-              <div className="space-y-2">
-                <Link
-                  to="/features"
-                  className="block text-sm text-zinc-400 hover:text-white transition"
-                >
-                  Features
-                </Link>
-                <Link
-                  to="/pricing"
-                  className="block text-sm text-zinc-400 hover:text-white transition"
-                >
-                  Pricing
-                </Link>
-                <Link
-                  to="/api"
-                  className="block text-sm text-zinc-400 hover:text-white transition"
-                >
-                  API
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <Title
-                level={5}
-                className="text-!white mb-!4"
-              >
-                Company
-              </Title>
-              <div className="space-y-2">
-                <Link
-                  to="/about"
-                  className="block text-sm text-zinc-400 hover:text-white transition"
-                >
-                  About
-                </Link>
-                <Link
-                  to="/blog"
-                  className="block text-sm text-zinc-400 hover:text-white transition"
-                >
-                  Blog
-                </Link>
-                <Link
-                  to="/contact"
-                  className="block text-sm text-zinc-400 hover:text-white transition"
-                >
-                  Contact
-                </Link>
-              </div>
-            </div>
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/10 text-zinc-400 text-sm">
@@ -788,18 +731,6 @@ const LandingPage: FC = () => {
               &copy; {new Date().getFullYear()} VISPARK. All rights reserved.
             </span>
             <div className="flex gap-6">
-              <Link
-                to="/privacy"
-                className="hover:text-white transition"
-              >
-                Privacy
-              </Link>
-              <Link
-                to="/terms"
-                className="hover:text-white transition"
-              >
-                Terms
-              </Link>
               <a
                 href="https://vispark.xyz"
                 target="_blank"

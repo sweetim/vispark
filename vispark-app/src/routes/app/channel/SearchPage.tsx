@@ -1,5 +1,5 @@
 import { type FormEvent, useId, useMemo, useState } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { useSubscribedChannels, useChannelSearch } from "@/hooks/useChannels"
 import ChannelList from "./components/ChannelList"
 
@@ -119,7 +119,7 @@ const ChannelSearchPage = () => {
   }
 
   const handleChannelClick = (channelId: string) => {
-    navigate(`/app/channel/${channelId}`)
+    navigate({ to: `/app/channels/${channelId}` })
   }
 
   // Convert ChannelMetadata to YouTubeSearchResult format for ChannelList

@@ -1,9 +1,9 @@
 import { ConfigProvider, theme } from "antd"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
-import { RouterProvider } from "react-router"
+import { RouterProvider } from "@tanstack/react-router"
 
-import { router } from "@/config/router.tsx"
+import { router } from "@/config/tanstack-router.tsx"
 import { AuthProvider } from "@/modules/auth"
 import { ToastProvider } from "@/contexts/ToastContext"
 import { SWRProvider } from "@/config/swrConfig"
