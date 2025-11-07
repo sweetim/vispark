@@ -1,4 +1,5 @@
 import type { FC } from "react"
+import { useTranslation } from "react-i18next"
 
 type ViewKey = "summary" | "transcript"
 
@@ -15,6 +16,7 @@ const ViewToggle: FC<ViewToggleProps> = ({
   hasTranscript,
   onChange,
 }) => {
+  const { t } = useTranslation()
   const handleSelect = (nextView: ViewKey, disabled: boolean) => {
     if (disabled) {
       return
@@ -34,7 +36,7 @@ const ViewToggle: FC<ViewToggleProps> = ({
             view === "summary" ? "bg-indigo-600 text-white" : "text-gray-300"
           } disabled:opacity-40 disabled:cursor-not-allowed`}
         >
-          Summary
+          {t("viewToggle.summary")}
         </button>
         <button
           type="button"
@@ -44,7 +46,7 @@ const ViewToggle: FC<ViewToggleProps> = ({
             view === "transcript" ? "bg-indigo-600 text-white" : "text-gray-300"
           } disabled:opacity-40 disabled:cursor-not-allowed`}
         >
-          Transcript
+          {t("viewToggle.transcript")}
         </button>
       </div>
     </div>

@@ -16,18 +16,39 @@ import {
 import type { FC } from "react"
 import { useEffect, useState } from "react"
 import { Link, Navigate } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import { useAuth } from "@/modules/auth"
+import { useLocale } from "@/contexts/LocaleContext"
 
 
 const LandingPage: FC = () => {
+  const { t, i18n } = useTranslation()
+  const { changeLanguage } = useLocale()
   const [scrollY, setScrollY] = useState(0)
   const { user, loading } = useAuth()
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY)
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isLanguageDropdownOpen) {
+        const target = event.target as Node
+        const dropdown = document.getElementById('language-dropdown')
+        if (dropdown && !dropdown.contains(target)) {
+          setIsLanguageDropdownOpen(false)
+        }
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isLanguageDropdownOpen])
 
   // If user is logged in, redirect to app
   if (!loading && user) {
@@ -37,44 +58,38 @@ const LandingPage: FC = () => {
   const features = [
     {
       icon: BrainIcon,
-      title: "AI-Powered Summaries",
-      description:
-        "Transform hours of content into concise, actionable insights with advanced AI technology.",
+      title: t("landing.features.aiPowered.title"),
+      description: t("landing.features.aiPowered.description"),
       color: "from-blue-500 to-cyan-500",
     },
     {
       icon: TrendUpIcon,
-      title: "Trend Detection",
-      description:
-        "Identify emerging topics and patterns across multiple channels to stay ahead of the curve.",
+      title: t("landing.features.trendDetection.title"),
+      description: t("landing.features.trendDetection.description"),
       color: "from-purple-500 to-pink-500",
     },
     {
       icon: LightningIcon,
-      title: "Instant Processing",
-      description:
-        "Get summaries and insights in seconds, not hours. Process multiple videos simultaneously.",
+      title: t("landing.features.instantProcessing.title"),
+      description: t("landing.features.instantProcessing.description"),
       color: "from-yellow-500 to-orange-500",
     },
     {
       icon: GlobeIcon,
-      title: "Multi-Language Support",
-      description:
-        "Analyze content in multiple languages with accurate transcription and translation.",
+      title: t("landing.features.multiLanguage.title"),
+      description: t("landing.features.multiLanguage.description"),
       color: "from-green-500 to-emerald-500",
     },
     {
       icon: ShieldCheckIcon,
-      title: "Secure & Private",
-      description:
-        "Your data is encrypted and secure. We never share your information with third parties.",
+      title: t("landing.features.securePrivate.title"),
+      description: t("landing.features.securePrivate.description"),
       color: "from-indigo-500 to-blue-500",
     },
     {
       icon: ChartLineIcon,
-      title: "Analytics Dashboard",
-      description:
-        "Track your content consumption patterns and optimize your learning strategy.",
+      title: t("landing.features.analytics.title"),
+      description: t("landing.features.analytics.description"),
       color: "from-red-500 to-pink-500",
     },
   ]
@@ -82,86 +97,83 @@ const LandingPage: FC = () => {
   const testimonials = [
     {
       name: "Sarah Chen",
-      role: "Content Strategist",
-      company: "TechFlow Media",
-      content:
-        "VISPARK has revolutionized how I research content. I can now analyze 10x more videos in the same time.",
+      role: t("landing.testimonials.sarah.role"),
+      company: t("landing.testimonials.sarah.company"),
+      content: t("landing.testimonials.sarah.content"),
       rating: 5,
     },
     {
       name: "Michael Rodriguez",
-      role: "Research Analyst",
-      company: "Market Insights Lab",
-      content:
-        "The AI summaries are incredibly accurate. It's like having a research assistant that works 24/7.",
+      role: t("landing.testimonials.michael.role"),
+      company: t("landing.testimonials.michael.company"),
+      content: t("landing.testimonials.michael.content"),
       rating: 5,
     },
     {
       name: "Emily Watson",
-      role: "YouTube Creator",
-      company: "Emily Explains",
-      content:
-        "I use VISPARK to analyze competitor content and identify gaps in the market. It's been a game-changer.",
+      role: t("landing.testimonials.emily.role"),
+      company: t("landing.testimonials.emily.company"),
+      content: t("landing.testimonials.emily.content"),
       rating: 5,
     },
   ]
 
   const pricingTiers = [
     {
-      name: "Starter",
-      price: "Free",
-      description: "Perfect for trying out VISPARK",
+      name: t("landing.pricing.starter.name"),
+      price: t("landing.pricing.starter.price"),
+      description: t("landing.pricing.starter.description"),
       features: [
-        "5 video summaries per month",
-        "Basic search functionality",
-        "Email support",
+        t("landing.pricing.starter.features.0"),
+        t("landing.pricing.starter.features.1"),
+        t("landing.pricing.starter.features.2"),
       ],
-      cta: "Get Started",
+      cta: t("landing.pricing.starter.cta"),
       popular: false,
     },
     {
-      name: "Pro",
-      price: "$19",
-      period: "/month",
-      description: "For serious content creators",
+      name: t("landing.pricing.pro.name"),
+      price: t("landing.pricing.pro.price"),
+      period: t("landing.pricing.pro.period"),
+      description: t("landing.pricing.pro.description"),
       features: [
-        "Unlimited video summaries",
-        "Advanced search & filters",
-        "Trend analysis tools",
-        "Priority support",
-        "Custom categories",
+        t("landing.pricing.pro.features.0"),
+        t("landing.pricing.pro.features.1"),
+        t("landing.pricing.pro.features.2"),
+        t("landing.pricing.pro.features.3"),
+        t("landing.pricing.pro.features.4"),
       ],
-      cta: "Start Free Trial",
+      cta: t("landing.pricing.pro.cta"),
       popular: true,
     },
     {
-      name: "Enterprise",
-      price: "Custom",
-      description: "For teams and organizations",
+      name: t("landing.pricing.enterprise.name"),
+      price: t("landing.pricing.enterprise.price"),
+      description: t("landing.pricing.enterprise.description"),
       features: [
-        "Everything in Pro",
-        "Team collaboration",
-        "API access",
-        "Custom integrations",
-        "Dedicated support",
+        t("landing.pricing.enterprise.features.0"),
+        t("landing.pricing.enterprise.features.1"),
+        t("landing.pricing.enterprise.features.2"),
+        t("landing.pricing.enterprise.features.3"),
+        t("landing.pricing.enterprise.features.4"),
       ],
-      cta: "Contact Sales",
+      cta: t("landing.pricing.enterprise.cta"),
       popular: false,
     },
   ]
 
   const demoSteps = [
     {
-      title: "Paste YouTube Link",
-      description: "Simply paste any YouTube video URL to get started",
+      title: t("landing.howItWorks.step1.title"),
+      description: t("landing.howItWorks.step1.description"),
     },
     {
-      title: "AI Processing",
-      description: "Our AI analyzes the content and extracts key insights",
+      title: t("landing.howItWorks.step2.title"),
+      description: t("landing.howItWorks.step2.description"),
     },
     {
-      title: "Get Insights",
-      description: "Receive comprehensive summaries and actionable takeaways",
+      title: t("landing.howItWorks.step3.title"),
+      description: t("landing.howItWorks.step3.description"),
     },
   ]
 
@@ -194,7 +206,7 @@ const LandingPage: FC = () => {
           >
             <img
               src="/logo.png"
-              alt="VISPARK Logo"
+              alt={t("landing.logoAlt")}
               className="w-8 h-8 object-contain bg-white rounded-full"
             />
             <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -202,21 +214,67 @@ const LandingPage: FC = () => {
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            {/* Language Selector */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+                className="p-2 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-200 flex items-center gap-2"
+                aria-label={t("settings.language")}
+              >
+                <GlobeIcon size={16} />
+                <span className="hidden md:inline text-sm font-medium">
+                  {i18n.language === "ja" ? "日本語" : "English"}
+                </span>
+              </button>
+
+              {isLanguageDropdownOpen && (
+                <div id="language-dropdown" className="absolute right-0 top-full mt-2 bg-zinc-800 border border-white/20 rounded-lg shadow-lg z-50 min-w-[120px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      changeLanguage("en")
+                      setIsLanguageDropdownOpen(false)
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 transition-colors flex items-center gap-2 ${
+                      i18n.language === "en" ? "bg-zinc-700 text-white" : "text-gray-300"
+                    }`}
+                  >
+                    <span>🇺🇸</span>
+                    <span>{t("settings.english")}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      changeLanguage("ja")
+                      setIsLanguageDropdownOpen(false)
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 transition-colors flex items-center gap-2 ${
+                      i18n.language === "ja" ? "bg-zinc-700 text-white" : "text-gray-300"
+                    }`}
+                  >
+                    <span>🇯🇵</span>
+                    <span>{t("settings.japanese")}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
             <Link
               to="/login"
               className="p-2 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-200 md:flex md:items-center md:gap-2 md:px-4 md:py-2 md:text-sm md:font-medium"
-              aria-label="Log in"
+              aria-label={t("landing.login")}
             >
               <SignInIcon size={16} />
-              <span className="hidden md:inline">Log in</span>
+              <span className="hidden md:inline">{t("landing.login")}</span>
             </Link>
             <Link
               to="/signup"
               className="p-2 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white shadow-lg hover:shadow-xl md:flex md:items-center md:gap-2 md:px-4 md:py-2 md:text-sm md:font-medium"
-              aria-label="Get started"
+              aria-label={t("landing.getStarted")}
             >
               <SparkleIcon size={16} />
-              <span className="hidden md:inline">Get started</span>
+              <span className="hidden md:inline">{t("landing.getStarted")}</span>
             </Link>
           </div>
         </div>
@@ -224,14 +282,14 @@ const LandingPage: FC = () => {
 
       <main className="relative pt-20">
         {/* Hero Section */}
-        <section className="relative px-6 pt-16 pb-24 md:px-12">
+        <section className="relative px-6 pt-8 pb-24 md:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-16">
               <div className="flex-1 space-y-8 text-center lg:text-left">
                 <div className="space-y-4">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm font-medium">
                     <SparkleIcon size={16} />
-                    <span>Powered by Advanced AI</span>
+                    <span>{t("landing.poweredByAI")}</span>
                   </div>
                   <h1 className="text-4xl md:text-5xl lg:text-6xl text-white leading-tight font-bold">
                     Transform{" "}
@@ -241,9 +299,7 @@ const LandingPage: FC = () => {
                     into Actionable Intelligence
                   </h1>
                   <p className="text-lg md:text-xl text-zinc-300 leading-relaxed">
-                    Extract summaries, identify trends, and generate insights
-                    from the creators you follow. Stay ahead without watching
-                    every upload.
+                    {t("landing.subtitle")}
                   </p>
                 </div>
 
@@ -252,7 +308,7 @@ const LandingPage: FC = () => {
                     to="/signup"
                     className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium shadow-lg hover:shadow-xl group"
                   >
-                    Start your free account
+                    {t("landing.startFreeAccount")}
                     <ArrowRightIcon
                       size={20}
                       weight="bold"
@@ -264,7 +320,7 @@ const LandingPage: FC = () => {
                     className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-200 text-white font-medium"
                   >
                     <PlayIcon size={20} />
-                    Watch demo
+                    {t("landing.watchDemo")}
                   </button>
                 </div>
 
@@ -274,21 +330,21 @@ const LandingPage: FC = () => {
                       size={16}
                       className="text-green-400"
                     />
-                    <span>No credit card required</span>
+                    <span>{t("landing.noCreditCard")}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <CheckCircleIcon
                       size={16}
                       className="text-green-400"
                     />
-                    <span>5 free summaries</span>
+                    <span>{t("landing.freeSummaries")}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <CheckCircleIcon
                       size={16}
                       className="text-green-400"
                     />
-                    <span>Cancel anytime</span>
+                    <span>{t("landing.cancelAnytime")}</span>
                   </div>
                 </div>
               </div>
@@ -305,10 +361,10 @@ const LandingPage: FC = () => {
                       </div>
                       <div>
                         <h4 className="text-white mb-0 text-lg font-semibold">
-                          See VISPARK in Action
+                          {t("landing.seeVISPARKInAction")}
                         </h4>
                         <p className="text-zinc-400 text-sm">
-                          Real-time analysis of any YouTube video
+                          {t("landing.realTimeAnalysis")}
                         </p>
                       </div>
                     </div>
@@ -325,7 +381,7 @@ const LandingPage: FC = () => {
                             <div className="h-full w-3/4 bg-linear-to-r from-blue-500 to-purple-500 rounded-full"></div>
                           </div>
                           <p className="text-xs text-zinc-400 mt-1">
-                            Analyzing video content...
+                            {t("landing.analyzingVideo")}
                           </p>
                         </div>
                       </div>
@@ -334,10 +390,10 @@ const LandingPage: FC = () => {
                         {[
                           {
                             id: "extracting",
-                            text: "Extracting key topics...",
+                            text: t("landing.extractingTopics"),
                           },
-                          { id: "generating", text: "Generating summary..." },
-                          { id: "identifying", text: "Identifying trends..." },
+                          { id: "generating", text: t("landing.generatingSummary") },
+                          { id: "identifying", text: t("landing.identifyingTrends") },
                         ].map((step) => (
                           <div
                             key={step.id}
@@ -373,20 +429,18 @@ const LandingPage: FC = () => {
                           className="text-yellow-400"
                         />
                         <p className="text-sm font-medium text-zinc-300">
-                          AI-Generated Summary
+                          {t("landing.aiGeneratedSummary")}
                         </p>
                       </div>
                       <ul className="space-y-1 text-sm text-zinc-400">
                         <li>
-                          • Key concept: Machine learning applications in
-                          content analysis
+                          • {t("landing.keyConcept")}
                         </li>
                         <li>
-                          • Main takeaway: AI can reduce research time by 80%
+                          • {t("landing.mainTakeaway")}
                         </li>
                         <li>
-                          • Trend mentioned: Growing adoption of AI tools in
-                          content creation
+                          • {t("landing.trendMentioned")}
                         </li>
                       </ul>
                     </div>
@@ -402,15 +456,10 @@ const LandingPage: FC = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-white text-3xl md:text-4xl font-bold">
-                Trusted by{" "}
-                <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  10,000+
-                </span>{" "}
-                Content Professionals
+                {t("landing.trustedBy", { count: 10000 })}
               </h2>
               <p className="text-zinc-300 text-lg max-w-2xl mx-auto">
-                Join researchers, creators, and strategists who are saving hours
-                every week with VISPARK
+                {t("landing.joinProfessionals")}
               </p>
             </div>
 
@@ -460,13 +509,10 @@ const LandingPage: FC = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-white text-3xl md:text-4xl font-bold">
-                Powerful Features for{" "}
-                <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Content Intelligence
-                </span>
+                {t("landing.features.title")}
               </h2>
               <p className="text-zinc-300 text-lg max-w-2xl mx-auto">
-                Everything you need to extract maximum value from video content
+                {t("landing.features.subtitle")}
               </p>
             </div>
 
@@ -501,14 +547,10 @@ const LandingPage: FC = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-white text-3xl md:text-4xl font-bold">
-                See How It{" "}
-                <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Works
-                </span>
+                {t("landing.howItWorks.title")}
               </h2>
               <p className="text-zinc-300 text-lg max-w-2xl mx-auto">
-                Transform any YouTube video into actionable insights in three
-                simple steps
+                {t("landing.howItWorks.subtitle")}
               </p>
             </div>
 
@@ -543,7 +585,7 @@ const LandingPage: FC = () => {
                 to="/signup"
                 className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium shadow-lg hover:shadow-xl group"
               >
-                Try it now
+                {t("landing.howItWorks.tryItNow")}
                 <ArrowRightIcon
                   size={20}
                   weight="bold"
@@ -559,13 +601,10 @@ const LandingPage: FC = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-white text-3xl md:text-4xl font-bold">
-                Simple, Transparent{" "}
-                <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Pricing
-                </span>
+                {t("landing.pricing.title")}
               </h2>
               <p className="text-zinc-300 text-lg max-w-2xl mx-auto">
-                Choose the plan that works best for your content analysis needs
+                {t("landing.pricing.subtitle")}
               </p>
             </div>
 
@@ -582,7 +621,7 @@ const LandingPage: FC = () => {
                   {tier.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <div className="px-3 py-1 bg-linear-to-r from-blue-500 to-purple-500 rounded-full text-white text-xs font-medium">
-                        Most Popular
+                        {t("landing.pricing.mostPopular")}
                       </div>
                     </div>
                   )}
@@ -646,22 +685,17 @@ const LandingPage: FC = () => {
         <section className="px-6 py-16 md:px-12 bg-linear-to-r from-blue-900/20 to-purple-900/20">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <h2 className="text-white text-3xl md:text-4xl font-bold">
-              Ready to Transform Your{" "}
-              <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Content Workflow
-              </span>
-              ?
+              {t("landing.cta.title")}
             </h2>
             <p className="text-zinc-300 text-lg">
-              Join thousands of professionals who are saving hours every week
-              with VISPARK
+              {t("landing.cta.subtitle")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/signup"
                 className="flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium shadow-lg hover:shadow-xl group"
               >
-                Start your free trial
+                {t("landing.cta.startFreeTrial")}
                 <ArrowRightIcon
                   size={20}
                   weight="bold"
@@ -672,7 +706,7 @@ const LandingPage: FC = () => {
                 to="/login"
                 className="px-8 py-3 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-200 text-white font-medium"
               >
-                Log in to existing account
+                {t("landing.cta.loginToAccount")}
               </Link>
             </div>
           </div>
@@ -695,8 +729,7 @@ const LandingPage: FC = () => {
                 </span>
               </div>
               <p className="text-zinc-400 text-sm mb-0">
-                Transform YouTube content into actionable insights with
-                AI-powered analysis.
+                {t("landing.footer.description")}
               </p>
             </div>
 
@@ -704,18 +737,8 @@ const LandingPage: FC = () => {
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/10 text-zinc-400 text-sm">
             <span>
-              &copy; {new Date().getFullYear()} VISPARK. All rights reserved.
+              {t("landing.footer.copyright", { year: new Date().getFullYear() })}
             </span>
-            <div className="flex gap-6">
-              <a
-                href="https://vispark.xyz"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-white transition"
-              >
-                Learn more
-              </a>
-            </div>
           </div>
         </div>
       </footer>

@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 import { useNavigate } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import { getBestThumbnailUrl } from "@/services/vispark.ts"
 import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 
@@ -101,6 +102,7 @@ const LoadingSkeleton = () => (
 )
 
 const SummariesPage = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { visparks, isLoading, error } = useVisparksWithMetadata(200)
 
@@ -195,30 +197,29 @@ const SummariesPage = () => {
         <header className="mb-12 flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-4">
             <p className="text-xs uppercase tracking-[0.45em] text-indigo-200/80">
-              Vispark Archive
+              {t("summaries.visparkArchive")}
             </p>
             <h1 className="text-4xl font-black text-white sm:text-5xl lg:text-6xl">
-              Fast channel overview for every vispark.
+              {t("summaries.title")}
             </h1>
             <p className="max-w-2xl text-base text-gray-300/90 sm:text-lg">
-              Scan the creators you have summarized and jump straight back into
-              any video with one click.
+              {t("summaries.subtitle")}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3 text-sm text-gray-200/80">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              {stats.totalVideos} saved videos
+              {t("summaries.savedVideos", { count: stats.totalVideos })}
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
               <span className="h-2 w-2 rounded-full bg-indigo-400" />
-              {stats.totalChannels} channels
+              {t("summaries.channels", { count: stats.totalChannels })}
             </span>
             {stats.latestSavedIso && (
               <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
                 <span className="h-2 w-2 rounded-full bg-amber-400" />
-                Updated {formatRelativeToNow(stats.latestSavedIso)}
+                {t("summaries.updated", { time: formatRelativeToNow(stats.latestSavedIso) })}
               </span>
             )}
           </div>
@@ -228,7 +229,7 @@ const SummariesPage = () => {
 
         {status === "error" && (
           <div className="rounded-3xl border border-red-500/30 bg-red-500/10 px-6 py-8 text-center text-red-200 backdrop-blur-md">
-            <h2 className="text-lg font-semibold">Unable to load visparks</h2>
+            <h2 className="text-lg font-semibold">{t("summaries.unableToLoad")}</h2>
             <p className="mt-2 text-sm text-red-200/80">{errorMessage}</p>
           </div>
         )}
@@ -236,11 +237,10 @@ const SummariesPage = () => {
         {status === "success" && groups.length === 0 && (
           <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 px-6 py-14 text-center text-gray-300 backdrop-blur-md">
             <h2 className="text-2xl font-semibold text-white">
-              No visparks yet
+              {t("summaries.noVisparks")}
             </h2>
             <p className="mt-3 text-sm text-gray-300/80">
-              Generate a summary in Vispark and it will appear here, grouped by
-              the channel it came from.
+              {t("summaries.noVisparksDescription")}
             </p>
           </div>
         )}
@@ -263,7 +263,7 @@ const SummariesPage = () => {
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <p className="text-xs uppercase tracking-[0.35em] text-gray-200/70">
-                            Channel
+                            {t("summaries.channel")}
                           </p>
                           <button
                             type="button"
@@ -273,8 +273,10 @@ const SummariesPage = () => {
                             {group.channelTitle}
                           </button>
                           <p className="text-sm text-gray-200/80">
-                            {group.entries.length} saved{" "}
-                            {group.entries.length === 1 ? "video" : "videos"}
+                            {t("summaries.saved", {
+                              count: group.entries.length,
+                              type: group.entries.length === 1 ? t("summaries.video") : t("summaries.videos")
+                            })}
                           </p>
                         </div>
                       </div>
@@ -306,7 +308,7 @@ const SummariesPage = () => {
                                 {entry.videoTitle}
                               </p>
                               <div className="text-xs text-gray-400">
-                                Saved {formatAbsoluteDate(entry.createdTime)}
+                                {t("summaries.savedTime", { time: formatAbsoluteDate(entry.createdTime) })}
                               </div>
                             </div>
 

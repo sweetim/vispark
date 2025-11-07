@@ -1,5 +1,6 @@
 import { type FormEvent, useId, useMemo, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import { useSubscribedChannels, useChannelSearch } from "@/hooks/useChannels"
 import ChannelList from "./components/ChannelList"
 
@@ -97,6 +98,7 @@ const EmptyStateIllustration = ({
 }
 
 const ChannelSearchPage = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
@@ -163,10 +165,10 @@ const ChannelSearchPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-                  Discover Channels
+                  {t("channels.discoverChannels")}
                 </h1>
                 <p className="text-gray-400 text-sm">
-                  Explore and subscribe to your favorite YouTube creators
+                  {t("channels.exploreSubscribe")}
                 </p>
               </div>
             </div>
@@ -175,20 +177,20 @@ const ChannelSearchPage = () => {
           <form
             onSubmit={handleSubmit}
             className="space-y-4"
-            aria-label="Search for channels"
+            aria-label={t("channels.search")}
           >
             <div className="relative group">
               <input
                 id={inputId}
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={hasSearched ? "Search for more channels..." : "Search for channels..."}
+                placeholder={hasSearched ? t("channels.searchMorePlaceholder") : t("channels.searchPlaceholder")}
                 className="w-full pl-4 pr-32 py-4 glass-effect rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all duration-300 text-lg shadow-xl hover:shadow-2xl hover:shadow-indigo-500/10"
               />
               <button
                 type="submit"
                 className="absolute inset-y-0 right-0 flex items-center pr-4 z-10"
-                aria-label="Search for channels"
+                aria-label={t("channels.search")}
                 disabled={!searchQuery.trim() || loading}
               >
                 <div className="p-2 rounded-lg bg-linear-to-br from-indigo-500/20 to-purple-500/20 group-hover:from-indigo-500/30 group-hover:to-purple-500/30 transition-all duration-300">
@@ -225,7 +227,7 @@ const ChannelSearchPage = () => {
                     </svg>
                   </div>
                   <h2 className="text-2xl font-bold bg-linear-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                    Subscribed Channels
+                    {t("channels.subscribedChannels")}
                   </h2>
                 </div>
                 <LoadingSkeleton />
@@ -277,10 +279,10 @@ const ChannelSearchPage = () => {
             <div className="glass-effect rounded-2xl p-8 text-center animate-fadeIn">
               <EmptyStateIllustration type="search" />
               <h3 className="text-xl font-semibold text-gray-300 mb-2">
-                No subscribed channels yet
+                {t("channels.noSubscribedChannels")}
               </h3>
               <p className="text-gray-400">
-                Search for channels above to subscribe to your favorite creators
+                {t("channels.searchToSubscribe")}
               </p>
             </div>
           )}
@@ -295,7 +297,7 @@ const ChannelSearchPage = () => {
             <div className="animate-fadeIn">
               <div className="glass-effect rounded-2xl p-6">
                 <h2 className="text-lg font-semibold text-gray-300 mb-4 animate-pulse-slow">
-                  Searching for channels...
+                  {t("channels.searchingChannels")}
                 </h2>
                 <LoadingSkeleton />
               </div>
@@ -324,7 +326,7 @@ const ChannelSearchPage = () => {
                 </div>
                 <div>
                   <h3 className="text-red-400 font-semibold mb-1">
-                    Something went wrong
+                    {t("channels.somethingWentWrong")}
                   </h3>
                   <p className="text-red-300/70 text-sm">{error}</p>
                 </div>
@@ -355,11 +357,11 @@ const ChannelSearchPage = () => {
                       </svg>
                     </div>
                     <h2 className="text-2xl font-bold bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                      Results
+                      {t("channels.results")}
                     </h2>
                   </div>
                   <span className="px-3 py-1 text-sm font-semibold bg-indigo-500/20 text-indigo-300 rounded-full">
-                    {searchResults.length} channels
+                    {t("channels.channelsCount", { count: searchResults.length })}
                   </span>
                 </div>
                 <ChannelList
@@ -376,7 +378,7 @@ const ChannelSearchPage = () => {
             <div className="glass-effect rounded-2xl p-8 text-center animate-fadeIn">
               <EmptyStateIllustration type="no-results" />
               <h3 className="text-xl font-semibold text-gray-300 mb-2">
-                No channels found
+                {t("channels.noChannelsFound")}
               </h3>
               <p className="text-gray-400 mb-4">
                 No channels match "{searchQuery}". Try different keywords or check
@@ -387,7 +389,7 @@ const ChannelSearchPage = () => {
                 onClick={() => setSearchQuery("")}
                 className="px-4 py-2 bg-linear-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105"
               >
-                Clear search
+                {t("channels.clearSearch")}
               </button>
             </div>
           )}

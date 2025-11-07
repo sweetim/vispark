@@ -8,43 +8,46 @@ import {
 } from "@phosphor-icons/react"
 import clsx from "clsx"
 import type { FC } from "react"
+import { useTranslation } from "react-i18next"
 import { Link, useLocation } from "@tanstack/react-router"
 
 type NavBarItem = {
   to: string
   icon: Icon
-  title: string
+  titleKey: string
 }
 
-const navBarItems: NavBarItem[] = [
-  {
-    to: "/app/summaries",
-    icon: ListNumbersIcon,
-    title: "Summaries",
-  },
-  {
-    to: "/app/channels",
-    icon: StackPlusIcon,
-    title: "Channels",
-  },
-  {
-    to: "/app/videos",
-    icon: LightbulbFilamentIcon,
-    title: "VISPARK",
-  },
-  {
-    to: "/app/wallet",
-    icon: WalletIcon,
-    title: "Wallet",
-  },
-  {
-    to: "/app/settings",
-    icon: UserCircleGearIcon,
-    title: "Settings",
-  },
-]
-
 const BottomNavBar: FC = () => {
+  const { t } = useTranslation()
+
+  const navBarItems: NavBarItem[] = [
+    {
+      to: "/app/summaries",
+      icon: ListNumbersIcon,
+      titleKey: "navigation.summaries",
+    },
+    {
+      to: "/app/channels",
+      icon: StackPlusIcon,
+      titleKey: "navigation.channels",
+    },
+    {
+      to: "/app/videos",
+      icon: LightbulbFilamentIcon,
+      titleKey: "navigation.vispark",
+    },
+    {
+      to: "/app/wallet",
+      icon: WalletIcon,
+      titleKey: "navigation.wallet",
+    },
+    {
+      to: "/app/settings",
+      icon: UserCircleGearIcon,
+      titleKey: "navigation.settings",
+    },
+  ]
+
   const location = useLocation()
   return (
     <>
@@ -110,6 +113,7 @@ const BottomNavBar: FC = () => {
                 to={item.to}
                 className="inline-flex flex-col items-center justify-center px-5 hover:bg-zinc-800 group"
                 key={`${index}-${item.to}`}
+                title={t(item.titleKey)}
               >
                 <NavIcon
                   size={32}

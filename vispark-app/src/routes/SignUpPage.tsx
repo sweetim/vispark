@@ -5,6 +5,7 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import { useAuth } from "@/modules/auth/useAuth.ts"
 
 type SignUpFormValues = {
@@ -15,6 +16,7 @@ type SignUpFormValues = {
 
 
 const SignUpPage: FC = () => {
+  const { t } = useTranslation()
   const {
     user,
     loading: authLoading,
@@ -98,17 +100,17 @@ const SignUpPage: FC = () => {
     e.preventDefault()
 
     if (!formData.email || !formData.password || !formData.confirmPassword) {
-      setErrorMessage("Please fill in all required fields")
+      setErrorMessage(t("common.error"))
       return
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Passwords do not match. Please try again.")
+      setErrorMessage(t("auth.passwordsDoNotMatch"))
       return
     }
 
     if (formData.password.length < 8) {
-      setErrorMessage("Password must be at least 8 characters")
+      setErrorMessage(t("auth.passwordMinLength"))
       return
     }
 
@@ -122,7 +124,7 @@ const SignUpPage: FC = () => {
       setErrorMessage(error.message)
     } else {
       // Show success message (we'll need to implement a toast or alert)
-      alert("Account created. Check your email to confirm before signing in.")
+      alert(t("auth.accountCreated"))
       setFormData({ email: "", password: "", confirmPassword: "" })
       navigate({
         to: "/login",
@@ -188,26 +190,26 @@ const SignUpPage: FC = () => {
             <div className="p-6 space-y-6">
               <div className="text-center space-y-2">
                 <h3 className="text-white mb-0 text-xl font-semibold">
-                  Create your VISPARK
+                  {t("auth.createYourVISPARK")}
                 </h3>
                 <p className="text-zinc-400 text-sm">
-                  explore AI-powered video insights starting now
+                  {t("auth.exploreAIPowered")}
                 </p>
               </div>
 
               {errorMessage && (
                 <div className="bg-red-500/10 border border-red-500/20 text-red-300 p-4 rounded-lg">
-                  <div className="font-medium mb-1">Sign up error</div>
+                  <div className="font-medium mb-1">{t("auth.signUpError")}</div>
                   <div className="text-sm">{errorMessage}</div>
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-zinc-300 mb-2">Email</label>
+                  <label className="block text-zinc-300 mb-2">{t("auth.email")}</label>
                   <input
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t("auth.emailPlaceholder")}
                     autoComplete="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
@@ -216,10 +218,10 @@ const SignUpPage: FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-zinc-300 mb-2">Password</label>
+                  <label className="block text-zinc-300 mb-2">{t("auth.password")}</label>
                   <input
                     type="password"
-                    placeholder="••••••••"
+                    placeholder={t("auth.passwordPlaceholder")}
                     autoComplete="new-password"
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
@@ -228,10 +230,10 @@ const SignUpPage: FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-zinc-300 mb-2">Confirm password</label>
+                  <label className="block text-zinc-300 mb-2">{t("auth.confirmPassword")}</label>
                   <input
                     type="password"
-                    placeholder="••••••••"
+                    placeholder={t("auth.passwordPlaceholder")}
                     autoComplete="new-password"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
@@ -247,10 +249,10 @@ const SignUpPage: FC = () => {
                   {submitting ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Creating account...
+                      {t("auth.creatingAccount")}
                     </div>
                   ) : (
-                    "Create account"
+                    t("auth.signUp")
                   )}
                 </button>
               </form>
@@ -260,7 +262,7 @@ const SignUpPage: FC = () => {
                   <div className="w-full border-t border-white/10"></div>
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="px-3 bg-linear-to-br rounded-full from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-400 text-sm">OR</span>
+                  <span className="px-3 bg-linear-to-br rounded-full from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-400 text-sm">{t("auth.or")}</span>
                 </div>
               </div>
 
@@ -280,12 +282,12 @@ const SignUpPage: FC = () => {
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
                 )}
-                <span>Sign up with Google</span>
+                <span>{t("auth.signUpWithGoogle")}</span>
               </button>
 
               <div className="text-center pt-4">
                 <span className="text-zinc-400">
-                  Already have an account?{" "}
+                  {t("auth.alreadyHaveAccount")}{" "}
                   <button
                     type="button"
                     onClick={() =>
@@ -295,7 +297,7 @@ const SignUpPage: FC = () => {
                     }
                     className="text-blue-400 hover:text-blue-300 p-0 h-auto bg-transparent border-none cursor-pointer"
                   >
-                    Log in
+                    {t("auth.logIn")}
                   </button>
                 </span>
               </div>

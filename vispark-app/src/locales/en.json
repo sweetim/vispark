@@ -29,5 +29,301 @@
     "dataUsage": "Data Usage",
     "exportData": "Export Data",
     "deleteAccount": "Delete Account"
+  },
+  "landing": {
+    "logoAlt": "VISPARK Logo",
+    "login": "Log in",
+    "getStarted": "Get started",
+    "poweredByAI": "Powered by Advanced AI",
+    "title": "Transform YouTube Content into Actionable Intelligence",
+    "subtitle": "Extract summaries, identify trends, and generate insights from the creators you follow. Stay ahead without watching every upload.",
+    "startFreeAccount": "Start your free account",
+    "watchDemo": "Watch demo",
+    "noCreditCard": "No credit card required",
+    "freeSummaries": "5 free summaries",
+    "cancelAnytime": "Cancel anytime",
+    "seeVISPARKInAction": "See VISPARK in Action",
+    "realTimeAnalysis": "Real-time analysis of any YouTube video",
+    "analyzingVideo": "Analyzing video content...",
+    "extractingTopics": "Extracting key topics...",
+    "generatingSummary": "Generating summary...",
+    "identifyingTrends": "Identifying trends...",
+    "aiGeneratedSummary": "AI-Generated Summary",
+    "keyConcept": "Key concept: Machine learning applications in content analysis",
+    "mainTakeaway": "Main takeaway: AI can reduce research time by 80%",
+    "trendMentioned": "Trend mentioned: Growing adoption of AI tools in content creation",
+    "trustedBy": "Trusted by {{count}}+ Content Professionals",
+    "joinProfessionals": "Join researchers, creators, and strategists who are saving hours every week with VISPARK",
+    "features": {
+      "aiPowered": {
+        "title": "AI-Powered Summaries",
+        "description": "Transform hours of content into concise, actionable insights with advanced AI technology."
+      },
+      "trendDetection": {
+        "title": "Trend Detection",
+        "description": "Identify emerging topics and patterns across multiple channels to stay ahead of the curve."
+      },
+      "instantProcessing": {
+        "title": "Instant Processing",
+        "description": "Get summaries and insights in seconds, not hours. Process multiple videos simultaneously."
+      },
+      "multiLanguage": {
+        "title": "Multi-Language Support",
+        "description": "Analyze content in multiple languages with accurate transcription and translation."
+      },
+      "securePrivate": {
+        "title": "Secure & Private",
+        "description": "Your data is encrypted and secure. We never share your information with third parties."
+      },
+      "analytics": {
+        "title": "Analytics Dashboard",
+        "description": "Track your content consumption patterns and optimize your learning strategy."
+      }
+    },
+    "testimonials": {
+      "sarah": {
+        "name": "Sarah Chen",
+        "role": "Content Strategist",
+        "company": "TechFlow Media",
+        "content": "VISPARK has revolutionized how I research content. I can now analyze 10x more videos in the same time."
+      },
+      "michael": {
+        "name": "Michael Rodriguez",
+        "role": "Research Analyst",
+        "company": "Market Insights Lab",
+        "content": "The AI summaries are incredibly accurate. It's like having a research assistant that works 24/7."
+      },
+      "emily": {
+        "name": "Emily Watson",
+        "role": "YouTube Creator",
+        "company": "Emily Explains",
+        "content": "I use VISPARK to analyze competitor content and identify gaps in the market. It's been a game-changer."
+      }
+    },
+    "howItWorks": {
+      "title": "See How It Works",
+      "subtitle": "Transform any YouTube video into actionable insights in three simple steps",
+      "step1": {
+        "title": "Paste YouTube Link",
+        "description": "Simply paste any YouTube video URL to get started"
+      },
+      "step2": {
+        "title": "AI Processing",
+        "description": "Our AI analyzes the content and extracts key insights"
+      },
+      "step3": {
+        "title": "Get Insights",
+        "description": "Receive comprehensive summaries and actionable takeaways"
+      },
+      "tryItNow": "Try it now"
+    },
+    "pricing": {
+      "title": "Simple, Transparent Pricing",
+      "subtitle": "Choose the plan that works best for your content analysis needs",
+      "mostPopular": "Most Popular",
+      "starter": {
+        "name": "Starter",
+        "price": "Free",
+        "description": "Perfect for trying out VISPARK",
+        "features": [
+          "5 video summaries per month",
+          "Basic search functionality",
+          "Email support"
+        ],
+        "cta": "Get Started"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$19",
+        "period": "/month",
+        "description": "For serious content creators",
+        "features": [
+          "Unlimited video summaries",
+          "Advanced search & filters",
+          "Trend analysis tools",
+          "Priority support",
+          "Custom categories"
+        ],
+        "cta": "Start Free Trial"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Custom",
+        "description": "For teams and organizations",
+        "features": [
+          "Everything in Pro",
+          "Team collaboration",
+          "API access",
+          "Custom integrations",
+          "Dedicated support"
+        ],
+        "cta": "Contact Sales"
+      }
+    },
+    "cta": {
+      "title": "Ready to Transform Your Content Workflow?",
+      "subtitle": "Join thousands of professionals who are saving hours every week with VISPARK",
+      "startFreeTrial": "Start your free trial",
+      "loginToAccount": "Log in to existing account"
+    },
+    "footer": {
+      "description": "Transform YouTube content into actionable insights with AI-powered analysis.",
+      "copyright": "© {{year}} VISPARK. All rights reserved.",
+      "learnMore": "Learn more"
+    }
+  },
+  "auth": {
+    "signInWithGoogle": "Sign in with Google",
+    "or": "OR",
+    "authenticationError": "Authentication error",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign In",
+    "signingIn": "Signing in...",
+    "newToVISPARK": "New to VISPARK?",
+    "createAccount": "Create an account",
+    "signUp": "Sign up",
+    "signUpWithGoogle": "Sign up with Google",
+    "createYourVISPARK": "Create your VISPARK",
+    "exploreAIPowered": "explore AI-powered video insights starting now",
+    "signUpError": "Sign up error",
+    "confirmPassword": "Confirm password",
+    "passwordsDoNotMatch": "Passwords do not match. Please try again.",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "creatingAccount": "Creating account...",
+    "alreadyHaveAccount": "Already have an account?",
+    "logIn": "Log in",
+    "accountCreated": "Account created. Check your email to confirm before signing in."
+  },
+  "navigation": {
+    "summaries": "Summaries",
+    "channels": "Channels",
+    "vispark": "VISPARK",
+    "wallet": "Wallet",
+    "settings": "Settings"
+  },
+  "summaries": {
+    "visparkArchive": "Vispark Archive",
+    "title": "Fast channel overview for every vispark.",
+    "subtitle": "Scan the creators you have summarized and jump straight back into any video with one click.",
+    "savedVideos": "{{count}} saved videos",
+    "channels": "{{count}} channels",
+    "updated": "Updated {{time}}",
+    "unableToLoad": "Unable to load visparks",
+    "noVisparks": "No visparks yet",
+    "noVisparksDescription": "Generate a summary in Vispark and it will appear here, grouped by the channel it came from.",
+    "channel": "Channel",
+    "saved": "{{count}} saved {{type}}",
+    "video": "video",
+    "videos": "videos",
+    "savedTime": "Saved {{time}}"
+  },
+  "videos": {
+    "searchPlaceholder": "Video ID or YouTube URL",
+    "search": "Search for a video to create a Video Summary",
+    "go": "GO",
+    "noTranscriptOrSummary": "No transcript or summary available for this video yet."
+  },
+  "viewToggle": {
+    "summary": "Summary",
+    "transcript": "Transcript"
+  },
+  "videoMetadata": {
+    "openOnYouTube": "Open on YouTube",
+    "viewVisparkSummary": "View vispark summary for {{title}} by {{channel}}"
+  },
+  "channels": {
+    "discoverChannels": "Discover Channels",
+    "exploreSubscribe": "Explore and subscribe to your favorite YouTube creators",
+    "searchPlaceholder": "Search for channels...",
+    "searchMorePlaceholder": "Search for more channels...",
+    "search": "Search for channels",
+    "subscribedChannels": "Subscribed Channels",
+    "noSubscribedChannels": "No subscribed channels yet",
+    "searchToSubscribe": "Search for channels above to subscribe to your favorite creators",
+    "searchingChannels": "Searching for channels...",
+    "somethingWentWrong": "Something went wrong",
+    "results": "Results",
+    "channelsCount": "{{count}} channels",
+    "noChannelsFound": "No channels found",
+    "noChannelsMatch": "No channels match \"{{query}}\". Try different keywords or check spelling.",
+    "clearSearch": "Clear search",
+    "libraries": "Libraries",
+    "discoverVideos": "Discover Videos",
+    "loadingVideoLibrary": "Loading your video library...",
+    "errorLoadingVideos": "Error loading videos",
+    "noVideosInLibrary": "No videos in your library yet",
+    "startBuildingCollection": "Start building your collection by adding videos from {{channel}}.",
+    "searchChannelsAddVideos": "Search for channels and start adding videos to create your personalized library.",
+    "loadingChannelVideos": "Loading channel videos...",
+    "noNewVideosToDiscover": "No new videos to discover",
+    "allVideosSummarized": "All videos from {{channel}} have been summarized. Check back later for new content!",
+    "noMoreVideosToLoad": "No more videos to load",
+    "subscribe": "Subscribe",
+    "unsubscribe": "Unsubscribe",
+    "subscribedToChannel": "Subscribed to channel",
+    "unsubscribedFromChannel": "Unsubscribed from channel",
+    "failedToSubscribe": "Failed to subscribe to channel. Please try again.",
+    "failedToUnsubscribe": "Failed to unsubscribe from channel. Please try again."
+  },
+  "wallet": {
+    "title": "Wallet",
+    "subtitle": "Manage your account balance and transactions",
+    "currentBalance": "Current Balance",
+    "overview": "Overview",
+    "transactions": "Transactions",
+    "settings": "Settings",
+    "quickActions": "Quick Actions",
+    "addFunds": "Add Funds",
+    "withdrawFunds": "Withdraw Funds",
+    "paymentMethods": "Payment Methods",
+    "timeSaved": "Time Saved",
+    "videosSummarized": "Videos Summarized:",
+    "totalTimeSaved": "Total Time Saved:",
+    "averageVideoLength": "Average Video Length:",
+    "averageSummaryReadTime": "Average Summary Read Time:",
+    "accountInformation": "Account Information",
+    "accountHolder": "Account Holder:",
+    "accountType": "Account Type:",
+    "currency": "Currency:",
+    "recentTransactions": "Recent Transactions",
+    "paymentSettings": "Payment Settings",
+    "autoReload": "Auto-reload",
+    "transactionNotifications": "Transaction notifications",
+    "security": "Security",
+    "changePin": "Change PIN",
+    "twoFactorAuthentication": "Two-Factor Authentication"
+  },
+  "videoPage": {
+    "noTranscriptOrSummary": "No transcript or summary available for this video yet.",
+    "unexpectedErrorSummary": "An unexpected error occurred while generating summary.",
+    "unexpectedErrorTranscript": "An unexpected error occurred while fetching the transcript."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "clear": "Clear",
+    "select": "Select",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "unknownDate": "Unknown date",
+    "unknownTime": "Unknown time"
   }
 }

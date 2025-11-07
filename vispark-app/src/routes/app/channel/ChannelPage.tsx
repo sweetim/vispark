@@ -4,6 +4,7 @@ import {
   useNavigate,
   useParams,
 } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
 import { getAllChannelVideos } from "@/services/channel"
 import { useChannelSubscriptionManager, useChannelVideos } from "@/hooks/useChannels"
@@ -11,6 +12,7 @@ import { useChannelVisparksWithMetadata } from "@/hooks/useVisparks"
 import { useToast } from "@/contexts/ToastContext"
 
 const ChannelPage = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { channelId: rawChannelId } = useParams({ from: '/app/channels/$channelId' })
   const { showToast } = useToast()
@@ -134,13 +136,13 @@ const ChannelPage = () => {
     try {
       await toggleSubscription()
       showToast(
-        `${isSubscribed ? 'Unsubscribed from' : 'Subscribed to'} channel`,
+        `${isSubscribed ? t('channels.unsubscribedFromChannel') : t('channels.subscribedToChannel')}`,
         "success"
       )
     } catch (error) {
       console.error("Failed to toggle subscription:", error)
       showToast(
-        `Failed to ${isSubscribed ? 'unsubscribe from' : 'subscribe to'} channel. Please try again.`,
+        `${isSubscribed ? t('channels.failedToUnsubscribe') : t('channels.failedToSubscribe')}`,
         "error"
       )
     }
@@ -220,19 +222,19 @@ const ChannelPage = () => {
                   ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   : "bg-indigo-600 text-white hover:bg-indigo-700"
               }`}
-              title={isSubscribed ? "Unsubscribe" : "Subscribe"}
+              title={isSubscribed ? t("channels.unsubscribe") : t("channels.subscribe")}
             >
               {false ? ( // Loading state managed by SWR hook
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
               ) : isSubscribed ? (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <title>Unsubscribe</title>
+                  <title>{t("channels.unsubscribe")}</title>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
                 </svg>
               ) : (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <title>Subscribe</title>
+                  <title>{t("channels.subscribe")}</title>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               )}
@@ -253,7 +255,7 @@ const ChannelPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-white">Libraries</h2>
+            <h2 className="text-xl font-bold text-white">{t("channels.libraries")}</h2>
           </div>
           {hasSavedVideos && (
             <div className="px-3 py-1 bg-indigo-600 rounded-lg text-white text-sm font-medium">
@@ -273,7 +275,7 @@ const ChannelPage = () => {
               <div className="w-16 h-16 border-4 border-indigo-500 rounded-full animate-spin border-t-transparent absolute top-0 left-0"></div>
             </div>
             <p className="mt-4 text-gray-400 font-medium">
-              Loading your video library...
+              {t("channels.loadingVideoLibrary")}
             </p>
           </div>
         )}
@@ -288,7 +290,7 @@ const ChannelPage = () => {
               </div>
               <div>
                 <h3 className="text-red-400 font-medium mb-1">
-                  Error loading videos
+                  {t("channels.errorLoadingVideos")}
                 </h3>
                 <p className="text-red-300/80 text-sm">{savedVideosError}</p>
               </div>
@@ -351,12 +353,12 @@ const ChannelPage = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">
-                No videos in your library yet
+                {t("channels.noVideosInLibrary")}
               </h3>
               <p className="text-gray-400 max-w-md mx-auto">
                 {channelDetails
-                  ? `Start building your collection by adding videos from ${channelDetails.channelTitle}.`
-                  : "Search for channels and start adding videos to create your personalized library."}
+                  ? t("channels.startBuildingCollection", { channel: channelDetails.channelTitle })
+                  : t("channels.searchChannelsAddVideos")}
               </p>
             </div>
           </div>
@@ -377,7 +379,7 @@ const ChannelPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-white">Discover Videos</h2>
+            <h2 className="text-xl font-bold text-white">{t("channels.discoverVideos")}</h2>
           </div>
         </div>
 
@@ -391,7 +393,7 @@ const ChannelPage = () => {
                   <div className="w-16 h-16 border-4 border-purple-500 rounded-full animate-spin border-t-transparent absolute top-0 left-0"></div>
                 </div>
                 <p className="mt-4 text-gray-400 font-medium">
-                  Loading channel videos...
+                  {t("channels.loadingChannelVideos")}
                 </p>
               </div>
             )}
@@ -406,7 +408,7 @@ const ChannelPage = () => {
                   </div>
                   <div>
                     <h3 className="text-red-400 font-medium mb-1">
-                      Error loading videos
+                      {t("channels.errorLoadingVideos")}
                     </h3>
                     <p className="text-red-300/80 text-sm">{nonVisparkVideosError}</p>
                   </div>
@@ -456,7 +458,7 @@ const ChannelPage = () => {
 
                 {!hasMoreVideos && nonVisparkVideos.length > 0 && (
                   <div className="text-center py-4 text-gray-400">
-                    <p>No more videos to load</p>
+                    <p>{t("channels.noMoreVideosToLoad")}</p>
                   </div>
                 )}
               </div>
@@ -484,10 +486,10 @@ const ChannelPage = () => {
                     </svg>
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-2">
-                    No new videos to discover
+                    {t("channels.noNewVideosToDiscover")}
                   </h3>
                   <p className="text-gray-400 max-w-md mx-auto">
-                    All videos from {channelDetails?.channelTitle || 'this channel'} have been summarized. Check back later for new content!
+                    {t("channels.allVideosSummarized", { channel: channelDetails?.channelTitle || t("common.unknown") })}
                   </p>
                 </div>
               </div>

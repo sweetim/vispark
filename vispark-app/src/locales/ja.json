@@ -29,5 +29,301 @@
     "dataUsage": "データ使用量",
     "exportData": "データエクスポート",
     "deleteAccount": "アカウント削除"
+  },
+  "landing": {
+    "logoAlt": "VISPARK ロゴ",
+    "login": "ログイン",
+    "getStarted": "開始",
+    "poweredByAI": "高度なAI搭載",
+    "title": "YouTubeコンテンツを実用的なインテリジェンスに変換",
+    "subtitle": "フォローしているクリエイターから要約、トレンド識別、インサイト生成を行います。すべての動画を見なくても先行できます。",
+    "startFreeAccount": "無料アカウントを開始",
+    "watchDemo": "デモを見る",
+    "noCreditCard": "クレジットカード不要",
+    "freeSummaries": "5つの無料要約",
+    "cancelAnytime": "いつでもキャンセル",
+    "seeVISPARKInAction": "VISPARKの実演を見る",
+    "realTimeAnalysis": "任意のYouTube動画のリアルタイム分析",
+    "analyzingVideo": "動画コンテンツを分析中...",
+    "extractingTopics": "主要なトピックを抽出中...",
+    "generatingSummary": "要約を生成中...",
+    "identifyingTrends": "トレンドを識別中...",
+    "aiGeneratedSummary": "AI生成要約",
+    "keyConcept": "主要概念：コンテンツ分析における機械学習の応用",
+    "mainTakeaway": "主要なポイント：AIにより研究時間を80%削減",
+    "trendMentioned": "言及されたトレンド：コンテンツ作成におけるAIツールの採用増加",
+    "trustedBy": "{{count}}+人のコンテンツ専門家に信頼されています",
+    "joinProfessionals": "VISPARKで毎週時間を節約している研究者、クリエイター、戦略家たちに参加しましょう",
+    "features": {
+      "aiPowered": {
+        "title": "AI搭載要約",
+        "description": "高度なAI技術で、何時間ものコンテンツを簡潔で実用的なインサイトに変換します。"
+      },
+      "trendDetection": {
+        "title": "トレンド検出",
+        "description": "複数のチャンネルで新興トピックやパターンを識別し、カーブを先行します。"
+      },
+      "instantProcessing": {
+        "title": "即時処理",
+        "description": "数時間ではなく数秒で要約とインサイトを取得します。複数の動画を同時に処理します。"
+      },
+      "multiLanguage": {
+        "title": "多言語サポート",
+        "description": "正確な転写と翻訳で、複数の言語でコンテンツを分析します。"
+      },
+      "securePrivate": {
+        "title": "安全でプライベート",
+        "description": "データは暗号化され安全です。第三者と情報を共有することはありません。"
+      },
+      "analytics": {
+        "title": "分析ダッシュボード",
+        "description": "コンテンツ消費パターンを追跡し、学習戦略を最適化します。"
+      }
+    },
+    "testimonials": {
+      "sarah": {
+        "name": "Sarah Chen",
+        "role": "コンテンツ戦略家",
+        "company": "TechFlow Media",
+        "content": "VISPARKは私のコンテンツ研究方法を革命しました。同じ時間で10倍多くの動画を分析できるようになりました。"
+      },
+      "michael": {
+        "name": "Michael Rodriguez",
+        "role": "リサーチアナリスト",
+        "company": "Market Insights Lab",
+        "content": "AI要約は信じられないほど正確です。24時間365日働くリサーチアシスタントを持っているようなものです。"
+      },
+      "emily": {
+        "name": "Emily Watson",
+        "role": "YouTubeクリエイター",
+        "company": "Emily Explains",
+        "content": "VISPARKを使って競合他社のコンテンツを分析し、市場のギャップを特定しています。ゲームチェンジャーでした。"
+      }
+    },
+    "howItWorks": {
+      "title": "仕組みを見る",
+      "subtitle": "3つの簡単なステップで任意のYouTube動画を実用的なインサイトに変換",
+      "step1": {
+        "title": "YouTubeリンクを貼り付け",
+        "description": "任意のYouTube動画URLを貼り付けて開始"
+      },
+      "step2": {
+        "title": "AI処理",
+        "description": "私たちのAIがコンテンツを分析し、主要なインサイトを抽出"
+      },
+      "step3": {
+        "title": "インサイトを取得",
+        "description": "包括的な要約と実用的な要点を受け取る"
+      },
+      "tryItNow": "今すぐ試す"
+    },
+    "pricing": {
+      "title": "シンプルで透明な価格設定",
+      "subtitle": "コンテンツ分析ニーズに最適なプランを選択",
+      "mostPopular": "最も人気",
+      "starter": {
+        "name": "スターター",
+        "price": "無料",
+        "description": "VISPARKを試すのに最適",
+        "features": [
+          "月5動画要約",
+          "基本検索機能",
+          "メールサポート"
+        ],
+        "cta": "開始"
+      },
+      "pro": {
+        "name": "プロ",
+        "price": "$19",
+        "period": "/月",
+        "description": "真剣なコンテンツクリエイター向け",
+        "features": [
+          "無制限動画要約",
+          "高度な検索とフィルター",
+          "トレンド分析ツール",
+          "優先サポート",
+          "カスタムカテゴリー"
+        ],
+        "cta": "無料トライアルを開始"
+      },
+      "enterprise": {
+        "name": "エンタープライズ",
+        "price": "カスタム",
+        "description": "チームと組織向け",
+        "features": [
+          "プロのすべて",
+          "チームコラボレーション",
+          "APIアクセス",
+          "カスタム統合",
+          "専用サポート"
+        ],
+        "cta": "営業に連絡"
+      }
+    },
+    "cta": {
+      "title": "コンテンツワークフローを変革する準備はできましたか？",
+      "subtitle": "VISPARKで毎週時間を節約している何千人もの専門家に参加しましょう",
+      "startFreeTrial": "無料トライアルを開始",
+      "loginToAccount": "既存アカウントにログイン"
+    },
+    "footer": {
+      "description": "AI搭載分析でYouTubeコンテンツを実用的なインサイトに変換します。",
+      "copyright": "© {{year}} VISPARK. すべての権利予約。",
+      "learnMore": "詳細を見る"
+    }
+  },
+  "auth": {
+    "signInWithGoogle": "Googleでサインイン",
+    "or": "または",
+    "authenticationError": "認証エラー",
+    "email": "メールアドレス",
+    "emailPlaceholder": "you@example.com",
+    "password": "パスワード",
+    "passwordPlaceholder": "••••••••",
+    "rememberMe": "ログイン状態を保持",
+    "forgotPassword": "パスワードを忘れた場合",
+    "signIn": "サインイン",
+    "signingIn": "サインイン中...",
+    "newToVISPARK": "VISPARKは初めてですか？",
+    "createAccount": "アカウント作成",
+    "signUp": "サインアップ",
+    "signUpWithGoogle": "Googleでサインアップ",
+    "createYourVISPARK": "VISPARKを作成",
+    "exploreAIPowered": "今すぐAI搭載動画インサイトを探索",
+    "signUpError": "サインアップエラー",
+    "confirmPassword": "パスワードを確認",
+    "passwordsDoNotMatch": "パスワードが一致しません。もう一度お試しください。",
+    "passwordMinLength": "パスワードは最低8文字必要です",
+    "creatingAccount": "アカウント作成中...",
+    "alreadyHaveAccount": "すでにアカウントをお持ちですか？",
+    "logIn": "ログイン",
+    "accountCreated": "アカウントが作成されました。サインインする前にメールで確認してください。"
+  },
+  "navigation": {
+    "summaries": "要約",
+    "channels": "チャンネル",
+    "vispark": "VISPARK",
+    "wallet": "ウォレット",
+    "settings": "設定"
+  },
+  "summaries": {
+    "visparkArchive": "Visparkアーカイブ",
+    "title": "すべてのvisparkの高速チャンネル概要。",
+    "subtitle": "要約したクリエイターをスキャンし、ワンクリックで任意の動画に戻ります。",
+    "savedVideos": "{{count}}保存された動画",
+    "channels": "{{count}}チャンネル",
+    "updated": "{{time}}に更新",
+    "unableToLoad": "visparkを読み込めません",
+    "noVisparks": "まだvisparkがありません",
+    "noVisparksDescription": "Visparkで要約を生成すると、ここに表示されます。由来するチャンネル別にグループ化されます。",
+    "channel": "チャンネル",
+    "saved": "{{count}}保存された{{type}}",
+    "video": "動画",
+    "videos": "動画",
+    "savedTime": "{{time}}に保存"
+  },
+  "videos": {
+    "searchPlaceholder": "動画IDまたはYouTube URL",
+    "search": "動画要約を作成するために動画を検索",
+    "go": "検索",
+    "noTranscriptOrSummary": "この動画ではまだ転写や要約が利用できません。"
+  },
+  "viewToggle": {
+    "summary": "要約",
+    "transcript": "転写"
+  },
+  "videoMetadata": {
+    "openOnYouTube": "YouTubeで開く",
+    "viewVisparkSummary": "{{channel}}による{{title}}のvispark要約を表示"
+  },
+  "channels": {
+    "discoverChannels": "チャンネルを発見",
+    "exploreSubscribe": "お気に入りのYouTubeクリエイターを探索して購読",
+    "searchPlaceholder": "チャンネルを検索...",
+    "searchMorePlaceholder": "さらにチャンネルを検索...",
+    "search": "チャンネルを検索",
+    "subscribedChannels": "購読中のチャンネル",
+    "noSubscribedChannels": "まだ購読中のチャンネルがありません",
+    "searchToSubscribe": "上記でチャンネルを検索してお気に入りのクリエイターを購読",
+    "searchingChannels": "チャンネルを検索中...",
+    "somethingWentWrong": "何か問題が発生しました",
+    "results": "結果",
+    "channelsCount": "{{count}}チャンネル",
+    "noChannelsFound": "チャンネルが見つかりません",
+    "noChannelsMatch": "\"{{query}}\"に一致するチャンネルがありません。異なるキーワードを試すか、スペルを確認してください。",
+    "clearSearch": "検索をクリア",
+    "libraries": "ライブラリ",
+    "discoverVideos": "動画を発見",
+    "loadingVideoLibrary": "動画ライブラリを読み込み中...",
+    "errorLoadingVideos": "動画の読み込みエラー",
+    "noVideosInLibrary": "ライブラリにまだ動画がありません",
+    "startBuildingCollection": "{{channel}}から動画を追加してコレクションの構築を開始。",
+    "searchChannelsAddVideos": "チャンネルを検索して動画を追加し、パーソナライズされたライブラリを作成。",
+    "loadingChannelVideos": "チャンネル動画を読み込み中...",
+    "noNewVideosToDiscover": "発見する新しい動画がありません",
+    "allVideosSummarized": "{{channel}}のすべての動画が要約されています。後で新しいコンテンツを確認してください！",
+    "noMoreVideosToLoad": "読み込む動画がありません",
+    "subscribe": "購読",
+    "unsubscribe": "購読解除",
+    "subscribedToChannel": "チャンネルを購読しました",
+    "unsubscribedFromChannel": "チャンネルの購読を解除しました",
+    "failedToSubscribe": "チャンネルの購読に失敗しました。もう一度お試しください。",
+    "failedToUnsubscribe": "チャンネルの購読解除に失敗しました。もう一度お試しください。"
+  },
+  "wallet": {
+    "title": "ウォレット",
+    "subtitle": "アカウント残高と取引を管理",
+    "currentBalance": "現在の残高",
+    "overview": "概要",
+    "transactions": "取引",
+    "settings": "設定",
+    "quickActions": "クイックアクション",
+    "addFunds": "資金を追加",
+    "withdrawFunds": "資金を引き出し",
+    "paymentMethods": "支払い方法",
+    "timeSaved": "節約された時間",
+    "videosSummarized": "要約された動画：",
+    "totalTimeSaved": "総節約時間：",
+    "averageVideoLength": "平均動画長：",
+    "averageSummaryReadTime": "平均要約読み取り時間：",
+    "accountInformation": "アカウント情報",
+    "accountHolder": "アカウント所有者：",
+    "accountType": "アカウントタイプ：",
+    "currency": "通貨：",
+    "recentTransactions": "最近の取引",
+    "paymentSettings": "支払い設定",
+    "autoReload": "自動リロード",
+    "transactionNotifications": "取引通知",
+    "security": "セキュリティ",
+    "changePin": "PIN変更",
+    "twoFactorAuthentication": "二要素認証"
+  },
+  "videoPage": {
+    "noTranscriptOrSummary": "この動画ではまだ転写や要約が利用できません。",
+    "unexpectedErrorSummary": "要約の生成中に予期しないエラーが発生しました。",
+    "unexpectedErrorTranscript": "転写の取得中に予期しないエラーが発生しました。"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "retry": "再試行",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "confirm": "確認",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "search": "検索",
+    "filter": "フィルター",
+    "sort": "並び替え",
+    "clear": "クリア",
+    "select": "選択",
+    "selectAll": "すべて選択",
+    "deselectAll": "すべて選択解除",
+    "unknownDate": "不明な日付",
+    "unknownTime": "不明な時間"
   }
 }

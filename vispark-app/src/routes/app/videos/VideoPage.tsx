@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Navigate, useParams } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import ProgressTimeline from "@/components/ProgressTimeline"
 import SummaryList from "@/components/SummaryList"
 import TranscriptView from "@/components/TranscriptView"
@@ -30,6 +31,7 @@ type Step = "idle" | "gathering" | "summarizing" | "complete" | "error"
 type ErrorStep = "gathering" | "summarizing" | null
 
 const VideosVideoPage = () => {
+  const { t } = useTranslation()
   const { videoId } = useParams({ from: '/app/videos/$videoId' })
   const { visparks: savedVisparks, mutate } = useVisparksWithMetadata(20)
 
@@ -242,7 +244,7 @@ const VideosVideoPage = () => {
 
       {!isGenerating && !loading && !hasSummary && !hasTranscript && !error && (
         <div className="text-sm text-gray-400 border border-dashed border-gray-700 rounded-md px-4 py-6 text-center">
-          No transcript or summary available for this video yet.
+          {t("videos.noTranscriptOrSummary")}
         </div>
       )}
     </div>

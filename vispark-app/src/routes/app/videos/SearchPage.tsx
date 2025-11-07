@@ -1,5 +1,6 @@
 import { type FormEvent, useId, useMemo, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import { extractYouTubeVideoId } from "../../../utils/youtube"
 import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 import HistoryList from "./components/HistoryList"
@@ -22,6 +23,7 @@ export type VideosSavedItem = {
 }
 
 const VideosSearchPage = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   // For now, we'll get saved visparks directly from the hook
   // TODO: Implement proper context sharing with TanStack Router
@@ -60,23 +62,23 @@ const VideosSearchPage = () => {
         <form
           onSubmit={handleSubmit}
           className="space-y-2"
-          aria-label="Search for a video to create a Video Summary"
+          aria-label={t("videos.search")}
         >
           <div className="flex">
             <input
               id={inputId}
               value={videoId}
               onChange={(event) => setVideoId(event.target.value)}
-              placeholder="Video ID or YouTube URL"
+              placeholder={t("videos.searchPlaceholder")}
               className="flex-1 px-3 py-2 rounded-l-md bg-gray-800 border border-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <button
               type="submit"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-r-md text-white disabled:opacity-60 disabled:cursor-not-allowed"
-              aria-label="Search for video"
+              aria-label={t("videos.search")}
               disabled={!videoId.trim()}
             >
-              GO
+              {t("videos.go")}
             </button>
           </div>
         </form>

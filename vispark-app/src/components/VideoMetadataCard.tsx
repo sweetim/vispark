@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns"
 import { decodeHtmlEntities } from "@/utils"
+import { useTranslation } from "react-i18next"
 import type { VideoMetadata } from "@/services/vispark.ts"
 
 type VideoMetadataCardProps = {
@@ -53,6 +54,7 @@ export default function VideoMetadataCard({
   isActive,
   createdTime,
 }: VideoMetadataCardProps) {
+  const { t } = useTranslation()
   const imageAddress = selectBestThumbnailAddress(metadata.thumbnails)
   const videoAddress = `https://www.youtube.com/watch?v=${metadata.videoId}`
   const baseClasses =
@@ -107,7 +109,10 @@ export default function VideoMetadataCard({
         type="button"
         onClick={onClick}
         className={composedClasses}
-        aria-label={`View vispark summary for ${decodeHtmlEntities(metadata.title)} by ${decodeHtmlEntities(metadata.channelTitle)}`}
+        aria-label={t("videoMetadata.viewVisparkSummary", {
+          title: decodeHtmlEntities(metadata.title),
+          channel: decodeHtmlEntities(metadata.channelTitle)
+        })}
         aria-pressed={Boolean(isActive)}
       >
         {content}
@@ -122,7 +127,7 @@ export default function VideoMetadataCard({
       rel="noopener noreferrer"
       aria-label={`${decodeHtmlEntities(metadata.title)} — ${decodeHtmlEntities(metadata.channelTitle)} on YouTube`}
       className={composedClasses}
-      title="Open on YouTube"
+      title={t("videoMetadata.openOnYouTube")}
     >
       {content}
     </a>
