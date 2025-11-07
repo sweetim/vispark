@@ -15,6 +15,33 @@ import {
 } from "@/services/vispark.ts"
 import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 
+// Helper function for exponential backoff retry
+const retryWithBackoff = async <T,>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000,
+): Promise<T> => {
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+
+      if (attempt === maxRetries) {
+        throw lastError
+      }
+
+      // Calculate exponential backoff delay: baseDelay * 2^attempt + jitter
+      const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+
+  throw lastError
+}
+
 const VideoMetadataSkeleton = () => (
   <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-gray-700 bg-gray-800 shadow-lg">
     <div className="absolute inset-0 bg-gray-700 animate-pulse" />
@@ -83,9 +110,10 @@ const VideosVideoPage = () => {
       try {
         // Use local transcript fetching when developing locally
         const isLocalDevelopment = process.env.NODE_ENV !== "production"
-        const transcriptResult = await fetchTranscript(
-          rawVideoId,
-          isLocalDevelopment,
+        const transcriptResult = await retryWithBackoff(
+          () => fetchTranscript(rawVideoId, isLocalDevelopment),
+          2, // max retries for transcript
+          500 // base delay in ms
         )
         if (cancelled) {
           return
@@ -97,7 +125,11 @@ const VideosVideoPage = () => {
         let resolvedMetadata = existingVispark?.metadata ?? null
         if (!resolvedMetadata) {
           try {
-            resolvedMetadata = await metadataPromise
+            resolvedMetadata = await retryWithBackoff(
+              () => metadataPromise,
+              2, // max retries for metadata
+              500 // base delay in ms
+            )
           } catch (metadataError) {
             if (
               process.env.NODE_ENV !== "production"
@@ -123,7 +155,11 @@ const VideosVideoPage = () => {
         setStep("summarizing")
 
         try {
-          const summaryResult = await fetchSummary(segments)
+          const summaryResult = await retryWithBackoff(
+            () => fetchSummary(segments),
+            3, // max retries
+            1000 // base delay in ms
+          )
           if (cancelled) {
             return
           }
