@@ -1,4 +1,3 @@
-import { Flex } from "antd"
 import type { FC, ReactElement } from "react"
 
 type CenterDivProps = {
@@ -8,15 +7,11 @@ type CenterDivProps = {
 
 const CenterDiv: FC<CenterDivProps> = ({ children, className }) => {
   return (
-    <Flex
-      justify="center"
-      align="center"
-      gap="small"
-      vertical
-      className={`w-full h-full ${className}`}
+    <div
+      className={`flex flex-col items-center justify-center gap-2 w-full h-full ${className}`}
     >
       {children}
-    </Flex>
+    </div>
   )
 }
 

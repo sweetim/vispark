@@ -1,4 +1,3 @@
-import { Spin, theme } from "antd"
 import type { FC, ReactElement } from "react"
 import { Navigate } from "@tanstack/react-router"
 
@@ -11,18 +10,12 @@ type ProtectedRouteProps = {
 
 const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth()
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken()
 
   if (loading) {
     return (
       <CenterDiv className="bg-primary">
-        <div
-          className="p-6 rounded-lg shadow-md"
-          style={{ backgroundColor: colorBgContainer }}
-        >
-          <Spin size="large" />
+        <div className="p-6 rounded-lg shadow-md bg-white/10 backdrop-blur-md">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       </CenterDiv>
     )

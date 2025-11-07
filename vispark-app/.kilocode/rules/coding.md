@@ -17,3 +17,9 @@
   - Example:
     - ComponentA
     - ComponentAProps
+
+- icon imported from "@phosphor-icons/react", should change to use the latest import
+  - example (@deprecated — Use GearIcon)
+    - Gear => GearIcon
+
+- css file, The class `bg-gradient-to-r` can be written as `bg-linear-to-r`(suggestCanonicalClasses)

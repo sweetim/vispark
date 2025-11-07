@@ -8,17 +8,16 @@ import {
   PlayIcon,
   QuotesIcon,
   ShieldCheckIcon,
+  SignInIcon,
   SparkleIcon,
   StarIcon,
   TrendUpIcon,
 } from "@phosphor-icons/react"
-import { Card, Typography } from "antd"
 import type { FC } from "react"
 import { useEffect, useState } from "react"
 import { Link, Navigate } from "@tanstack/react-router"
 import { useAuth } from "@/modules/auth"
 
-const { Title, Paragraph, Text } = Typography
 
 const LandingPage: FC = () => {
   const [scrollY, setScrollY] = useState(0)
@@ -167,9 +166,9 @@ const LandingPage: FC = () => {
   ]
 
   return (
-    <div className="min-h-screen w-full bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden">
+    <div className="min-h-screen w-full bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
       {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none">
         <div
           className="absolute w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"
           style={{
@@ -187,7 +186,7 @@ const LandingPage: FC = () => {
       </div>
 
       {/* Header */}
-      <header className="relative px-6 py-6 md:px-12 backdrop-blur-sm bg-zinc-950/50 border-b border-white/5 z-40">
+      <header className="fixed top-0 left-0 right-0 px-6 py-6 md:px-12 backdrop-blur-sm bg-zinc-950/50 border-b border-white/5 z-40">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <Link
             to="/"
@@ -205,21 +204,25 @@ const LandingPage: FC = () => {
           <div className="flex items-center gap-3">
             <Link
               to="/login"
-              className="px-4 py-2 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-200 text-sm font-medium"
+              className="p-2 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-200 md:flex md:items-center md:gap-2 md:px-4 md:py-2 md:text-sm md:font-medium"
+              aria-label="Log in"
             >
-              Log in
+              <SignInIcon size={16} />
+              <span className="hidden md:inline">Log in</span>
             </Link>
             <Link
               to="/signup"
-              className="px-4 py-2 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white font-medium text-sm shadow-lg hover:shadow-xl"
+              className="p-2 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 transition-all duration-200 text-white shadow-lg hover:shadow-xl md:flex md:items-center md:gap-2 md:px-4 md:py-2 md:text-sm md:font-medium"
+              aria-label="Get started"
             >
-              Get started
+              <SparkleIcon size={16} />
+              <span className="hidden md:inline">Get started</span>
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="relative">
+      <main className="relative pt-20">
         {/* Hero Section */}
         <section className="relative px-6 pt-16 pb-24 md:px-12">
           <div className="max-w-7xl mx-auto">
@@ -230,18 +233,18 @@ const LandingPage: FC = () => {
                     <SparkleIcon size={16} />
                     <span>Powered by Advanced AI</span>
                   </div>
-                  <Title className="text-!4xl md:text-!5xl lg:text-6xl! text-!white leading-!tight font-!bold">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl text-white leading-tight font-bold">
                     Transform{" "}
                     <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                       YouTube Content
                     </span>{" "}
                     into Actionable Intelligence
-                  </Title>
-                  <Paragraph className="text-!lg md:text-!xl text-!zinc-300 leading-!relaxed">
+                  </h1>
+                  <p className="text-lg md:text-xl text-zinc-300 leading-relaxed">
                     Extract summaries, identify trends, and generate insights
                     from the creators you follow. Stay ahead without watching
                     every upload.
-                  </Paragraph>
+                  </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-center lg:justify-start">
@@ -291,7 +294,7 @@ const LandingPage: FC = () => {
               </div>
 
               <div className="flex-1 w-full max-w-2xl">
-                <Card className="bg-white/5 backdrop-blur-md border-white/10 shadow-2xl overflow-hidden">
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl rounded-lg overflow-hidden">
                   <div className="p-6 space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 flex items-center justify-center">
@@ -301,15 +304,12 @@ const LandingPage: FC = () => {
                         />
                       </div>
                       <div>
-                        <Title
-                          level={4}
-                          className="text-!white mb-!0"
-                        >
+                        <h4 className="text-white mb-0 text-lg font-semibold">
                           See VISPARK in Action
-                        </Title>
-                        <Text className="text-zinc-400 text-sm">
+                        </h4>
+                        <p className="text-zinc-400 text-sm">
                           Real-time analysis of any YouTube video
-                        </Text>
+                        </p>
                       </div>
                     </div>
 
@@ -324,9 +324,9 @@ const LandingPage: FC = () => {
                           <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
                             <div className="h-full w-3/4 bg-linear-to-r from-blue-500 to-purple-500 rounded-full"></div>
                           </div>
-                          <Text className="text-xs text-zinc-400 mt-1">
+                          <p className="text-xs text-zinc-400 mt-1">
                             Analyzing video content...
-                          </Text>
+                          </p>
                         </div>
                       </div>
 
@@ -351,7 +351,7 @@ const LandingPage: FC = () => {
                                   : "bg-zinc-600"
                               }`}
                             ></div>
-                            <Text
+                            <p
                               className={`text-sm ${
                                 step.id === "extracting"
                                 || step.id === "generating"
@@ -360,7 +360,7 @@ const LandingPage: FC = () => {
                               }`}
                             >
                               {step.text}
-                            </Text>
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -372,9 +372,9 @@ const LandingPage: FC = () => {
                           size={16}
                           className="text-yellow-400"
                         />
-                        <Text className="text-sm font-medium text-zinc-300">
+                        <p className="text-sm font-medium text-zinc-300">
                           AI-Generated Summary
-                        </Text>
+                        </p>
                       </div>
                       <ul className="space-y-1 text-sm text-zinc-400">
                         <li>
@@ -391,7 +391,7 @@ const LandingPage: FC = () => {
                       </ul>
                     </div>
                   </div>
-                </Card>
+                </div>
               </div>
             </div>
           </div>
@@ -401,27 +401,24 @@ const LandingPage: FC = () => {
         <section className="px-6 py-16 md:px-12 bg-zinc-900/50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center space-y-4 mb-12">
-              <Title
-                level={2}
-                className="text-!white text-!3xl md:text-!4xl"
-              >
+              <h2 className="text-white text-3xl md:text-4xl font-bold">
                 Trusted by{" "}
                 <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   10,000+
                 </span>{" "}
                 Content Professionals
-              </Title>
-              <Paragraph className="text-!zinc-300 text-!lg max-w-2xl mx-auto">
+              </h2>
+              <p className="text-zinc-300 text-lg max-w-2xl mx-auto">
                 Join researchers, creators, and strategists who are saving hours
                 every week with VISPARK
-              </Paragraph>
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {testimonials.map((testimonial) => (
-                <Card
+                <div
                   key={`testimonial-${testimonial.name}`}
-                  className="bg-white/5 backdrop-blur-sm border-white/10 h-full"
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 h-full"
                 >
                   <div className="flex items-start gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
@@ -436,23 +433,23 @@ const LandingPage: FC = () => {
                     size={24}
                     className="text-blue-400/20 mb-3"
                   />
-                  <Paragraph className="text-!zinc-300 mb-!4 italic">
+                  <p className="text-zinc-300 mb-4 italic">
                     "{testimonial.content}"
-                  </Paragraph>
+                  </p>
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-linear-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
                       {testimonial.name.charAt(0)}
                     </div>
                     <div>
-                      <Text className="block font-medium text-white">
+                      <p className="block font-medium text-white">
                         {testimonial.name}
-                      </Text>
-                      <Text className="text-sm text-zinc-400">
+                      </p>
+                      <p className="text-sm text-zinc-400">
                         {testimonial.role}, {testimonial.company}
-                      </Text>
+                      </p>
                     </div>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           </div>
@@ -462,25 +459,22 @@ const LandingPage: FC = () => {
         <section className="px-6 py-16 md:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="text-center space-y-4 mb-12">
-              <Title
-                level={2}
-                className="text-!white text-!3xl md:text-!4xl"
-              >
+              <h2 className="text-white text-3xl md:text-4xl font-bold">
                 Powerful Features for{" "}
                 <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   Content Intelligence
                 </span>
-              </Title>
-              <Paragraph className="text-!zinc-300 text-!lg max-w-2xl mx-auto">
+              </h2>
+              <p className="text-zinc-300 text-lg max-w-2xl mx-auto">
                 Everything you need to extract maximum value from video content
-              </Paragraph>
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature) => (
-                <Card
+                <div
                   key={`feature-${feature.title}`}
-                  className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 group"
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:bg-white/10 transition-all duration-300 group"
                 >
                   <div
                     className={`h-12 w-12 rounded-lg bg-linear-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
@@ -490,16 +484,13 @@ const LandingPage: FC = () => {
                       className="text-white"
                     />
                   </div>
-                  <Title
-                    level={4}
-                    className="text-!white mb-!2"
-                  >
+                  <h4 className="text-white mb-2 text-lg font-semibold">
                     {feature.title}
-                  </Title>
-                  <Paragraph className="text-!zinc-300 mb-!0">
+                  </h4>
+                  <p className="text-zinc-300 mb-0">
                     {feature.description}
-                  </Paragraph>
-                </Card>
+                  </p>
+                </div>
               ))}
             </div>
           </div>
@@ -509,19 +500,16 @@ const LandingPage: FC = () => {
         <section className="px-6 py-16 md:px-12 bg-zinc-900/50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center space-y-4 mb-12">
-              <Title
-                level={2}
-                className="text-!white text-!3xl md:text-!4xl"
-              >
+              <h2 className="text-white text-3xl md:text-4xl font-bold">
                 See How It{" "}
                 <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   Works
                 </span>
-              </Title>
-              <Paragraph className="text-!zinc-300 text-!lg max-w-2xl mx-auto">
+              </h2>
+              <p className="text-zinc-300 text-lg max-w-2xl mx-auto">
                 Transform any YouTube video into actionable insights in three
                 simple steps
-              </Paragraph>
+              </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -539,15 +527,12 @@ const LandingPage: FC = () => {
                         <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 bg-linear-to-r from-blue-500/50 to-purple-500/50 -translate-y-1/2"></div>
                       )}
                     </div>
-                    <Title
-                      level={4}
-                      className="text-!white"
-                    >
+                    <h4 className="text-white text-lg font-semibold">
                       {step.title}
-                    </Title>
-                    <Paragraph className="text-!zinc-300">
+                    </h4>
+                    <p className="text-zinc-300">
                       {step.description}
-                    </Paragraph>
+                    </p>
                   </div>
                 </div>
               ))}
@@ -573,25 +558,22 @@ const LandingPage: FC = () => {
         <section className="px-6 py-16 md:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="text-center space-y-4 mb-12">
-              <Title
-                level={2}
-                className="text-!white text-!3xl md:text-!4xl"
-              >
+              <h2 className="text-white text-3xl md:text-4xl font-bold">
                 Simple, Transparent{" "}
                 <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   Pricing
                 </span>
-              </Title>
-              <Paragraph className="text-!zinc-300 text-!lg max-w-2xl mx-auto">
+              </h2>
+              <p className="text-zinc-300 text-lg max-w-2xl mx-auto">
                 Choose the plan that works best for your content analysis needs
-              </Paragraph>
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {pricingTiers.map((tier) => (
-                <Card
+                <div
                   key={`tier-${tier.name}`}
-                  className={`bg-white/5 backdrop-blur-sm border ${
+                  className={`bg-white/5 backdrop-blur-sm border rounded-lg p-6 ${
                     tier.popular
                       ? "border-blue-500/50 ring-2 ring-blue-500/20"
                       : "border-white/10"
@@ -607,15 +589,12 @@ const LandingPage: FC = () => {
 
                   <div className="text-center space-y-4">
                     <div>
-                      <Title
-                        level={3}
-                        className="text-!white mb-!1"
-                      >
+                      <h3 className="text-white mb-1 text-xl font-semibold">
                         {tier.name}
-                      </Title>
-                      <Text className="text-zinc-400 text-sm">
+                      </h3>
+                      <p className="text-zinc-400 text-sm">
                         {tier.description}
-                      </Text>
+                      </p>
                     </div>
 
                     <div className="py-4">
@@ -639,16 +618,16 @@ const LandingPage: FC = () => {
                             size={16}
                             className="text-green-400 shrink-0"
                           />
-                          <Text className="text-zinc-300 text-sm">
+                          <span className="text-zinc-300 text-sm">
                             {feature}
-                          </Text>
+                          </span>
                         </li>
                       ))}
                     </ul>
 
                     <Link
                       to="/signup"
-                      className={`w-full block px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                      className={`w-full block px-6 py-3 rounded-lg font-medium transition-all duration-200 text-center ${
                         tier.popular
                           ? "bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white shadow-lg"
                           : "border border-white/20 hover:border-white/40 hover:bg-white/5 text-white"
@@ -657,7 +636,7 @@ const LandingPage: FC = () => {
                       {tier.cta}
                     </Link>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           </div>
@@ -666,20 +645,17 @@ const LandingPage: FC = () => {
         {/* CTA Section */}
         <section className="px-6 py-16 md:px-12 bg-linear-to-r from-blue-900/20 to-purple-900/20">
           <div className="max-w-4xl mx-auto text-center space-y-6">
-            <Title
-              level={2}
-              className="text-!white text-!3xl md:text-!4xl"
-            >
+            <h2 className="text-white text-3xl md:text-4xl font-bold">
               Ready to Transform Your{" "}
               <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 Content Workflow
               </span>
               ?
-            </Title>
-            <Paragraph className="text-!zinc-300 text-!lg">
+            </h2>
+            <p className="text-zinc-300 text-lg">
               Join thousands of professionals who are saving hours every week
               with VISPARK
-            </Paragraph>
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/signup"
@@ -718,10 +694,10 @@ const LandingPage: FC = () => {
                   VISPARK
                 </span>
               </div>
-              <Paragraph className="text-!zinc-400 text-sm mb-!0">
+              <p className="text-zinc-400 text-sm mb-0">
                 Transform YouTube content into actionable insights with
                 AI-powered analysis.
-              </Paragraph>
+              </p>
             </div>
 
           </div>

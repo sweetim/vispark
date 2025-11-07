@@ -1,4 +1,3 @@
-import { ConfigProvider, theme } from "antd"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { RouterProvider } from "@tanstack/react-router"
@@ -18,20 +17,14 @@ registerServiceWorker()
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-      }}
-    >
-      <SWRProvider>
-        <AuthProvider>
-          <LocaleProvider>
-            <ToastProvider>
-              <RouterProvider router={router} />
-            </ToastProvider>
-          </LocaleProvider>
-        </AuthProvider>
-      </SWRProvider>
-    </ConfigProvider>
+    <SWRProvider>
+      <AuthProvider>
+        <LocaleProvider>
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
+        </LocaleProvider>
+      </AuthProvider>
+    </SWRProvider>
   </StrictMode>,
 )
