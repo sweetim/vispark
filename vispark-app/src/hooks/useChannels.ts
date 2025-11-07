@@ -28,6 +28,12 @@ export const useSubscribedChannels = () => {
     channelConfig,
   )
 
+  console.log("useSubscribedChannels: State:", {
+    dataLength: data?.length || 0,
+    isLoading,
+    error: error?.message,
+  })
+
   return {
     channels: data || [],
     isLoading,

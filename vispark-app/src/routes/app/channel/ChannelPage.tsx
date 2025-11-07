@@ -7,7 +7,7 @@ import {
 import { useTranslation } from "react-i18next"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
 import { getAllChannelVideos } from "@/services/channel"
-import { useChannelSubscriptionManager, useChannelVideos } from "@/hooks/useChannels"
+import { useChannelSubscriptionManager, useChannelVideos, useChannelDetails } from "@/hooks/useChannels"
 import { useChannelVisparksWithMetadata } from "@/hooks/useVisparks"
 import { useToast } from "@/contexts/ToastContext"
 
@@ -19,8 +19,8 @@ const ChannelPage = () => {
 
   const channelId = (rawChannelId ?? "").trim()
 
-  // Get channel details from the layout context
-  const [channelDetails] = useState<any>(null)
+  // Get channel details using the hook
+  const { channelDetails, isLoading: loadingChannelDetails } = useChannelDetails(channelId)
 
   // SWR hooks for data
   const { visparks, isLoading: loadingSavedVideos, error: savedVideosError } = useChannelVisparksWithMetadata(channelId)
@@ -195,7 +195,20 @@ const ChannelPage = () => {
   return (
     <div ref={scrollContainerRef} className="w-full max-w-3xl h-full space-y-2 overflow-y-auto pb-20">
       {/* Channel Header */}
-      {channelDetails && (
+      {loadingChannelDetails ? (
+        <div className="glass-effect border-b border-gray-800 px-6 py-4">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-full bg-gray-700 animate-pulse"></div>
+              <div>
+                <div className="h-5 w-48 bg-gray-700 rounded animate-pulse mb-2"></div>
+                <div className="h-4 w-24 bg-gray-700 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div className="w-10 h-10 bg-gray-700 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      ) : channelDetails ? (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center space-x-4">
@@ -241,7 +254,7 @@ const ChannelPage = () => {
             </button>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Libraries Section */}
       <div className="space-y-3">

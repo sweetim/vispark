@@ -2,7 +2,6 @@ import { Outlet, useNavigate, useLocation } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { match } from "ts-pattern"
 
-type SettingsRoute = "/app/settings" | "/app/settings/profile" | "/app/settings/account" | "/app/settings/preferences"
 
 const SettingsLayout = () => {
   const navigate = useNavigate()
@@ -16,12 +15,12 @@ const SettingsLayout = () => {
 
   // Get page title based on current route using ts-pattern
   const getPageTitle = (): string => {
-    return match(location.pathname as SettingsRoute)
+    return match(location.pathname as string)
       .with("/app/settings/profile", () => t("settings.profile"))
       .with("/app/settings/account", () => t("settings.account"))
       .with("/app/settings/preferences", () => t("settings.preferences"))
       .with("/app/settings", () => "")
-      .exhaustive()
+      .otherwise(() => "")
   }
 
   return (

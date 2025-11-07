@@ -101,13 +101,19 @@ const ChannelSearchPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
+  const [submittedQuery, setSubmittedQuery] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
   const reactId = useId()
   const inputId = useMemo(() => `channel-search-${reactId}`, [reactId])
 
   // SWR hooks for data
   const { channels: subscribedChannels, isLoading: loadingSubscriptions, error: subscriptionError } = useSubscribedChannels()
-  const { searchResults, isLoading: loadingSearch, error: searchError } = useChannelSearch(hasSearched ? searchQuery : "", hasSearched)
+  const { searchResults, isLoading: loadingSearch, error: searchError } = useChannelSearch(submittedQuery, hasSearched)
+
+  // Debug logging
+  console.log("SearchPage - subscribedChannels:", subscribedChannels)
+  console.log("SearchPage - loadingSubscriptions:", loadingSubscriptions)
+  console.log("SearchPage - subscriptionError:", subscriptionError)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -116,8 +122,9 @@ const ChannelSearchPage = () => {
       return
     }
 
+    setSubmittedQuery(trimmedQuery)
     setHasSearched(true)
-    // SWR will automatically handle the search
+    // SWR will automatically handle the search with the new submittedQuery
   }
 
   const handleChannelClick = (channelId: string) => {
@@ -386,7 +393,11 @@ const ChannelSearchPage = () => {
               </p>
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
+                onClick={() => {
+                  setSearchQuery("")
+                  setSubmittedQuery("")
+                  setHasSearched(false)
+                }}
                 className="px-4 py-2 bg-linear-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105"
               >
                 {t("channels.clearSearch")}

@@ -290,23 +290,28 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
   } = await supabase.auth.getUser()
 
   if (!user) {
+    console.log("No authenticated user found")
     return []
   }
+
+  console.log("Fetching subscribed channels for user:", user.id)
 
   // Get the channel IDs from the database
   const { data, error } = await supabase
     .from("channels")
-    .select("channel_id")
+    .select("channel_id, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
   if (error) {
+    console.error("Database error fetching subscribed channels:", error)
     throw new Error(
       error.message ?? "Failed to fetch subscribed channels. Please try again.",
     )
   }
 
   if (!data || data.length === 0) {
+    console.log("No subscribed channels found for user")
     return []
   }
 
@@ -319,6 +324,7 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
   const channelIds = data.map((channel) => channel.channel_id)
 
   if (channelIds.length === 0) {
+    console.log("No channel IDs to process")
     return []
   }
 
