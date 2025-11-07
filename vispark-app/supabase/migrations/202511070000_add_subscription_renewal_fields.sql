@@ -7,7 +7,7 @@ add column if not exists retry_count integer not null default 0 check (retry_cou
 add column if not exists last_retry_at timestamptz,
 add column if not exists renewal_error text,
 add column if not exists auto_renewal_enabled boolean not null default true,
-add column if not expires_at_buffer_days integer not null default 1;
+add column if not exists expires_at_buffer_days integer not null default 1;
 
 -- Create index for efficient querying of expiring subscriptions
 create index if not exists youtube_push_subscriptions_status_expires_at_idx

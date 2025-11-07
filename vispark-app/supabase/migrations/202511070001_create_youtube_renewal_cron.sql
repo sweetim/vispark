@@ -46,8 +46,11 @@ $$ language plpgsql;
 -- Enable pg_net extension if not already enabled
 create extension if not exists "pg_net";
 
+-- Enable pg_cron extension if not already enabled
+-- Note: pg_cron needs to be enabled in the database before using cron.schedule
+create extension if not exists "pg_cron";
+
 -- Create the cron job to run daily at 2 AM UTC
--- Note: This requires the pg_cron extension to be enabled
 select cron.schedule(
   'youtube-subscription-renewal',
   '0 2 * * *', -- Daily at 2 AM UTC
