@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'supabase/**'
+      - 'vispark-app/supabase/**'
       - '.github/workflows/deploy-supabase.yml'
   workflow_dispatch:
 
