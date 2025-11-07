@@ -71,12 +71,16 @@ export const formatTranscript = (segments: TranscriptSegment[]): string =>
 // YouTube Video Metadata (no abbreviations in identifiers)
 type YouTubeThumbnail = {
   url: string
+  width?: number
+  height?: number
 }
 
 type YouTubeThumbnails = {
   default: YouTubeThumbnail
   medium: YouTubeThumbnail
   high: YouTubeThumbnail
+  standard?: YouTubeThumbnail
+  maxres?: YouTubeThumbnail
 }
 
 export type VideoMetadata = {
@@ -85,6 +89,18 @@ export type VideoMetadata = {
   channelId: string
   channelTitle: string
   thumbnails: YouTubeThumbnails
+  channelThumbnailUrl?: string
+  publishedAt?: string
+  duration?: string
+  viewCount?: number
+  likeCount?: number
+  commentCount?: number
+  description?: string
+  tags?: string[]
+  categoryId?: string
+  defaultLanguage?: string
+  defaultAudioLanguage?: string
+  hasSummary?: boolean
 }
 
 export const getBestThumbnailUrl = (thumbnails?: YouTubeThumbnails): string =>
@@ -94,55 +110,59 @@ export const getBestThumbnailUrl = (thumbnails?: YouTubeThumbnails): string =>
   ?? ""
 
 /**
- * Fetch video metadata (title, channel name, thumbnails) from the YouTube Data Service.
- * Requires VITE_YOUTUBE_API_KEY in your environment.
+ * Fetch video metadata (title, channel name, thumbnails) from the Supabase video-details function.
+ * This function handles YouTube API calls on the server side.
  */
 export const fetchYouTubeVideoDetails = async (
   videoId: string,
 ): Promise<VideoMetadata> => {
-  const youTubeApplicationProgrammingInterfaceKey = import.meta.env
-    .VITE_YOUTUBE_API_KEY
-  if (!youTubeApplicationProgrammingInterfaceKey) {
+  const { data, error } = await supabase.functions.invoke<{
+    video?: VideoMetadata
+  }>("video-details", {
+    body: { videoId, action: "getDetails" },
+  })
+
+  if (error) {
     throw new Error(
-      "VITE_YOUTUBE_API_KEY is not set. Add it to your .env file to enable video metadata retrieval.",
+      error.message ?? "Failed to fetch video details. Please try again.",
     )
   }
 
-  const url = new URL("https://www.googleapis.com/youtube/v3/videos")
-  url.searchParams.set("part", "snippet")
-  url.searchParams.set("id", videoId)
-  url.searchParams.set(
-    "key",
-    youTubeApplicationProgrammingInterfaceKey as string,
-  )
-
-  const response = await fetch(url.toString())
-  if (!response.ok) {
-    throw new Error(
-      `YouTube service error: ${response.status} ${response.statusText}`,
-    )
-  }
-
-  const json = await response.json()
-  const item = json?.items?.[0]
-  if (!item?.snippet) {
+  if (!data?.video) {
     throw new Error("Video was not found for the provided video identifier.")
   }
 
-  const { title, channelId, channelTitle, thumbnails } = item.snippet as {
-    title: string
-    channelId: string
-    channelTitle: string
-    thumbnails: YouTubeThumbnails
+  return data.video
+}
+
+/**
+ * Fetch multiple video metadata in batch from the Supabase video-details function.
+ * This is more efficient than calling fetchYouTubeVideoDetails for each video individually.
+ */
+export const fetchBatchYouTubeVideoDetails = async (
+  videoIds: string[],
+): Promise<VideoMetadata[]> => {
+  if (videoIds.length === 0) {
+    return []
   }
 
-  return {
-    videoId,
-    title,
-    channelId,
-    channelTitle,
-    thumbnails,
+  const { data, error } = await supabase.functions.invoke<{
+    videos?: VideoMetadata[]
+  }>("video-details", {
+    body: { videoIds, action: "getBatchDetails" },
+  })
+
+  if (error) {
+    throw new Error(
+      error.message ?? "Failed to fetch batch video details. Please try again.",
+    )
   }
+
+  if (!data?.videos) {
+    throw new Error("No video details were returned.")
+  }
+
+  return data.videos
 }
 
 export type SaveVisparkResult = {

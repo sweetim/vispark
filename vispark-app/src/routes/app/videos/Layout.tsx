@@ -1,6 +1,6 @@
 import { Outlet } from "@tanstack/react-router"
 
-export type VisparkSavedItem = {
+export type VideosSavedItem = {
   id: string
   createdTime: string
   metadata: {
@@ -17,7 +17,7 @@ export type VisparkSavedItem = {
   summaries: string[]
 }
 
-const VisparkLayout = () => {
+const VideosLayout = () => {
   return (
     <div className="flex flex-col items-center h-full w-full bg-gray-900 text-white p-2">
       <Outlet />
@@ -25,4 +25,4 @@ const VisparkLayout = () => {
   )
 }
 
-export default VisparkLayout
+export default VideosLayout

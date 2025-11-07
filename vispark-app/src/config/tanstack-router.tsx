@@ -7,7 +7,6 @@ import {
 } from '@tanstack/react-router'
 import { z } from 'zod'
 
-// Import components
 import {
   RootLayout,
   AppLayout,
@@ -20,9 +19,9 @@ import {
   ChannelLayout,
   ChannelSearchPage,
   ChannelPage,
-  VisparkLayout,
-  VisparkSearchPage,
-  VisparkVideoPage,
+  VideosLayout,
+  VideosSearchPage,
+  VideosVideoPage,
   SettingsLayout,
   SettingsPage,
   ProfilePage,
@@ -134,13 +133,13 @@ const channelsIdRoute = createRoute({
 const videosRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/videos',
-  component: VisparkLayout,
+  component: VideosLayout,
 })
 
 const videosSearchRoute = createRoute({
   getParentRoute: () => videosRoute,
   path: '/',
-  component: VisparkSearchPage,
+  component: VideosSearchPage,
   validateSearch: (search: Record<string, string>) => ({
     q: z.string().optional().parse(search.q),
   }),
@@ -149,7 +148,7 @@ const videosSearchRoute = createRoute({
 const videosIdRoute = createRoute({
   getParentRoute: () => videosRoute,
   path: '/$videoId',
-  component: VisparkVideoPage,
+  component: VideosVideoPage,
   parseParams: (rawParams) => {
     const videoId = rawParams.videoId
     // Validate YouTube video ID format

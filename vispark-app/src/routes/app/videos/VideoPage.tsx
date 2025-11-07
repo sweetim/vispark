@@ -29,7 +29,7 @@ const VideoMetadataSkeleton = () => (
 type Step = "idle" | "gathering" | "summarizing" | "complete" | "error"
 type ErrorStep = "gathering" | "summarizing" | null
 
-const VisparkVideoPage = () => {
+const VideosVideoPage = () => {
   const { videoId } = useParams({ from: '/app/videos/$videoId' })
   const { visparks: savedVisparks, mutate } = useVisparksWithMetadata(20)
 
@@ -249,4 +249,4 @@ const VisparkVideoPage = () => {
   )
 }
 
-export default VisparkVideoPage
+export default VideosVideoPage

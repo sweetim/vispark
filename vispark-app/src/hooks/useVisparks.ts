@@ -1,5 +1,6 @@
 import useSWR from "swr"
 import {
+  fetchBatchYouTubeVideoDetails,
   fetchYouTubeVideoDetails,
   listVisparks,
   listVisparksByChannelId,
@@ -77,29 +78,44 @@ export const useBatchVideoMetadata = (videoIds: string[]) => {
     async () => {
       if (videoIds.length === 0) return new Map()
 
-      // Create a map to store results
-      const metadataMap = new Map<string, VideoMetadata>()
+      try {
+        // Use the new batch function to fetch all video details at once
+        const videosMetadata = await fetchBatchYouTubeVideoDetails(videoIds)
 
-      // Fetch metadata for each video with error handling
-      const metadataPromises = videoIds.map(async (videoId) => {
-        try {
-          const metadata = await fetchYouTubeVideoDetails(videoId)
-          return { videoId, metadata, error: null }
-        } catch (error) {
-          console.warn(`Failed to fetch metadata for ${videoId}:`, error)
-          return { videoId, metadata: null, error }
-        }
-      })
+        // Convert array to map for easier lookup
+        const metadataMap = new Map<string, VideoMetadata>()
+        videosMetadata.forEach((metadata) => {
+          metadataMap.set(metadata.videoId, metadata)
+        })
 
-      const results = await Promise.allSettled(metadataPromises)
+        return metadataMap
+      } catch (error) {
+        console.error("Failed to fetch batch video metadata:", error)
 
-      results.forEach((result) => {
-        if (result.status === "fulfilled" && result.value.metadata) {
-          metadataMap.set(result.value.videoId, result.value.metadata)
-        }
-      })
+        // Fallback to individual requests if batch fails
+        const metadataMap = new Map<string, VideoMetadata>()
 
-      return metadataMap
+        // Fetch metadata for each video with error handling
+        const metadataPromises = videoIds.map(async (videoId) => {
+          try {
+            const metadata = await fetchYouTubeVideoDetails(videoId)
+            return { videoId, metadata, error: null }
+          } catch (error) {
+            console.warn(`Failed to fetch metadata for ${videoId}:`, error)
+            return { videoId, metadata: null, error }
+          }
+        })
+
+        const results = await Promise.allSettled(metadataPromises)
+
+        results.forEach((result) => {
+          if (result.status === "fulfilled" && result.value.metadata) {
+            metadataMap.set(result.value.videoId, result.value.metadata)
+          }
+        })
+
+        return metadataMap
+      }
     },
     {
       revalidateOnFocus: false,

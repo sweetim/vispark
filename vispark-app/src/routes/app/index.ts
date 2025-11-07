@@ -8,5 +8,5 @@ export {
   SettingsPage,
 } from "./settings"
 export { SummariesLayout, SummariesPage } from "./summaries"
-export { VisparkLayout, VisparkSearchPage, VisparkVideoPage } from "./vispark"
+export { VideosLayout, VideosSearchPage, VideosVideoPage } from "./videos"
 export { WalletLayout, WalletPage } from "./wallet"

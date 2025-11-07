@@ -43,34 +43,28 @@ export type YouTubeSearchResult = {
 }
 
 /**
- * Search for channels by name using YouTube API
+ * Search for channels by name using Supabase function
  */
 export const searchChannels = async (
   query: string,
 ): Promise<YouTubeSearchResult[]> => {
-  const youTubeApplicationProgrammingInterfaceKey = import.meta.env
-    .VITE_YOUTUBE_API_KEY
-  if (!youTubeApplicationProgrammingInterfaceKey) {
+  const { data, error } = await supabase.functions.invoke<{
+    items: YouTubeSearchResult[]
+  }>("youtube-search", {
+    body: { query, type: "channel" },
+  })
+
+  if (error) {
     throw new Error(
-      "VITE_YOUTUBE_API_KEY is not set. Add it to your .env file to enable channel search.",
+      error.message ?? "Failed to search channels. Please try again.",
     )
   }
 
-  const url = new URL("https://www.googleapis.com/youtube/v3/search")
-  url.searchParams.set("part", "snippet")
-  url.searchParams.set("q", query)
-  url.searchParams.set("type", "channel")
-  url.searchParams.set("key", youTubeApplicationProgrammingInterfaceKey)
-
-  const response = await fetch(url.toString())
-  if (!response.ok) {
-    throw new Error(
-      `YouTube service error: ${response.status} ${response.statusText}`,
-    )
+  if (!data?.items) {
+    throw new Error("Unexpected response format from search service.")
   }
 
-  const json = await response.json()
-  return json.items ?? []
+  return data.items
 }
 
 /**

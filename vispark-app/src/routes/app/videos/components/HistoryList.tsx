@@ -1,23 +1,23 @@
 import VideoMetadataCard from "@/components/VideoMetadataCard"
-import type { VisparkSavedItem } from "../Layout"
+import type { VideosSavedItem } from "../Layout"
 
-type VisparkHistoryListProps = {
-  items: VisparkSavedItem[]
+type VideosHistoryListProps = {
+  items: VideosSavedItem[]
   onSelect: (videoId: string) => void
   emptyMessage?: string
 }
 
 const defaultEmptyMessage =
-  "You do not have any Visparks yet. Search for a video to create one."
+  "You do not have any Videos yet. Search for a video to create one."
 
-const VisparkHistoryList = ({
+const VideosHistoryList = ({
   items,
   onSelect,
   emptyMessage = defaultEmptyMessage,
-}: VisparkHistoryListProps) => {
+}: VideosHistoryListProps) => {
   return (
     <section
-      aria-label="Recent vispark history"
+      aria-label="Recent video history"
       className="space-y-3"
     >
       {items.length === 0 ? (
@@ -44,4 +44,4 @@ const VisparkHistoryList = ({
   )
 }
 
-export default VisparkHistoryList
+export default VideosHistoryList

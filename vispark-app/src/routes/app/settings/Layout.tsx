@@ -10,7 +10,7 @@ const SettingsLayout = () => {
   const { t } = useTranslation()
 
   // Show back button only on child pages, not on the main settings page
-  const showBackButton = match(location.pathname as SettingsRoute)
+  const showBackButton = match(location.pathname as string)
     .with("/app/settings", () => false)
     .otherwise(() => true)
 

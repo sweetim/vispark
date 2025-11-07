@@ -4,7 +4,7 @@ import { extractYouTubeVideoId } from "../../../utils/youtube"
 import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 import HistoryList from "./components/HistoryList"
 
-export type VisparkSavedItem = {
+export type VideosSavedItem = {
   id: string
   createdTime: string
   metadata: {
@@ -21,12 +21,12 @@ export type VisparkSavedItem = {
   summaries: string[]
 }
 
-const VisparkSearchPage = () => {
+const VideosSearchPage = () => {
   const navigate = useNavigate()
   // For now, we'll get saved visparks directly from the hook
   // TODO: Implement proper context sharing with TanStack Router
   const { visparks } = useVisparksWithMetadata(20)
-  const savedVisparks: VisparkSavedItem[] = visparks.map((vispark) => ({
+  const savedVideos: VideosSavedItem[] = visparks.map((vispark) => ({
     id: vispark.id,
     createdTime: vispark.createdTime,
     metadata: vispark.metadata,
@@ -34,7 +34,7 @@ const VisparkSearchPage = () => {
   }))
   const [videoId, setVideoId] = useState("")
   const reactId = useId()
-  const inputId = useMemo(() => `vispark-video-id-${reactId}`, [reactId])
+  const inputId = useMemo(() => `videos-video-id-${reactId}`, [reactId])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -60,7 +60,7 @@ const VisparkSearchPage = () => {
         <form
           onSubmit={handleSubmit}
           className="space-y-2"
-          aria-label="Search for a video to create a Vispark"
+          aria-label="Search for a video to create a Video Summary"
         >
           <div className="flex">
             <input
@@ -73,7 +73,7 @@ const VisparkSearchPage = () => {
             <button
               type="submit"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-r-md text-white disabled:opacity-60 disabled:cursor-not-allowed"
-              aria-label="Search for vispark"
+              aria-label="Search for video"
               disabled={!videoId.trim()}
             >
               GO
@@ -83,11 +83,11 @@ const VisparkSearchPage = () => {
       </div>
 
       <HistoryList
-        items={savedVisparks}
+        items={savedVideos}
         onSelect={(id) => navigate({ to: `/app/videos/${id}` })}
       />
     </div>
   )
 }
 
-export default VisparkSearchPage
+export default VideosSearchPage
