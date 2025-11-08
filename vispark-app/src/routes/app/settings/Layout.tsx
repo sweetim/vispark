@@ -19,6 +19,7 @@ const SettingsLayout = () => {
       .with("/app/settings/profile", () => t("settings.profile"))
       .with("/app/settings/account", () => t("settings.account"))
       .with("/app/settings/preferences", () => t("settings.preferences"))
+      .with("/app/settings/vispark", () => t("settings.vispark"))
       .with("/app/settings", () => "")
       .otherwise(() => "")
   }

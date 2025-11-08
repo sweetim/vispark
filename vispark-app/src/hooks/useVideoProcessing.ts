@@ -16,6 +16,7 @@ import {
   formatTranscript,
   saveVispark,
 } from "@/services/vispark"
+import { useTranscriptLanguageStore } from "@/stores/transcriptLanguageStore"
 import { useVideoStore } from "@/stores/videoStore"
 
 type UseVideoProcessingProps = {
@@ -30,6 +31,7 @@ export const useVideoProcessing = ({
   const { videoId } = useParams({ from: "/app/videos/$videoId" })
   const { visparks: savedVisparks, mutate } = useVisparksWithMetadata(20)
   const { retryWithBackoff } = useRetryWithBackoff()
+  const { transcriptLanguage } = useTranscriptLanguageStore()
 
   const {
     loading,
@@ -86,7 +88,8 @@ export const useVideoProcessing = ({
         // Use local transcript fetching when developing locally
         const isLocalDevelopment = process.env.NODE_ENV !== "production"
         const transcriptResult = await retryWithBackoff(
-          () => fetchTranscript(rawVideoId, isLocalDevelopment),
+          () =>
+            fetchTranscript(rawVideoId, isLocalDevelopment, transcriptLanguage),
           RETRY_CONFIG.TRANSCRIPT,
         )
 

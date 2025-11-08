@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next"
 import {
   UserIcon,
   IdentificationCardIcon,
-  GearIcon
+  GearIcon,
+  SparkleIcon
 } from "@phosphor-icons/react"
 
 const SettingsPage = () => {
@@ -107,6 +108,13 @@ const SettingsPage = () => {
 
               {/* Navigation */}
               <nav className="p-2">
+                <button
+                  className="w-full text-left px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-3"
+                  onClick={() => navigate({ to: "/app/settings/vispark" })}
+                >
+                  <SparkleIcon size={20} weight="duotone" />
+                  {t("settings.vispark")}
+                </button>
                 <button
                   className="w-full text-left px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-3"
                   onClick={() => navigate({ to: "/app/settings/profile" })}

@@ -28,7 +28,15 @@
     "privacy": "Privacy",
     "dataUsage": "Data Usage",
     "exportData": "Export Data",
-    "deleteAccount": "Delete Account"
+    "deleteAccount": "Delete Account",
+    "vispark": "VISPARK",
+    "transcriptLanguage": "Transcript Language",
+    "transcriptLanguageDescription": "Select the default language for video transcripts and summaries",
+    "transcriptLanguageNote": "This setting will be used as the default language for all new transcripts. You can change it for individual videos.",
+    "processingSettings": "Processing Settings",
+    "autoGenerateSummary": "Auto-generate Summary",
+    "detectTrends": "Detect Trends",
+    "extractKeyTopics": "Extract Key Topics"
   },
   "landing": {
     "logoAlt": "VISPARK Logo",

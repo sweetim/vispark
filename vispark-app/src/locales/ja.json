@@ -28,7 +28,15 @@
     "privacy": "プライバシー",
     "dataUsage": "データ使用量",
     "exportData": "データエクスポート",
-    "deleteAccount": "アカウント削除"
+    "deleteAccount": "アカウント削除",
+    "vispark": "VISPARK",
+    "transcriptLanguage": "転写言語",
+    "transcriptLanguageDescription": "動画転写と要約のデフォルト言語を選択",
+    "transcriptLanguageNote": "この設定はすべての新しい転写のデフォルト言語として使用されます。個々の動画で変更できます。",
+    "processingSettings": "処理設定",
+    "autoGenerateSummary": "自動要約生成",
+    "detectTrends": "トレンド検出",
+    "extractKeyTopics": "主要トピック抽出"
   },
   "landing": {
     "logoAlt": "VISPARK ロゴ",

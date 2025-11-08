@@ -27,6 +27,7 @@ import {
   ProfilePage,
   AccountPage,
   PreferencesPage,
+  VisparkPage,
   WalletLayout,
   WalletPage,
 } from '@/routes'
@@ -194,6 +195,12 @@ const settingsPreferencesRoute = createRoute({
   component: PreferencesPage,
 })
 
+const settingsVisparkRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/vispark',
+  component: VisparkPage,
+})
+
 // Wallet routes
 const walletRoute = createRoute({
   getParentRoute: () => appRoute,
@@ -223,6 +230,7 @@ const routeTree = rootRoute.addChildren([
       settingsProfileRoute,
       settingsAccountRoute,
       settingsPreferencesRoute,
+      settingsVisparkRoute,
     ]),
     walletRoute.addChildren([walletIndexRoute]),
   ]),

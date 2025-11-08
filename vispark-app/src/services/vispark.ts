@@ -20,11 +20,12 @@ export type SummaryResult = {
 export const fetchTranscript = async (
   videoId: string,
   local?: boolean,
+  lang?: string,
 ): Promise<TranscriptResult> => {
   const { data, error } = await supabase.functions.invoke<TranscriptResult>(
     "transcript",
     {
-      body: { videoId, local },
+      body: { videoId, local, lang },
     },
   )
 
