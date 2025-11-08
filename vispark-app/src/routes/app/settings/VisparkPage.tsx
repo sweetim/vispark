@@ -1,11 +1,9 @@
 import { useTranslation } from "react-i18next"
-import { useLocale } from "@/contexts/LocaleContext"
 import { useTranscriptLanguageStore } from "@/stores/transcriptLanguageStore"
 import { GlobeIcon } from "@phosphor-icons/react"
 
 const VisparkPage = () => {
   const { t } = useTranslation()
-  const { currentLanguage } = useLocale()
   const { transcriptLanguage, setTranscriptLanguage } = useTranscriptLanguageStore()
 
   const handleTranscriptLanguageChange = (language: string) => {

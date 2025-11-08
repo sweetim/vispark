@@ -3,6 +3,22 @@ import react from "@vitejs/plugin-react"
 import { fileURLToPath, URL } from "url"
 import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
+import { execSync } from "child_process"
+
+// Get git commit hash for version info
+const getGitCommitHash = () => {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim()
+  } catch (error) {
+    console.error('Failed to get git commit hash:', error)
+    return 'unknown'
+  }
+}
+
+// Get current build time
+const getBuildTime = () => {
+  return new Date().toISOString().split('T')[0]
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -129,5 +145,9 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
+  },
+  define: {
+    __GIT_COMMIT_HASH__: JSON.stringify(getGitCommitHash()),
+    __BUILD_TIME__: JSON.stringify(getBuildTime()),
   },
 })

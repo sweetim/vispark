@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useAuth } from "@/modules/auth"
 import { useTranslation } from "react-i18next"
+import { useAppVersion } from "@/hooks/useAppVersion"
 import {
   UserIcon,
   IdentificationCardIcon,
@@ -13,6 +14,7 @@ const SettingsPage = () => {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const appVersion = useAppVersion()
   const [signingOut, setSigningOut] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState(false)
@@ -137,6 +139,15 @@ const SettingsPage = () => {
                   {t("settings.preferences")}
                 </button>
               </nav>
+
+              {/* App Version */}
+              <div className="px-4 py-2 border-t border-white/10">
+                <div className="text-center">
+                  <p className="text-xs text-gray-400">
+                    Version: {appVersion}
+                  </p>
+                </div>
+              </div>
 
               {/* Sign Out Button */}
               <div className="p-4 border-t border-white/10">
