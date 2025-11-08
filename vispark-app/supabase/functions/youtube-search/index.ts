@@ -18,6 +18,7 @@ type YouTubeSearchRequestPayload = {
   query: string
   type?: "channel" | "video"
   maxResults?: number
+  order?: "relevance" | "date" | "rating" | "title" | "videoCount" | "viewCount"
 }
 
 type YouTubeSearchResponse = {
@@ -76,7 +77,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  const { query, type = "channel", maxResults = 25 } = (payload
+  const { query, type = "channel", maxResults = 25, order = "videoCount" } = (payload
     ?? {}) as Partial<YouTubeSearchRequestPayload>
 
   if (typeof query !== "string" || query.trim().length === 0) {
@@ -120,6 +121,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     url.searchParams.set("q", query)
     url.searchParams.set("type", type)
     url.searchParams.set("maxResults", maxResults.toString())
+    url.searchParams.set("order", order)
     url.searchParams.set("key", youtubeApiKey)
 
     console.log(`YouTube API URL: ${url.toString()}`)

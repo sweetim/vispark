@@ -334,6 +334,7 @@ const ChannelPage = () => {
                         high: video.thumbnails.high,
                       },
                     }}
+                    createdTime={video.created_at}
                     onClick={() =>
                       navigate({ to: `/app/videos/${video.videoId}` })
                     }
@@ -453,6 +454,7 @@ const ChannelPage = () => {
                               high: video.thumbnails.high,
                             },
                           }}
+                          createdTime={video.publishedAt}
                           onClick={() =>
                             navigate({ to: `/app/videos/${video.videoId}` })
                           }

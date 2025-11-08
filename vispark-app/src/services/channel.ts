@@ -51,7 +51,7 @@ export const searchChannels = async (
   const { data, error } = await supabase.functions.invoke<{
     items: YouTubeSearchResult[]
   }>("youtube-search", {
-    body: { query, type: "channel" },
+    body: { query, type: "channel", order: "videoCount" },
   })
 
   if (error) {

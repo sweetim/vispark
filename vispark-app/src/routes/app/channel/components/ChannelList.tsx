@@ -149,6 +149,16 @@ const ChannelList = ({
     getChannelId,
   ])
 
+  // Sort channels by video count (highest first)
+  const sortedItems = [...items].sort((a, b) => {
+    const channelIdA = getChannelId(a)
+    const channelIdB = getChannelId(b)
+    const channelInfoA = getChannelInfo(channelIdA)
+    const channelInfoB = getChannelInfo(channelIdB)
+
+    return channelInfoB.videoCount - channelInfoA.videoCount
+  })
+
   return (
     <section
       aria-label="Channel search results"
@@ -176,7 +186,7 @@ const ChannelList = ({
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-2">
-          {items.map((item) => {
+          {sortedItems.map((item) => {
             const channelId = getChannelId(item)
             const channelTitle = getChannelTitle(item)
             const channelThumbnail = getChannelThumbnail(item)
