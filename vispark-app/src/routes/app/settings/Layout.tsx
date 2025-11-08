@@ -30,22 +30,32 @@ const SettingsLayout = () => {
         <div className="shrink-0 bg-gray-900/95 backdrop-blur-md border-b border-white/10">
           <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-10">
             <div className="flex items-center justify-between">
-              <button
-                onClick={() => navigate({ to: "/app/settings" })}
-                className="flex items-center gap-3 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-sm text-gray-300 hover:text-white transition-all duration-200 shadow-lg"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span>{getPageTitle()}</span>
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate({ to: "/app/settings" })}
+                  className="group flex items-center justify-center w-13 h-10 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-gray-300 hover:text-white transition-all duration-200 shadow-lg"
+                  aria-label={t("common.back")}
+                >
+                  <svg
+                    className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h1 className="text-xl font-semibold text-white">
+                  {getPageTitle()}
+                </h1>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* Content area with flexible height */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden bg-slate-950">
         <div className="h-full overflow-y-auto">
           <Outlet />
         </div>
