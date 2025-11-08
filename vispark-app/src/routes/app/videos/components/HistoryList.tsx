@@ -25,7 +25,7 @@ const VideosHistoryList = ({
           {emptyMessage}
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-4">
+        <ul className="grid grid-cols-1 gap-2">
           {items.map((item) => (
             <li
               key={item.id}

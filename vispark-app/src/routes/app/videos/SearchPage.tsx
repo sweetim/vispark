@@ -1,6 +1,7 @@
 import { type FormEvent, useId, useMemo, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
+import { SparkleIcon } from "@phosphor-icons/react"
 import { extractYouTubeVideoId } from "../../../utils/youtube"
 import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 import HistoryList from "./components/HistoryList"
@@ -59,8 +60,8 @@ const VideosSearchPage = () => {
   }
 
   return (
-    <div className="w-full max-w-3xl h-full space-y-6 overflow-y-auto pb-20">
-      <div className="sticky top-0 z-10 bg-gray-900 py-4">
+    <div className="w-full max-w-3xl h-full space-y-2 overflow-y-auto pb-20">
+      <div className="sticky top-0 z-10 bg-gray-900 py-2">
         <form
           onSubmit={handleSubmit}
           className="space-y-2"
@@ -80,7 +81,7 @@ const VideosSearchPage = () => {
               aria-label={t("videos.search")}
               disabled={!videoId.trim()}
             >
-              {t("videos.go")}
+              <SparkleIcon size={20} weight="fill" className="text-white" />
             </button>
           </div>
         </form>
