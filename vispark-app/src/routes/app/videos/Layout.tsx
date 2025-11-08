@@ -3,6 +3,7 @@ import { Outlet } from "@tanstack/react-router"
 export type VideosSavedItem = {
   id: string
   createdTime: string
+  publishedAt?: string
   metadata: {
     videoId: string
     title: string

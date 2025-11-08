@@ -34,7 +34,7 @@ const VideosHistoryList = ({
               <VideoMetadataCard
                 metadata={item.metadata}
                 onClick={() => onSelect(item.metadata.videoId)}
-                createdTime={item.createdTime}
+                createdTime={item.publishedAt || item.createdTime}
               />
             </li>
           ))}

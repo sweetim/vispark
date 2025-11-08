@@ -149,13 +149,8 @@ export const useVisparksWithMetadata = (limit = 200) => {
   } = useBatchVideoMetadata(videoIds)
 
   // Combine visparks with metadata
-  const visparksWithMetadata = visparks.map((vispark) => ({
-    id: vispark.id,
-    videoId: vispark.video_id,
-    videoChannelId: vispark.video_channel_id,
-    summaries: vispark.summaries,
-    createdTime: vispark.created_at,
-    metadata: metadataMap.get(vispark.video_id) || {
+  const visparksWithMetadata = visparks.map((vispark) => {
+    const metadata = metadataMap.get(vispark.video_id) || {
       videoId: vispark.video_id,
       title: `Video ${vispark.video_id}`,
       channelId: vispark.video_channel_id || "",
@@ -165,8 +160,19 @@ export const useVisparksWithMetadata = (limit = 200) => {
         medium: { url: "" },
         high: { url: "" },
       },
-    },
-  }))
+      publishedAt: undefined,
+    }
+
+    return {
+      id: vispark.id,
+      videoId: vispark.video_id,
+      videoChannelId: vispark.video_channel_id,
+      summaries: vispark.summaries,
+      createdTime: vispark.created_at,
+      publishedAt: metadata.publishedAt,
+      metadata,
+    }
+  })
 
   return {
     visparks: visparksWithMetadata,
@@ -192,13 +198,8 @@ export const useChannelVisparksWithMetadata = (channelId: string) => {
   } = useBatchVideoMetadata(videoIds)
 
   // Combine visparks with metadata
-  const visparksWithMetadata = visparks.map((vispark) => ({
-    id: vispark.id,
-    videoId: vispark.video_id,
-    videoChannelId: vispark.video_channel_id,
-    summaries: vispark.summaries,
-    createdTime: vispark.created_at,
-    metadata: metadataMap.get(vispark.video_id) || {
+  const visparksWithMetadata = visparks.map((vispark) => {
+    const metadata = metadataMap.get(vispark.video_id) || {
       videoId: vispark.video_id,
       title: `Video ${vispark.video_id}`,
       channelId: vispark.video_channel_id || "",
@@ -208,8 +209,19 @@ export const useChannelVisparksWithMetadata = (channelId: string) => {
         medium: { url: "" },
         high: { url: "" },
       },
-    },
-  }))
+      publishedAt: undefined,
+    }
+
+    return {
+      id: vispark.id,
+      videoId: vispark.video_id,
+      videoChannelId: vispark.video_channel_id,
+      summaries: vispark.summaries,
+      createdTime: vispark.created_at,
+      publishedAt: metadata.publishedAt,
+      metadata,
+    }
+  })
 
   return {
     visparks: visparksWithMetadata,

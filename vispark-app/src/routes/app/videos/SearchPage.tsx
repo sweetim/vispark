@@ -8,6 +8,7 @@ import HistoryList from "./components/HistoryList"
 export type VideosSavedItem = {
   id: string
   createdTime: string
+  publishedAt?: string
   metadata: {
     videoId: string
     title: string
@@ -31,6 +32,7 @@ const VideosSearchPage = () => {
   const savedVideos: VideosSavedItem[] = visparks.map((vispark) => ({
     id: vispark.id,
     createdTime: vispark.createdTime,
+    publishedAt: vispark.publishedAt,
     metadata: vispark.metadata,
     summaries: vispark.summaries,
   }))
