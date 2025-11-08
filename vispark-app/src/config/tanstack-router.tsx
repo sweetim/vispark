@@ -17,8 +17,10 @@ import {
   SummariesLayout,
   SummariesPage,
   ChannelLayout,
-  ChannelSearchPage,
   ChannelPage,
+  SearchLayout,
+  SubscribedPage,
+  SearchPage,
   VideosLayout,
   VideosSearchPage,
   VideosVideoPage,
@@ -108,8 +110,32 @@ const channelsRoute = createRoute({
 
 const channelsSearchRoute = createRoute({
   getParentRoute: () => channelsRoute,
+  path: '/search',
+  component: SearchLayout,
+})
+
+const channelsSearchIndexRoute = createRoute({
+  getParentRoute: () => channelsSearchRoute,
   path: '/',
-  component: ChannelSearchPage,
+  component: SearchPage,
+  validateSearch: (search: Record<string, string>) => ({
+    q: z.string().optional().parse(search.q),
+  }),
+})
+
+const channelsSearchSubscribeRoute = createRoute({
+  getParentRoute: () => channelsSearchRoute,
+  path: '/subscribe',
+  component: SubscribedPage,
+})
+
+// Redirect channels index to search
+const channelsIndexRoute = createRoute({
+  getParentRoute: () => channelsRoute,
+  path: '/',
+  beforeLoad: async () => {
+    throw redirect({ to: '/app/channels/search/subscribe' })
+  },
 })
 
 const channelsIdRoute = createRoute({
@@ -223,7 +249,7 @@ const routeTree = rootRoute.addChildren([
   appRoute.addChildren([
     appIndexRoute,
     summariesRoute.addChildren([summariesIndexRoute]),
-    channelsRoute.addChildren([channelsSearchRoute, channelsIdRoute]),
+    channelsRoute.addChildren([channelsIndexRoute, channelsSearchRoute.addChildren([channelsSearchIndexRoute, channelsSearchSubscribeRoute]), channelsIdRoute]),
     videosRoute.addChildren([videosSearchRoute, videosIdRoute]),
     settingsRoute.addChildren([
       settingsIndexRoute,

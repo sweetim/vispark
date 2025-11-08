@@ -294,8 +294,6 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
     return []
   }
 
-  console.log("Fetching subscribed channels for user:", user.id)
-
   // Get the channel IDs from the database
   const { data, error } = await supabase
     .from("channels")
@@ -315,11 +313,6 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
     return []
   }
 
-  console.log(
-    "Found subscribed channel IDs:",
-    data.map((c) => c.channel_id),
-  )
-
   // Extract channel IDs
   const channelIds = data.map((channel) => channel.channel_id)
 
@@ -328,12 +321,9 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
     return []
   }
 
-  console.log("Fetching batch details for subscribed channel IDs:", channelIds)
-
   try {
     // Fetch all channel details in a single batch request
     const batchChannels = await getBatchChannelDetails(channelIds)
-    console.log("Successfully fetched batch channel details:", batchChannels)
 
     // Mark all channels as subscribed
     const channels = batchChannels.map((channel) => ({
@@ -341,7 +331,6 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
       isSubscribed: true,
     }))
 
-    console.log("Final channels array:", channels)
     return channels
   } catch (error) {
     console.error(
@@ -379,7 +368,7 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
     })
 
     const channels = await Promise.all(channelPromises)
-    console.log("Final channels array (fallback):", channels)
+
     return channels
   }
 }

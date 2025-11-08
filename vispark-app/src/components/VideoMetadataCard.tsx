@@ -21,12 +21,12 @@ type ThumbnailsShape = {
   high?: ThumbnailShape
 }
 
-function selectBestThumbnailAddress(thumbnails?: ThumbnailsShape): string {
+function selectBestThumbnailAddress(thumbnails?: ThumbnailsShape): string | null {
   return (
     thumbnails?.high?.url
     ?? thumbnails?.medium?.url
     ?? thumbnails?.default?.url
-    ?? ""
+    ?? null
   )
 }
 
@@ -66,11 +66,13 @@ export default function VideoMetadataCard({
 
   const content = (
     <>
-      <img
-        src={imageAddress}
-        alt={`${decodeHtmlEntities(metadata.title)} — ${decodeHtmlEntities(metadata.channelTitle)}`}
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+      {imageAddress && (
+        <img
+          src={imageAddress}
+          alt={`${decodeHtmlEntities(metadata.title)} — ${decodeHtmlEntities(metadata.channelTitle)}`}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
 
       <div className="w-full absolute inset-0 bg-linear-to-t from-black/70 via-black/25 to-transparent" />
 

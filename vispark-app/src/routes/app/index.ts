@@ -1,4 +1,10 @@
-export { ChannelLayout, ChannelPage, ChannelSearchPage } from "./channel"
+export {
+  ChannelLayout,
+  ChannelPage,
+  SearchLayout,
+  SearchPage,
+  SubscribedPage,
+} from "./channel"
 export { default as AppLayout } from "./Layout"
 export {
   AccountPage,
