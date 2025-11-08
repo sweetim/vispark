@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useAuth } from "@/modules/auth/useAuth.ts"
+import { useToast } from "@/contexts/ToastContext.tsx"
+import { useTranslation } from "react-i18next"
 import type { YouTubeSearchResult, ChannelMetadata } from "@/services/channel.ts"
 import {
   areChannelsSubscribed,
@@ -27,6 +29,8 @@ const ChannelList = ({
   emptyMessage = defaultEmptyMessage,
 }: ChannelListProps) => {
   const { user } = useAuth()
+  const { showToast } = useToast()
+  const { t } = useTranslation()
   const [subscriptionStatus, setSubscriptionStatus] = useState<
     Record<string, boolean>
   >({})
@@ -83,6 +87,8 @@ const ChannelList = ({
       if (!user) return
 
       const isSubscribed = subscriptionStatus[channelId] ?? false
+      const channelItem = items.find(item => getChannelId(item) === channelId)
+      const channelTitle = channelItem ? getChannelTitle(channelItem) : ""
 
       // Set loading state for this channel
       setLoadingChannels((prev) => ({
@@ -97,6 +103,10 @@ const ChannelList = ({
             ...prev,
             [channelId]: false,
           }))
+          showToast(
+            t("channels.unsubscribedSuccess", { channelTitle }),
+            "success"
+          )
         } else {
           await subscribeToChannel(channelId)
           setSubscriptionStatus((prev) => ({
@@ -104,9 +114,17 @@ const ChannelList = ({
             [channelId]: true,
           }))
           // Note: YouTube push notifications are now handled automatically in the backend
+          showToast(
+            t("channels.subscribedSuccess", { channelTitle }),
+            "success"
+          )
         }
       } catch (error) {
         console.error("Failed to toggle subscription:", error)
+        const errorMessage = isSubscribed
+          ? t("channels.unsubscribeError", { channelTitle })
+          : t("channels.subscribeError", { channelTitle })
+        showToast(errorMessage, "error")
       } finally {
         // Clear loading state for this channel
         setLoadingChannels((prev) => ({
@@ -115,7 +133,7 @@ const ChannelList = ({
         }))
       }
     },
-    [user, subscriptionStatus],
+    [user, subscriptionStatus, items, getChannelId, getChannelTitle, showToast, t],
   )
 
   // Load subscription status when component mounts

@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react"
+import { match } from "ts-pattern"
+import { useTranslation } from "react-i18next"
+import { CheckCircleIcon, XCircleIcon, WarningCircleIcon, InfoIcon, XIcon } from "@phosphor-icons/react"
 
 type ToastType = "success" | "error" | "warning" | "info"
 
@@ -10,6 +13,7 @@ type ToastProps = {
 }
 
 const Toast = ({ message, type, duration = 5000, onClose }: ToastProps) => {
+  const { t } = useTranslation()
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
@@ -21,75 +25,50 @@ const Toast = ({ message, type, duration = 5000, onClose }: ToastProps) => {
     return () => clearTimeout(timer)
   }, [duration, onClose])
 
-  const getToastStyles = () => {
-    switch (type) {
-      case "success":
-        return "bg-green-500 border-green-600"
-      case "error":
-        return "bg-red-500 border-red-600"
-      case "warning":
-        return "bg-yellow-500 border-yellow-600"
-      case "info":
-        return "bg-blue-500 border-blue-600"
-      default:
-        return "bg-gray-500 border-gray-600"
-    }
-  }
+  const toastStyles = match(type)
+    .with("success", () => "bg-emerald-500/20 border-emerald-500/30 backdrop-blur-xl")
+    .with("error", () => "bg-red-500/20 border-red-500/30 backdrop-blur-xl")
+    .with("warning", () => "bg-amber-500/20 border-amber-500/30 backdrop-blur-xl")
+    .with("info", () => "bg-blue-500/20 border-blue-500/30 backdrop-blur-xl")
+    .exhaustive()
 
-  const getIcon = () => {
-    switch (type) {
-      case "success":
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        )
-      case "error":
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        )
-      case "warning":
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-        )
-      case "info":
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        )
-      default:
-        return null
-    }
-  }
+  const iconColor = match(type)
+    .with("success", () => "text-emerald-400")
+    .with("error", () => "text-red-400")
+    .with("warning", () => "text-amber-400")
+    .with("info", () => "text-blue-400")
+    .exhaustive()
+
+  const icon = match(type)
+    .with("success", () => <CheckCircleIcon className={`w-4 h-4 ${iconColor}`} weight="fill" />)
+    .with("error", () => <XCircleIcon className={`w-4 h-4 ${iconColor}`} weight="fill" />)
+    .with("warning", () => <WarningCircleIcon className={`w-4 h-4 ${iconColor}`} weight="fill" />)
+    .with("info", () => <InfoIcon className={`w-4 h-4 ${iconColor}`} weight="fill" />)
+    .exhaustive()
 
   return (
     <div
-      className={`fixed top-4 right-4 z-50 flex items-center p-4 rounded-lg border text-white shadow-lg transform transition-all duration-300 ${getToastStyles()} ${
-        isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+      className={`fixed bottom-20 left-4 right-4 z-50 p-2.5 rounded-lg border text-white shadow-lg transform transition-all duration-300 glass-effect ${toastStyles} ${
+        isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
       }`}
     >
-      <div className="flex-shrink-0 mr-3">
-        {getIcon()}
+      <div className="flex items-center">
+        <div className="shrink-0 mr-2">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0 pr-6">
+          <p className="text-xs text-gray-200">{message}</p>
+        </div>
+        <button
+          onClick={() => {
+            setIsVisible(false)
+            setTimeout(onClose, 300)
+          }}
+          className="absolute top-2.5 right-2.5 shrink-0 text-gray-300 hover:text-white focus:outline-none transition-colors"
+        >
+          <XIcon className="w-3 h-3" weight="bold" />
+        </button>
       </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium">{message}</p>
-      </div>
-      <button
-        onClick={() => {
-          setIsVisible(false)
-          setTimeout(onClose, 300)
-        }}
-        className="ml-3 flex-shrink-0 text-white hover:text-gray-200 focus:outline-none"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
     </div>
   )
 }

@@ -276,7 +276,11 @@
     "subscribedToChannel": "チャンネルを購読しました",
     "unsubscribedFromChannel": "チャンネルの購読を解除しました",
     "failedToSubscribe": "チャンネルの購読に失敗しました。もう一度お試しください。",
-    "failedToUnsubscribe": "チャンネルの購読解除に失敗しました。もう一度お試しください。"
+    "failedToUnsubscribe": "チャンネルの購読解除に失敗しました。もう一度お試しください。",
+    "subscribedSuccess": "{{channelTitle}}を購読",
+    "unsubscribedSuccess": "{{channelTitle}}の購読を解除",
+    "subscribeError": "{{channelTitle}}の購読に失敗",
+    "unsubscribeError": "{{channelTitle}}の購読解除に失敗"
   },
   "wallet": {
     "title": "ウォレット",
@@ -332,6 +336,12 @@
     "selectAll": "すべて選択",
     "deselectAll": "すべて選択解除",
     "unknownDate": "不明な日付",
-    "unknownTime": "不明な時間"
+    "unknownTime": "不明な時間",
+    "toast": {
+      "success": "成功",
+      "error": "エラー",
+      "warning": "警告",
+      "info": "情報"
+    }
   }
 }

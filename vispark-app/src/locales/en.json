@@ -276,7 +276,11 @@
     "subscribedToChannel": "Subscribed to channel",
     "unsubscribedFromChannel": "Unsubscribed from channel",
     "failedToSubscribe": "Failed to subscribe to channel. Please try again.",
-    "failedToUnsubscribe": "Failed to unsubscribe from channel. Please try again."
+    "failedToUnsubscribe": "Failed to unsubscribe from channel. Please try again.",
+    "subscribedSuccess": "Subscribe to {{channelTitle}}",
+    "unsubscribedSuccess": "Unsubscribe from {{channelTitle}}",
+    "subscribeError": "Failed to subscribe to {{channelTitle}}",
+    "unsubscribeError": "Failed to unsubscribe from {{channelTitle}}"
   },
   "wallet": {
     "title": "Wallet",
@@ -332,6 +336,12 @@
     "selectAll": "Select All",
     "deselectAll": "Deselect All",
     "unknownDate": "Unknown date",
-    "unknownTime": "Unknown time"
+    "unknownTime": "Unknown time",
+    "toast": {
+      "success": "success",
+      "error": "error",
+      "warning": "warning",
+      "info": "info"
+    }
   }
 }
