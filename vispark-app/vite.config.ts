@@ -147,7 +147,7 @@ export default defineConfig({
     },
   },
   define: {
-    __GIT_COMMIT_HASH__: JSON.stringify(getGitCommitHash()),
-    __BUILD_TIME__: JSON.stringify(getBuildTime()),
+    '__GIT_COMMIT_HASH__': JSON.stringify(getGitCommitHash()),
+    '__BUILD_TIME__': JSON.stringify(getBuildTime()),
   },
 })
