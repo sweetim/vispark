@@ -72,8 +72,8 @@ const skeletonPlaceholders = [
 ] as const
 
 const LoadingSkeleton = () => (
-  <div className="h-full w-full">
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  <div className="flex h-full w-full flex-col">
+    <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {skeletonPlaceholders.map((placeholderKey) => (
         <div
           key={placeholderKey}
