@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { useSubscribedChannels, useChannelSearch } from "@/hooks/useChannels"
 import ChannelList from "./components/ChannelList"
+import CountBadge from "@/components/CountBadge"
 
 const SearchIcon = () => (
   <svg
@@ -265,12 +266,10 @@ const ChannelSearchPage = () => {
                       </svg>
                     </div>
                     <h2 className="text-2xl font-bold bg-linear-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                      Subscribed Channels
+                      Subscribed
                     </h2>
                   </div>
-                  <span className="px-3 py-1 text-sm font-semibold bg-green-500/20 text-green-300 rounded-full">
-                    {subscribedChannels.length}
-                  </span>
+                  <CountBadge count={subscribedChannels.length} />
                 </div>
                 <ChannelList
                   items={subscribedChannels.map(convertToYouTubeSearchResult)}
@@ -367,9 +366,9 @@ const ChannelSearchPage = () => {
                       {t("channels.results")}
                     </h2>
                   </div>
-                  <span className="px-3 py-1 text-sm font-semibold bg-indigo-500/20 text-indigo-300 rounded-full">
+                  <CountBadge count={searchResults.length}>
                     {t("channels.channelsCount", { count: searchResults.length })}
-                  </span>
+                  </CountBadge>
                 </div>
                 <ChannelList
                   items={searchResults.map(convertToYouTubeSearchResult)}

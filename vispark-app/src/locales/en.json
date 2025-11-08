@@ -208,7 +208,7 @@
   },
   "summaries": {
     "visparkArchive": "Vispark Archive",
-    "title": "Fast channel overview for every vispark.",
+    "title": "Summaries",
     "subtitle": "Scan the creators you have summarized and jump straight back into any video with one click.",
     "savedVideos": "{{count}} saved videos",
     "channels": "{{count}} channels",

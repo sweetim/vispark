@@ -208,7 +208,7 @@
   },
   "summaries": {
     "visparkArchive": "Visparkアーカイブ",
-    "title": "すべてのvisparkの高速チャンネル概要。",
+    "title": "要約",
     "subtitle": "要約したクリエイターをスキャンし、ワンクリックで任意の動画に戻ります。",
     "savedVideos": "{{count}}保存された動画",
     "channels": "{{count}}チャンネル",

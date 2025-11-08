@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
+import CountBadge from "@/components/CountBadge"
 import { getAllChannelVideos } from "@/services/channel"
 import { useChannelSubscriptionManager, useChannelVideos, useChannelDetails } from "@/hooks/useChannels"
 import { useChannelVisparksWithMetadata } from "@/hooks/useVisparks"
@@ -271,9 +272,7 @@ const ChannelPage = () => {
             <h2 className="text-xl font-bold text-white">{t("channels.libraries")}</h2>
           </div>
           {hasSavedVideos && (
-            <div className="px-3 py-1 bg-indigo-600 rounded-lg text-white text-sm font-medium">
-              {savedVideos.length}
-            </div>
+            <CountBadge count={savedVideos.length} />
           )}
         </div>
 
