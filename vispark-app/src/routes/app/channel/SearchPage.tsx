@@ -164,7 +164,7 @@ const ChannelSearchPage = () => {
   const loading = loadingSearch || loadingSubscriptions
 
   return (
-    <div className="w-full max-w-4xl mx-auto h-full space-y-8 overflow-y-auto pb-20">
+    <div className="w-full max-w-4xl mx-auto h-full space-y-2 overflow-y-auto pb-20">
       <div className="absolute inset-0 pattern-bg -z-10"></div>
       {/* Header Section */}
       <div className="sticky top-0 z-10 animate-slideInFromTop">

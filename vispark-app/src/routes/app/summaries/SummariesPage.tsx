@@ -72,19 +72,21 @@ const skeletonPlaceholders = [
 ] as const
 
 const LoadingSkeleton = () => (
-  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-    {skeletonPlaceholders.map((placeholderKey) => (
-      <div
-        key={placeholderKey}
-        className="flex items-center gap-3 rounded-lg border border-white/10 bg-gray-900/50 p-3 backdrop-blur"
-      >
-        <div className="w-24 h-14 rounded bg-white/10" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-3/4 rounded bg-white/10" />
-          <div className="h-3 w-1/2 rounded bg-white/5" />
+  <div className="h-full w-full">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {skeletonPlaceholders.map((placeholderKey) => (
+        <div
+          key={placeholderKey}
+          className="flex items-center gap-3 rounded-lg border border-white/10 bg-gray-900/50 p-3 backdrop-blur"
+        >
+          <div className="w-24 h-14 rounded bg-white/10" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-3/4 rounded bg-white/10" />
+            <div className="h-3 w-1/2 rounded bg-white/5" />
+          </div>
         </div>
-      </div>
-    ))}
+      ))}
+    </div>
   </div>
 )
 
