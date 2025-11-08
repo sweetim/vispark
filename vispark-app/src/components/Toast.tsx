@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { match } from "ts-pattern"
-import { useTranslation } from "react-i18next"
 import { CheckCircleIcon, XCircleIcon, WarningCircleIcon, InfoIcon, XIcon } from "@phosphor-icons/react"
 
 type ToastType = "success" | "error" | "warning" | "info"
@@ -13,7 +12,6 @@ type ToastProps = {
 }
 
 const Toast = ({ message, type, duration = 5000, onClose }: ToastProps) => {
-  const { t } = useTranslation()
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
