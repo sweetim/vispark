@@ -1,4 +1,5 @@
 -- Create a function to handle video processing when a new video notification is inserted
+-- This function will use pg_net to make an asynchronous HTTP request
 create or replace function public.process_video_notification()
 returns trigger
 language plpgsql
@@ -7,36 +8,29 @@ as $$
 declare
   supabase_url text;
   service_role_key text;
+  request_id text;
 begin
   -- Get Supabase configuration from settings
   supabase_url := current_setting('app.settings.supabase_url', true);
   service_role_key := current_setting('app.settings.supabase_service_role_key', true);
 
-  -- Make an asynchronous HTTP request to the video-processing function
-  -- Using pg_background extension to run the request in the background
-  perform pg_background.launch(
-    format(
-      $sql$
-        select net.http_post(
-          url := '%s/functions/v1/video-processing',
-          headers := jsonb_build_object(
-            'Authorization', 'Bearer %s',
-            'Content-Type', 'application/json'
-          ),
-          body := jsonb_build_object(
-            'video_id', '%s',
-            'user_id', '%s',
-            'channel_id', '%s'
-          )
-        );
-      $sql$,
-      supabase_url,
-      service_role_key,
-      new.video_id,
-      new.user_id,
-      new.channel_id
+  -- Make an asynchronous HTTP request to the video-processing function using pg_net
+  -- This approach doesn't require pg_background extension
+  select net.http_post(
+    url := supabase_url || '/functions/v1/video-processing',
+    headers := jsonb_build_object(
+      'Authorization', 'Bearer ' || service_role_key,
+      'Content-Type', 'application/json'
+    ),
+    body := jsonb_build_object(
+      'video_id', new.video_id,
+      'user_id', new.user_id,
+      'channel_id', new.channel_id
     )
-  );
+  ) into request_id;
+
+  -- Log the request ID for debugging
+  raise notice 'Video processing request sent for video_id % with request_id %', new.video_id, request_id;
 
   -- Return the new row
   return new;
@@ -48,7 +42,6 @@ end;
 $$;
 
 -- Enable required extensions
-create extension if not exists "pg_background";
 create extension if not exists "pg_net";
 
 -- Create a trigger that fires when a new row is inserted into video_notifications
