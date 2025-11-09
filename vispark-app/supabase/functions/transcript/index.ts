@@ -102,13 +102,14 @@ const handlePost = async (req: Request): Promise<Response> => {
             try {
               // Use youtube-transcript-plus when local is true
               if (local) {
+                console.log({trimmedVideoId, normalizedLang, local})
                 const transcriptResponse = await fetchTranscript(
                   trimmedVideoId,
                   {
                     lang: normalizedLang,
                   },
                 )
-
+                console.log(transcriptResponse)
                 // Convert youtube-transcript-plus response to match our expected format
                 // youtube-transcript-plus returns Array<{text, duration, offset, lang}>
                 const transcript = Array.isArray(transcriptResponse)
@@ -149,6 +150,7 @@ const handlePost = async (req: Request): Promise<Response> => {
                     body: JSON.stringify({
                       videoId: trimmedVideoId,
                       lang: normalizedLang,
+                      local: true
                     }),
                   })
 
@@ -157,6 +159,7 @@ const handlePost = async (req: Request): Promise<Response> => {
                   }
 
                   transcriptResponse = await localResponse.json()
+                  return respondWith(transcriptResponse, 200)
                 } catch (localError) {
                   console.error("Local fetch failed, trying Supadata:", localError)
                   useSupadata = true
@@ -173,28 +176,7 @@ const handlePost = async (req: Request): Promise<Response> => {
                       videoId: trimmedVideoId,
                       lang: normalizedLang,
                     })
-                  } catch (error) {
-                    console.error("Supadata API failed:", error)
 
-                    // Check if the error is limit-exceeded
-                    const errorMessage = error instanceof Error ? error.message : String(error)
-                    if (errorMessage.includes("limit-exceeded") || errorMessage.includes("rate limit")) {
-                      return respondWith(
-                        {
-                          error: "Limit exceeded",
-                          message: "API rate limit exceeded. Please try again later.",
-                        },
-                        429,
-                      )
-                    }
-
-                    // For other errors, re-throw to be handled by the outer catch block
-                    throw error
-                  }
-                }
-
-                // Convert Supadata response to match our expected format
-                // Supadata returns { lang: string, content: Array<{text, offset, duration, lang}> }
                 const transcript = (
                   Array.isArray(transcriptResponse?.content)
                     ? transcriptResponse.content
@@ -218,8 +200,27 @@ const handlePost = async (req: Request): Promise<Response> => {
                   transcript,
                   ...(normalizedLang ? { lang: normalizedLang } : {}),
                 }
-
                 return respondWith(successResponse, 200)
+                  } catch (error) {
+                    console.error("Supadata API failed:", error)
+
+                    // Check if the error is limit-exceeded
+                    const errorMessage = error instanceof Error ? error.message : String(error)
+                    if (errorMessage.includes("limit-exceeded") || errorMessage.includes("rate limit")) {
+                      return respondWith(
+                        {
+                          error: "Limit exceeded",
+                          message: "API rate limit exceeded. Please try again later.",
+                        },
+                        429,
+                      )
+                    }
+
+                    // For other errors, re-throw to be handled by the outer catch block
+                    throw error
+                  }
+                }
+
               }
             } catch (error) {
               console.error("Failed to fetch transcript:", error)
