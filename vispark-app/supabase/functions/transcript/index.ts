@@ -135,41 +135,61 @@ const handlePost = async (req: Request): Promise<Response> => {
 
                 return respondWith(successResponse, 200)
               } else {
-                // Use Supadata for non-local requests with retry logic
-                const supadata = new Supadata({
-                  apiKey: Deno.env.get("SUPADATA_API_KEY") || "",
-                })
-
-                // Retry configuration for rate-limited Supadata API
-                const maxRetries = 3
-                const baseDelay = 1000 // 1 second base delay (matches rate limit)
-
                 let transcriptResponse
-                let lastError
+                let useSupadata = false
 
-                for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                // First try fetching from the local URL
+                try {
+                  const localUrl = Deno.env.get("LOCAL_TRANSCRIPT_URL") || "https://four-rice-rush.loca.lt"
+                  const localResponse = await fetch(`${localUrl}/functions/v1/transcript`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      videoId: trimmedVideoId,
+                      lang: normalizedLang,
+                    }),
+                  })
+
+                  if (!localResponse.ok) {
+                    throw new Error(`Local fetch failed with status: ${localResponse.status}`)
+                  }
+
+                  transcriptResponse = await localResponse.json()
+                } catch (localError) {
+                  console.error("Local fetch failed, trying Supadata:", localError)
+                  useSupadata = true
+                }
+
+                // If local fetch failed, use Supadata
+                if (useSupadata) {
+                  const supadata = new Supadata({
+                    apiKey: Deno.env.get("SUPADATA_API_KEY") || "",
+                  })
+
                   try {
                     transcriptResponse = await supadata.youtube.transcript({
                       videoId: trimmedVideoId,
                       lang: normalizedLang,
                     })
-                    // If successful, break out of retry loop
-                    break
                   } catch (error) {
-                    lastError = error
-                    console.error(`Supadata API attempt ${attempt + 1} failed:`, error)
+                    console.error("Supadata API failed:", error)
 
-                    // If this is the last attempt, don't wait anymore
-                    if (attempt === maxRetries) {
-                      throw error
+                    // Check if the error is limit-exceeded
+                    const errorMessage = error instanceof Error ? error.message : String(error)
+                    if (errorMessage.includes("limit-exceeded") || errorMessage.includes("rate limit")) {
+                      return respondWith(
+                        {
+                          error: "Limit exceeded",
+                          message: "API rate limit exceeded. Please try again later.",
+                        },
+                        429,
+                      )
                     }
 
-                    // Calculate exponential backoff delay
-                    const delay = baseDelay * Math.pow(2, attempt)
-                    console.log(`Retrying in ${delay}ms...`)
-
-                    // Wait before retrying
-                    await new Promise(resolve => setTimeout(resolve, delay))
+                    // For other errors, re-throw to be handled by the outer catch block
+                    throw error
                   }
                 }
 

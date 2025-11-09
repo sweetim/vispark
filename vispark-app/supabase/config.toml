@@ -365,3 +365,6 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # Configure YouTube push callback function to be publicly accessible
 [functions.youtube-push-callback]
 verify_jwt = false
+
+[functions.transcript]
+verify_jwt = false
