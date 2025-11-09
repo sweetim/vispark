@@ -171,6 +171,7 @@ export const useVisparksWithMetadata = (limit = 200) => {
       createdTime: vispark.created_at,
       publishedAt: metadata.publishedAt,
       metadata,
+      isNewFromCallback: vispark.is_new_from_callback || false,
     }
   })
 
@@ -220,6 +221,7 @@ export const useChannelVisparksWithMetadata = (channelId: string) => {
       createdTime: vispark.created_at,
       publishedAt: metadata.publishedAt,
       metadata,
+      isNewFromCallback: vispark.is_new_from_callback || false,
     }
   })
 

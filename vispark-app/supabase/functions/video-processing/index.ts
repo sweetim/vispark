@@ -10,6 +10,7 @@ type VideoProcessingRequest = {
   video_id: string
   user_id: string
   channel_id: string
+  is_from_callback?: boolean
 }
 
 type TranscriptSegment = {
@@ -30,7 +31,7 @@ type SummaryResponse = {
 }
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!
-const supabaseServiceRoleKey = Deno.env.get("NEW_SUPABASE_SERVICE_ROLE_KEY")!
+const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 
 Deno.serve(async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -165,7 +166,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
           video_id: video_id,
           video_channel_id: channel_id,
           summaries: summaryResponse.bullets,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          is_new_from_callback: true // Mark as new from callback
         })
 
       if (visparkError) {

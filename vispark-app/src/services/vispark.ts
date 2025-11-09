@@ -220,6 +220,7 @@ export type VisparkRow = {
   video_channel_id?: string
   summaries: string[]
   created_at: string
+  is_new_from_callback?: boolean
 }
 
 /**
@@ -229,7 +230,9 @@ export type VisparkRow = {
 export const listVisparks = async (limit = 10): Promise<VisparkRow[]> => {
   const { data, error } = await supabase
     .from("visparks")
-    .select("id, video_id, video_channel_id, summaries, created_at")
+    .select(
+      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback",
+    )
     .order("created_at", { ascending: false })
     .limit(limit)
 
@@ -243,6 +246,26 @@ export const listVisparks = async (limit = 10): Promise<VisparkRow[]> => {
 }
 
 /**
+ * Update the is_new_from_callback flag for a vispark
+ */
+export const updateVisparkCallbackFlag = async (
+  visparkId: string,
+  isNewFromCallback: boolean,
+): Promise<void> => {
+  const { error } = await supabase
+    .from("visparks")
+    .update({ is_new_from_callback: isNewFromCallback })
+    .eq("id", visparkId)
+
+  if (error) {
+    throw new Error(
+      error.message
+        ?? "Failed to update vispark callback flag. Please try again.",
+    )
+  }
+}
+
+/**
  * List the authenticated user's visparks filtered by video channel ID.
  * Requires RLS policy allowing select of rows where user_id = auth.uid().
  */
@@ -252,7 +275,9 @@ export const listVisparksByChannelId = async (
 ): Promise<VisparkRow[]> => {
   const { data, error } = await supabase
     .from("visparks")
-    .select("id, video_id, video_channel_id, summaries, created_at")
+    .select(
+      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback",
+    )
     .eq("video_channel_id", videoChannelId)
     .order("created_at", { ascending: false })
     .limit(limit)

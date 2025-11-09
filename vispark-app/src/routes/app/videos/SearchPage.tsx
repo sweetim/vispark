@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { SparkleIcon } from "@phosphor-icons/react"
 import { extractYouTubeVideoId } from "../../../utils/youtube"
 import { useVisparksWithMetadata } from "@/hooks/useVisparks"
+import { updateVisparkCallbackFlag } from "@/services/vispark"
 import HistoryList from "./components/HistoryList"
 
 export type VideosSavedItem = {
@@ -22,6 +23,7 @@ export type VideosSavedItem = {
     }
   }
   summaries: string[]
+  isNewFromCallback?: boolean
 }
 
 const VideosSearchPage = () => {
@@ -29,13 +31,14 @@ const VideosSearchPage = () => {
   const navigate = useNavigate()
   // For now, we'll get saved visparks directly from the hook
   // TODO: Implement proper context sharing with TanStack Router
-  const { visparks } = useVisparksWithMetadata(20)
+  const { visparks, mutate } = useVisparksWithMetadata(20)
   const savedVideos: VideosSavedItem[] = visparks.map((vispark) => ({
     id: vispark.id,
     createdTime: vispark.createdTime,
     publishedAt: vispark.publishedAt,
     metadata: vispark.metadata,
     summaries: vispark.summaries,
+    isNewFromCallback: vispark.isNewFromCallback,
   }))
   const [videoId, setVideoId] = useState("")
   const reactId = useId()
@@ -57,6 +60,24 @@ const VideosSearchPage = () => {
     }
 
     navigate({ to: `/app/videos/${finalVideoId}` })
+  }
+
+  const handleVideoSelect = async (videoId: string) => {
+    // Find the vispark with this video ID
+    const vispark = savedVideos.find(v => v.metadata.videoId === videoId)
+
+    // If it's a new video from callback, update the flag
+    if (vispark?.isNewFromCallback) {
+      try {
+        await updateVisparkCallbackFlag(vispark.id, false)
+        // Refresh the visparks list to update the UI
+        mutate()
+      } catch (error) {
+        console.error("Failed to update vispark callback flag:", error)
+      }
+    }
+
+    navigate({ to: `/app/videos/${videoId}` })
   }
 
   return (
@@ -89,7 +110,7 @@ const VideosSearchPage = () => {
 
       <HistoryList
         items={savedVideos}
-        onSelect={(id) => navigate({ to: `/app/videos/${id}` })}
+        onSelect={handleVideoSelect}
       />
     </div>
   )

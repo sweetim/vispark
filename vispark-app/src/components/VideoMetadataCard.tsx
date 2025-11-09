@@ -9,6 +9,7 @@ type VideoMetadataCardProps = {
   onClick?: () => void
   isActive?: boolean
   createdTime?: string
+  isNewFromCallback?: boolean
 }
 
 type ThumbnailShape = {
@@ -53,6 +54,7 @@ export default function VideoMetadataCard({
   onClick,
   isActive,
   createdTime,
+  isNewFromCallback,
 }: VideoMetadataCardProps) {
   const { t } = useTranslation()
   const imageAddress = selectBestThumbnailAddress(metadata.thumbnails)
@@ -77,12 +79,23 @@ export default function VideoMetadataCard({
       <div className="w-full absolute inset-0 bg-linear-to-t from-black/70 via-black/25 to-transparent" />
 
       <div className="absolute top-0 left-0 right-0 p-1 flex items-start justify-between gap-2">
-        <div
-          className={`inline-flex h-7 items-center rounded-md px-3 backdrop-blur max-w-full bg-black/30`}
-        >
-          <p className="text-xs font-medium text-gray-200">
-            {decodeHtmlEntities(metadata.channelTitle)}
-          </p>
+        <div className="flex items-center gap-2 max-w-full">
+          <div
+            className={`inline-flex h-7 items-center rounded-md px-3 backdrop-blur max-w-full bg-black/30`}
+          >
+            <p className="text-xs font-medium text-gray-200">
+              {decodeHtmlEntities(metadata.channelTitle)}
+            </p>
+          </div>
+          {isNewFromCallback && (
+            <div
+              className={`inline-flex h-7 items-center rounded-md px-2 backdrop-blur shrink-0 bg-green-600/80 text-xs font-medium tracking-wide text-white border border-green-400/30`}
+            >
+              <p className="text-xs font-medium text-white">
+                NEW
+              </p>
+            </div>
+          )}
         </div>
         {relativeTimeLabel && (
           <div

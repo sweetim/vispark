@@ -1,5 +1,5 @@
 import VideoMetadataCard from "@/components/VideoMetadataCard"
-import type { VideosSavedItem } from "../Layout"
+import type { VideosSavedItem } from "../SearchPage"
 
 type VideosHistoryListProps = {
   items: VideosSavedItem[]
@@ -35,6 +35,7 @@ const VideosHistoryList = ({
                 metadata={item.metadata}
                 onClick={() => onSelect(item.metadata.videoId)}
                 createdTime={item.publishedAt || item.createdTime}
+                isNewFromCallback={item.isNewFromCallback}
               />
             </li>
           ))}
