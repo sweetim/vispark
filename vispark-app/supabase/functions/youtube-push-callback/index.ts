@@ -125,128 +125,6 @@ const parseYouTubeNotification = (xmlString: string): {
   }
 }
 
-// Trigger transcript generation
-const triggerTranscriptGeneration = async (
-  videoId: string,
-  supabaseUrl: string,
-  supabaseSecretKey: string,
-): Promise<any[]> => {
-  try {
-    const response = await fetch(
-      `${supabaseUrl}/functions/v1/transcript`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseSecretKey}`,
-        },
-        body: JSON.stringify({ videoId }),
-      }
-    )
-
-    if (!response.ok) {
-      console.error(`Failed to generate transcript for video ${videoId}:`, response.statusText)
-      return []
-    }
-
-    const result = await response.json()
-    return result.transcript || []
-  } catch (error) {
-    console.error(`Error triggering transcript generation for video ${videoId}:`, error)
-    return []
-  }
-}
-
-// Trigger summary generation
-const triggerSummaryGeneration = async (
-  videoId: string,
-  transcriptSegments: any[],
-  supabaseUrl: string,
-  supabaseSecretKey: string,
-): Promise<string[]> => {
-  try {
-    const response = await fetch(
-      `${supabaseUrl}/functions/v1/summary`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseSecretKey}`,
-        },
-        body: JSON.stringify({ transcripts: transcriptSegments }),
-      }
-    )
-
-    if (!response.ok) {
-      console.error(`Failed to generate summary for video ${videoId}:`, response.statusText)
-      return []
-    }
-
-    const result = await response.json()
-    return result.bullets || []
-  } catch (error) {
-    console.error(`Error triggering summary generation for video ${videoId}:`, error)
-    return []
-  }
-}
-
-// Store vispark with summary
-const storeVispark = async (
-  userId: string,
-  videoId: string,
-  channelId: string,
-  summaries: string[],
-  supabase: any,
-): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from("visparks")
-      .upsert({
-        user_id: userId,
-        video_id: videoId,
-        video_channel_id: channelId,
-        summaries,
-      }, {
-        onConflict: 'user_id,video_id',
-      })
-
-    if (error) {
-      console.error("Failed to store vispark:", error)
-    }
-  } catch (error) {
-    console.error("Error storing vispark:", error)
-  }
-}
-
-// Log callback invocation
-const logCallbackInvocation = async (
-  userId: string,
-  channelId: string,
-  videoId: string,
-  videoTitle: string,
-  processingStatus: string,
-  errorMessage: string | null,
-  supabase: any,
-): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from("youtube_push_callback_logs")
-      .insert({
-        user_id: userId,
-        channel_id: channelId,
-        video_id: videoId,
-        video_title: videoTitle,
-        processing_status: processingStatus,
-        error_message: errorMessage,
-      })
-
-    if (error) {
-      console.error("Failed to log callback invocation:", error)
-    }
-  } catch (error) {
-    console.error("Error logging callback invocation:", error)
-  }
-}
 
 Deno.serve(async (req: Request): Promise<Response> => {
   console.log(JSON.stringify(req, null, 2))
@@ -333,113 +211,26 @@ Deno.serve(async (req: Request): Promise<Response> => {
         })
       }
 
-      // Log the callback invocation as pending
-      await logCallbackInvocation(
-        userId,
-        notification.channelId,
-        notification.videoId,
-        notification.title,
-        'pending',
-        null,
-        supabase
-      )
-
-      // Update the log to processing status
-      await supabase
-        .from("youtube_push_callback_logs")
-        .update({
-          processing_status: 'processing',
-          processed_at: new Date().toISOString()
+      // Create video notification record
+      const { error: notificationError } = await supabase
+        .from("video_notifications")
+        .upsert({
+          user_id: userId,
+          video_id: notification.videoId,
+          channel_id: notification.channelId,
+          video_title: notification.title,
+          video_url: `https://www.youtube.com/watch?v=${notification.videoId}`,
+          published_at: notification.publishedAt,
+        }, {
+          onConflict: 'user_id,video_id',
         })
-        .eq("user_id", userId)
-        .eq("video_id", notification.videoId)
-        .eq("processing_status", 'pending')
 
-      // Process notification for this specific user
-      try {
-        // Create video notification record
-        const { error: notificationError } = await supabase
-          .from("video_notifications")
-          .upsert({
-            user_id: userId,
-            video_id: notification.videoId,
-            channel_id: notification.channelId,
-            video_title: notification.title,
-            video_url: `https://www.youtube.com/watch?v=${notification.videoId}`,
-            published_at: notification.publishedAt,
-          }, {
-            onConflict: 'user_id,video_id',
-          })
-
-        if (notificationError) {
-          console.error("Failed to create video notification:", notificationError)
-          throw notificationError
-        }
-
-        // Trigger transcript generation
-        const transcriptSegments = await triggerTranscriptGeneration(
-          notification.videoId,
-          supabaseUrl,
-          supabaseServiceRoleKey,
-        )
-
-        // Trigger summary generation if transcript was successful
-        if (transcriptSegments.length > 0) {
-          const summaries = await triggerSummaryGeneration(
-            notification.videoId,
-            transcriptSegments,
-            supabaseUrl,
-            supabaseServiceRoleKey,
-          )
-
-          // Store the vispark with summary
-          if (summaries.length > 0) {
-            await storeVispark(
-              userId,
-              notification.videoId,
-              notification.channelId,
-              summaries,
-              supabase,
-            )
-          }
-        }
-
-        // Mark notification as processed
-        await supabase
-          .from("video_notifications")
-          .update({
-            summary_generated: true,
-            notification_sent: true,
-            updated_at: new Date().toISOString()
-          })
-          .eq("user_id", userId)
-          .eq("video_id", notification.videoId)
-
-        // Update the log to completed status
-        await supabase
-          .from("youtube_push_callback_logs")
-          .update({
-            processing_status: 'completed',
-            processed_at: new Date().toISOString()
-          })
-          .eq("user_id", userId)
-          .eq("video_id", notification.videoId)
-          .eq("processing_status", 'processing')
-
-      } catch (error) {
-        console.error(`Error processing notification for user ${userId}:`, error)
-
-        // Update the log to failed status
-        await supabase
-          .from("youtube_push_callback_logs")
-          .update({
-            processing_status: 'failed',
-            error_message: error instanceof Error ? error.message : "Unknown error",
-            processed_at: new Date().toISOString()
-          })
-          .eq("user_id", userId)
-          .eq("video_id", notification.videoId)
-          .eq("processing_status", 'processing')
+      if (notificationError) {
+        console.error("Failed to create video notification:", notificationError)
+        return new Response("Internal Server Error", {
+          status: 500,
+          headers: corsHeaders
+        })
       }
 
       return new Response("OK", {
