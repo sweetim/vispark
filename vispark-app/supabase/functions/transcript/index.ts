@@ -103,12 +103,37 @@ const handlePost = async (req: Request): Promise<Response> => {
               // Use youtube-transcript-plus when local is true
               if (local) {
                 console.log({trimmedVideoId, normalizedLang, local})
-                const transcriptResponse = await fetchTranscript(
-                  trimmedVideoId,
-                  {
-                    lang: normalizedLang,
-                  },
-                )
+                let transcriptResponse
+                try {
+                  transcriptResponse = await fetchTranscript(
+                    trimmedVideoId,
+                    {
+                      lang: normalizedLang,
+                    },
+                  )
+                } catch (error) {
+                  // Check if the error is about language not being available
+                  const errorMessage = error instanceof Error ? error.message : String(error)
+                  const languageMatch = errorMessage.match(/Available languages: ([^.]+)/)
+
+                  if (languageMatch) {
+                    // Extract the first available language and retry
+                    const availableLanguages = languageMatch[1].split(',').map(lang => lang.trim())
+                    const fallbackLanguage = availableLanguages[0]
+
+                    console.log(`Requested language "${normalizedLang}" not available. Falling back to "${fallbackLanguage}"`)
+
+                    transcriptResponse = await fetchTranscript(
+                      trimmedVideoId,
+                      {
+                        lang: fallbackLanguage,
+                      },
+                    )
+                  } else {
+                    // If it's not a language error, re-throw
+                    throw error
+                  }
+                }
                 console.log(transcriptResponse)
                 // Convert youtube-transcript-plus response to match our expected format
                 // youtube-transcript-plus returns Array<{text, duration, offset, lang}>
@@ -142,17 +167,48 @@ const handlePost = async (req: Request): Promise<Response> => {
                 // First try fetching from the local URL
                 try {
                   const localUrl = Deno.env.get("LOCAL_TRANSCRIPT_URL") || "https://four-rice-rush.loca.lt"
-                  const localResponse = await fetch(`${localUrl}/functions/v1/transcript`, {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      videoId: trimmedVideoId,
-                      lang: normalizedLang,
-                      local: true
-                    }),
-                  })
+                  let localResponse
+
+                  try {
+                    localResponse = await fetch(`${localUrl}/functions/v1/transcript`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        videoId: trimmedVideoId,
+                        lang: normalizedLang,
+                        local: true
+                      }),
+                    })
+                  } catch (fetchError) {
+                    // Check if the error is about language not being available
+                    const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError)
+                    const languageMatch = errorMessage.match(/Available languages: ([^.]+)/)
+
+                    if (languageMatch) {
+                      // Extract the first available language and retry
+                      const availableLanguages = languageMatch[1].split(',').map(lang => lang.trim())
+                      const fallbackLanguage = availableLanguages[0]
+
+                      console.log(`Requested language "${normalizedLang}" not available. Falling back to "${fallbackLanguage}"`)
+
+                      localResponse = await fetch(`${localUrl}/functions/v1/transcript`, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          videoId: trimmedVideoId,
+                          lang: fallbackLanguage,
+                          local: true
+                        }),
+                      })
+                    } else {
+                      // If it's not a language error, re-throw
+                      throw fetchError
+                    }
+                  }
 
                   if (!localResponse.ok) {
                     throw new Error(`Local fetch failed with status: ${localResponse.status}`)
@@ -172,10 +228,32 @@ const handlePost = async (req: Request): Promise<Response> => {
                   })
 
                   try {
-                    transcriptResponse = await supadata.youtube.transcript({
-                      videoId: trimmedVideoId,
-                      lang: normalizedLang,
-                    })
+                    try {
+                      transcriptResponse = await supadata.youtube.transcript({
+                        videoId: trimmedVideoId,
+                        lang: normalizedLang,
+                      })
+                    } catch (error) {
+                      // Check if the error is about language not being available
+                      const errorMessage = error instanceof Error ? error.message : String(error)
+                      const languageMatch = errorMessage.match(/Available languages: ([^.]+)/)
+
+                      if (languageMatch) {
+                        // Extract the first available language and retry
+                        const availableLanguages = languageMatch[1].split(',').map(lang => lang.trim())
+                        const fallbackLanguage = availableLanguages[0]
+
+                        console.log(`Requested language "${normalizedLang}" not available. Falling back to "${fallbackLanguage}"`)
+
+                        transcriptResponse = await supadata.youtube.transcript({
+                          videoId: trimmedVideoId,
+                          lang: fallbackLanguage,
+                        })
+                      } else {
+                        // If it's not a language error, re-throw
+                        throw error
+                      }
+                    }
 
                 const transcript = (
                   Array.isArray(transcriptResponse?.content)
