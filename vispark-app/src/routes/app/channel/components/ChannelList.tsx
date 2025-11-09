@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import useSWR, { useSWRConfig } from "swr"
 import { useAuth } from "@/modules/auth/useAuth.ts"
 import { useToast } from "@/contexts/ToastContext.tsx"
 import { useTranslation } from "react-i18next"
@@ -31,6 +32,7 @@ const ChannelList = ({
   const { user } = useAuth()
   const { showToast } = useToast()
   const { t } = useTranslation()
+  const { mutate: globalMutate } = useSWRConfig()
   const [subscriptionStatus, setSubscriptionStatus] = useState<
     Record<string, boolean>
   >({})
@@ -107,6 +109,9 @@ const ChannelList = ({
             t("channels.unsubscribedSuccess", { channelTitle }),
             "success"
           )
+
+          // Refresh the subscribed channels cache to get the latest list
+          globalMutate("subscribed-channels")
         } else {
           await subscribeToChannel(channelId)
           setSubscriptionStatus((prev) => ({
@@ -118,6 +123,9 @@ const ChannelList = ({
             t("channels.subscribedSuccess", { channelTitle }),
             "success"
           )
+
+          // Refresh the subscribed channels cache to get the latest list
+          globalMutate("subscribed-channels")
         }
       } catch (error) {
         console.error("Failed to toggle subscription:", error)

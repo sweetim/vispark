@@ -1,9 +1,15 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useLocale } from "@/contexts/LocaleContext"
+import { ToggleSwitch } from "@/components/ToggleSwitch"
 
 const PreferencesPage = () => {
   const { t } = useTranslation()
   const { currentLanguage, changeLanguage } = useLocale()
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [pushNotifications, setPushNotifications] = useState(false)
+  const [darkMode, setDarkMode] = useState(true)
+  const [compactView, setCompactView] = useState(false)
 
   return (
     <div className="relative h-full">
@@ -58,23 +64,29 @@ const PreferencesPage = () => {
               <h2 className="text-lg font-medium text-white">{t("settings.notifications")}</h2>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
                   <h3 className="text-sm font-medium text-white">{t("settings.emailNotifications")}</h3>
                   <p className="text-sm text-gray-400">Receive email updates about your account activity</p>
                 </div>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-indigo-600">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-6"></span>
-                </button>
+                <div className="flex-shrink-0 pt-1">
+                  <ToggleSwitch
+                    isOn={emailNotifications}
+                    onToggle={() => setEmailNotifications(!emailNotifications)}
+                  />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
                   <h3 className="text-sm font-medium text-white">{t("settings.pushNotifications")}</h3>
                   <p className="text-sm text-gray-400">Receive push notifications on your devices</p>
                 </div>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-600">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-1"></span>
-                </button>
+                <div className="flex-shrink-0 pt-1">
+                  <ToggleSwitch
+                    isOn={pushNotifications}
+                    onToggle={() => setPushNotifications(!pushNotifications)}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -85,23 +97,29 @@ const PreferencesPage = () => {
               <h2 className="text-lg font-medium text-white">Appearance</h2>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
                   <h3 className="text-sm font-medium text-white">Dark Mode</h3>
                   <p className="text-sm text-gray-400">Use dark theme across the application</p>
                 </div>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-indigo-600">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-6"></span>
-                </button>
+                <div className="flex-shrink-0 pt-1">
+                  <ToggleSwitch
+                    isOn={darkMode}
+                    onToggle={() => setDarkMode(!darkMode)}
+                  />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
                   <h3 className="text-sm font-medium text-white">Compact View</h3>
                   <p className="text-sm text-gray-400">Show more content with reduced spacing</p>
                 </div>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-600">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-1"></span>
-                </button>
+                <div className="flex-shrink-0 pt-1">
+                  <ToggleSwitch
+                    isOn={compactView}
+                    onToggle={() => setCompactView(!compactView)}
+                  />
+                </div>
               </div>
             </div>
           </div>

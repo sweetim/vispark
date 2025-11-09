@@ -1,10 +1,15 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useTranscriptLanguageStore } from "@/stores/transcriptLanguageStore"
 import { GlobeIcon } from "@phosphor-icons/react"
+import { ToggleSwitch } from "@/components/ToggleSwitch"
 
 const VisparkPage = () => {
   const { t } = useTranslation()
   const { transcriptLanguage, setTranscriptLanguage } = useTranscriptLanguageStore()
+  const [autoGenerateSummary, setAutoGenerateSummary] = useState(true)
+  const [detectTrends, setDetectTrends] = useState(true)
+  const [extractKeyTopics, setExtractKeyTopics] = useState(false)
 
   const handleTranscriptLanguageChange = (language: string) => {
     setTranscriptLanguage(language)
@@ -70,32 +75,41 @@ const VisparkPage = () => {
               <h2 className="text-lg font-medium text-white">{t("settings.processingSettings")}</h2>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
                   <h3 className="text-sm font-medium text-white">{t("settings.autoGenerateSummary")}</h3>
                   <p className="text-sm text-gray-400">Automatically generate summaries when processing videos</p>
                 </div>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-indigo-600">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-6"></span>
-                </button>
+                <div className="flex-shrink-0 pt-1">
+                  <ToggleSwitch
+                    isOn={autoGenerateSummary}
+                    onToggle={() => setAutoGenerateSummary(!autoGenerateSummary)}
+                  />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
                   <h3 className="text-sm font-medium text-white">{t("settings.detectTrends")}</h3>
                   <p className="text-sm text-gray-400">Identify trends and patterns across multiple videos</p>
                 </div>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-indigo-600">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-6"></span>
-                </button>
+                <div className="flex-shrink-0 pt-1">
+                  <ToggleSwitch
+                    isOn={detectTrends}
+                    onToggle={() => setDetectTrends(!detectTrends)}
+                  />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
                   <h3 className="text-sm font-medium text-white">{t("settings.extractKeyTopics")}</h3>
                   <p className="text-sm text-gray-400">Extract and categorize key topics from transcripts</p>
                 </div>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-600">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-1"></span>
-                </button>
+                <div className="flex-shrink-0 pt-1">
+                  <ToggleSwitch
+                    isOn={extractKeyTopics}
+                    onToggle={() => setExtractKeyTopics(!extractKeyTopics)}
+                  />
+                </div>
               </div>
             </div>
           </div>

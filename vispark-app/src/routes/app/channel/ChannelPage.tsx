@@ -261,7 +261,12 @@ const ChannelPage = () => {
       <div className="space-y-3">
         <div
           className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
-          onClick={() => setIsLibraryExpanded(!isLibraryExpanded)}
+          onClick={() => {
+            setIsLibraryExpanded(!isLibraryExpanded)
+            if (!isLibraryExpanded) {
+              setIsNonVisparkExpanded(false)
+            }
+          }}
         >
           <div className="flex items-center space-x-3">
             <div className={`transform transition-transform duration-200 ${isLibraryExpanded ? 'rotate-90' : ''}`}>
@@ -384,7 +389,12 @@ const ChannelPage = () => {
       <div className="space-y-3">
         <div
           className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
-          onClick={() => setIsNonVisparkExpanded(!isNonVisparkExpanded)}
+          onClick={() => {
+            setIsNonVisparkExpanded(!isNonVisparkExpanded)
+            if (!isNonVisparkExpanded) {
+              setIsLibraryExpanded(false)
+            }
+          }}
         >
           <div className="flex items-center space-x-3">
             <div className={`transform transition-transform duration-200 ${isNonVisparkExpanded ? 'rotate-90' : ''}`}>
