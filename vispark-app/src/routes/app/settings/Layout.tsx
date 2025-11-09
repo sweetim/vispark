@@ -25,7 +25,7 @@ const SettingsLayout = () => {
   }
 
   return (
-    <div className="relative h-svh w-full bg-gray-900 text-white flex flex-col">
+    <div className="relative w-full h-full bg-gray-900 text-white flex flex-col">
       {/* Sticky Top Bar with Back Button and Page Title */}
       {showBackButton && (
         <div className="shrink-0 bg-gray-900/95 backdrop-blur-md border-b border-white/10">

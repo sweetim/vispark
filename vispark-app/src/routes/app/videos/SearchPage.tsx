@@ -61,7 +61,7 @@ const VideosSearchPage = () => {
 
   return (
     <div className="w-full max-w-3xl h-full space-y-2 overflow-y-auto pb-20">
-      <div className="sticky top-0 z-10 bg-gray-900 py-2">
+      <div className="sticky top-0 z-50 bg-gray-900 py-2 backdrop-blur-sm bg-opacity-95 border-b border-gray-800">
         <form
           onSubmit={handleSubmit}
           className="space-y-2"

@@ -26,11 +26,11 @@ const SearchLayout = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto h-full space-y-2 overflow-y-auto pb-20">
+    <div className="w-full max-w-4xl mx-auto h-full space-y-2 overflow-y-auto pb-20 relative">
       <div className="absolute inset-0 pattern-bg -z-10"></div>
 
       {/* Header Section with Search Input */}
-      <div className="sticky top-0 z-10 animate-slideInFromTop">
+      <div className="sticky top-0 z-20 animate-slideInFromTop">
         <div className="glass-effect rounded-2xl p-6 shadow-2xl border border-white/10">
           <div className="mb-4">
             <div className="flex items-center justify-between">

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import useSWR, { useSWRConfig } from "swr"
+import { useSWRConfig } from "swr"
 import { useAuth } from "@/modules/auth/useAuth.ts"
 import { useToast } from "@/contexts/ToastContext.tsx"
 import { useTranslation } from "react-i18next"
