@@ -21,6 +21,16 @@ type VisparkRequestPayload = {
   summaries: string[]
   // createdTime can be provided by client but will be ignored in favor of server time
   createdTime?: string
+  // Video metadata to store
+  videoMetadata?: {
+    title?: string
+    description?: string
+    channelTitle?: string
+    thumbnails?: any
+    publishedAt?: string
+    duration?: string
+    defaultLanguage?: string
+  }
 }
 
 type VisparkInsert = {
@@ -29,6 +39,13 @@ type VisparkInsert = {
   video_channel_id?: string
   summaries: string[]
   created_at: string
+  video_title?: string
+  video_description?: string
+  video_channel_title?: string
+  video_thumbnails?: any
+  video_published_at?: string
+  video_duration?: string
+  video_default_language?: string
 }
 
 type InsertedVispark = {
@@ -89,7 +106,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  const { videoId, videoChannelId, summaries } = (payload
+  const { videoId, videoChannelId, summaries, videoMetadata } = (payload
     ?? {}) as Partial<VisparkRequestPayload>
 
   if (typeof videoId !== "string" || videoId.trim().length === 0) {
@@ -160,6 +177,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
     video_channel_id: videoChannelId?.trim(),
     summaries,
     created_at: nowIso,
+    video_title: videoMetadata?.title,
+    video_description: videoMetadata?.description,
+    video_channel_title: videoMetadata?.channelTitle,
+    video_thumbnails: videoMetadata?.thumbnails,
+    video_published_at: videoMetadata?.publishedAt,
+    video_duration: videoMetadata?.duration,
+    video_default_language: videoMetadata?.defaultLanguage,
   }
 
   // Insert row into visparks table; expects columns:
@@ -172,7 +196,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const { data: inserted, error: insertError } = await supabase
     .from("visparks")
     .insert(record)
-    .select("id, video_id, video_channel_id, summaries, created_at")
+    .select("id, video_id, video_channel_id, summaries, created_at, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language")
     .single()
 
   if (insertError || !inserted) {

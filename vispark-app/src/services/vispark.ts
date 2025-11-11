@@ -182,6 +182,7 @@ export const saveVispark = async (
   videoId: string,
   videoChannelId: string,
   summaries: string[],
+  videoMetadata?: VideoMetadata,
 ): Promise<SaveVisparkResult> => {
   // Ensure Authorization header is forwarded to the Edge Function
   const {
@@ -197,7 +198,22 @@ export const saveVispark = async (
     "vispark",
     {
       headers: { Authorization: `Bearer ${accessToken}` },
-      body: { videoId, videoChannelId, summaries },
+      body: {
+        videoId,
+        videoChannelId,
+        summaries,
+        videoMetadata: videoMetadata
+          ? {
+              title: videoMetadata.title,
+              description: videoMetadata.description,
+              channelTitle: videoMetadata.channelTitle,
+              thumbnails: videoMetadata.thumbnails,
+              publishedAt: videoMetadata.publishedAt,
+              duration: videoMetadata.duration,
+              defaultLanguage: videoMetadata.defaultLanguage,
+            }
+          : undefined,
+      },
     },
   )
 
@@ -221,6 +237,13 @@ export type VisparkRow = {
   summaries: string[]
   created_at: string
   is_new_from_callback?: boolean
+  video_title?: string
+  video_description?: string
+  video_channel_title?: string
+  video_thumbnails?: any
+  video_published_at?: string
+  video_duration?: string
+  video_default_language?: string
 }
 
 /**

@@ -141,26 +141,23 @@ export const useVisparksWithMetadata = (limit = 200) => {
     error: visparksError,
     mutate,
   } = useVisparks(limit)
-  const videoIds = visparks.map((v) => v.video_id)
-  const {
-    metadataMap,
-    isLoading: loadingMetadata,
-    error: metadataError,
-  } = useBatchVideoMetadata(videoIds)
 
-  // Combine visparks with metadata
+  // Combine visparks with stored metadata
   const visparksWithMetadata = visparks.map((vispark) => {
-    const metadata = metadataMap.get(vispark.video_id) || {
+    // Use stored metadata if available, otherwise create fallback metadata
+    const metadata = {
       videoId: vispark.video_id,
-      title: `Video ${vispark.video_id}`,
+      title: vispark.video_title || `Video ${vispark.video_id}`,
       channelId: vispark.video_channel_id || "",
-      channelTitle: "Unknown Channel",
-      thumbnails: {
+      channelTitle: vispark.video_channel_title || "Unknown Channel",
+      thumbnails: vispark.video_thumbnails || {
         default: { url: "" },
         medium: { url: "" },
         high: { url: "" },
       },
-      publishedAt: undefined,
+      publishedAt: vispark.video_published_at,
+      duration: vispark.video_duration,
+      defaultLanguage: vispark.video_default_language,
     }
 
     return {
@@ -177,8 +174,8 @@ export const useVisparksWithMetadata = (limit = 200) => {
 
   return {
     visparks: visparksWithMetadata,
-    isLoading: loadingVisparks || loadingMetadata,
-    error: visparksError || metadataError,
+    isLoading: loadingVisparks,
+    error: visparksError,
     mutate,
   }
 }
@@ -191,26 +188,23 @@ export const useChannelVisparksWithMetadata = (channelId: string) => {
     error: visparksError,
     mutate,
   } = useVisparksByChannel(channelId)
-  const videoIds = visparks.map((v) => v.video_id)
-  const {
-    metadataMap,
-    isLoading: loadingMetadata,
-    error: metadataError,
-  } = useBatchVideoMetadata(videoIds)
 
-  // Combine visparks with metadata
+  // Combine visparks with stored metadata
   const visparksWithMetadata = visparks.map((vispark) => {
-    const metadata = metadataMap.get(vispark.video_id) || {
+    // Use stored metadata if available, otherwise create fallback metadata
+    const metadata = {
       videoId: vispark.video_id,
-      title: `Video ${vispark.video_id}`,
+      title: vispark.video_title || `Video ${vispark.video_id}`,
       channelId: vispark.video_channel_id || "",
-      channelTitle: "Unknown Channel",
-      thumbnails: {
+      channelTitle: vispark.video_channel_title || "Unknown Channel",
+      thumbnails: vispark.video_thumbnails || {
         default: { url: "" },
         medium: { url: "" },
         high: { url: "" },
       },
-      publishedAt: undefined,
+      publishedAt: vispark.video_published_at,
+      duration: vispark.video_duration,
+      defaultLanguage: vispark.video_default_language,
     }
 
     return {
@@ -227,8 +221,8 @@ export const useChannelVisparksWithMetadata = (channelId: string) => {
 
   return {
     visparks: visparksWithMetadata,
-    isLoading: loadingVisparks || loadingMetadata,
-    error: visparksError || metadataError,
+    isLoading: loadingVisparks,
+    error: visparksError,
     mutate,
   }
 }

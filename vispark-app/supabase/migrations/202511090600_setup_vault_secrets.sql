@@ -3,6 +3,7 @@
 
 -- Store the service role key (placeholder for local development)
 SELECT vault.create_secret('PLACEHOLDER_SERVICE_ROLE_KEY', 'supabase_service_role_key');
+SELECT vault.create_secret('PLACEHOLDER_SUPABASE_URL', 'supabase_url');
 
 -- Update the trigger function to use vault secrets
 CREATE OR REPLACE FUNCTION public.process_video_notification()

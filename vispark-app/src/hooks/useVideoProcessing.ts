@@ -156,7 +156,12 @@ export const useVideoProcessing = ({
             // Extract channel ID from video metadata
             // Only save if we have a valid channel ID
             if (resolvedMetadata?.channelId) {
-              await saveVispark(rawVideoId, resolvedMetadata.channelId, bullets)
+              await saveVispark(
+                rawVideoId,
+                resolvedMetadata.channelId,
+                bullets,
+                resolvedMetadata,
+              )
               if (!cancelled) {
                 await refreshSavedVisparks()
               }

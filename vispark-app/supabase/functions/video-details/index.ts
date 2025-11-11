@@ -25,24 +25,24 @@ type VideoDetailsRequestPayload = {
 type VideoDetails = {
   videoId: string
   title: string
-  description: string
-  channelId: string
-  channelTitle: string
-  channelThumbnailUrl: string
-  publishedAt: string
-  duration: string
-  viewCount: number
-  likeCount: number
-  commentCount: number
-  thumbnails: {
-    default: { url: string; width: number; height: number }
-    medium: { url: string; width: number; height: number }
-    high: { url: string; width: number; height: number }
-    standard?: { url: string; width: number; height: number }
-    maxres?: { url: string; width: number; height: number }
+  description?: string
+  channelId?: string
+  channelTitle?: string
+  channelThumbnailUrl?: string
+  publishedAt?: string
+  duration?: string
+  viewCount?: number
+  likeCount?: number
+  commentCount?: number
+  thumbnails?: {
+    default?: { url: string; width?: number; height?: number }
+    medium?: { url: string; width?: number; height?: number }
+    high?: { url: string; width?: number; height?: number }
+    standard?: { url: string; width?: number; height?: number }
+    maxres?: { url: string; width?: number; height?: number }
   }
   tags?: string[]
-  categoryId: string
+  categoryId?: string
   defaultLanguage?: string
   defaultAudioLanguage?: string
   hasSummary?: boolean
@@ -422,10 +422,62 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     switch (action) {
       case "getDetails": {
-        const videoData = await fetchVideoDetailsFromYouTube(
-          videoId!,
-          youtubeApiKey,
-        )
+        // First check if video metadata exists in the database
+        const { data: existingVispark } = await supabase
+          .from("visparks")
+          .select("video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language")
+          .eq("video_id", videoId!)
+          .single()
+
+        let videoData: VideoDetails
+
+        if (existingVispark) {
+          // Use stored metadata from database
+          videoData = {
+            videoId: videoId!,
+            title: existingVispark.video_title || "",
+            description: existingVispark.video_description || "",
+            channelId: "", // We don't store this in visparks table
+            channelTitle: existingVispark.video_channel_title || "",
+            channelThumbnailUrl: "", // We don't store this in visparks table
+            publishedAt: existingVispark.video_published_at || "",
+            duration: existingVispark.video_duration || "",
+            viewCount: 0, // We don't store these in visparks table
+            likeCount: 0,
+            commentCount: 0,
+            thumbnails: existingVispark.video_thumbnails || {
+              default: { url: "", width: 0, height: 0 },
+              medium: { url: "", width: 0, height: 0 },
+              high: { url: "", width: 0, height: 0 },
+            },
+            defaultLanguage: existingVispark.video_default_language,
+            defaultAudioLanguage: undefined,
+            categoryId: "",
+            hasSummary: false, // Will be set below
+          }
+        } else {
+          // Fetch from YouTube API
+          videoData = await fetchVideoDetailsFromYouTube(
+            videoId!,
+            youtubeApiKey,
+          )
+
+          // Store the fetched metadata in the database for future use
+          await supabase
+            .from("visparks")
+            .upsert({
+              video_id: videoId!,
+              video_title: videoData.title,
+              video_description: videoData.description,
+              video_channel_title: videoData.channelTitle,
+              video_thumbnails: videoData.thumbnails,
+              video_published_at: videoData.publishedAt,
+              video_duration: videoData.duration,
+              video_default_language: videoData.defaultLanguage,
+            }, {
+              onConflict: 'video_id'
+            })
+        }
 
         // Check if video has summary
         const summaryMap = await checkVideoSummaries(supabase, [videoId!])
@@ -436,10 +488,76 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       case "getBatchDetails": {
-        const videosData = await fetchBatchVideoDetailsFromYouTube(
-          videoIds!,
-          youtubeApiKey,
-        )
+        // First check which videos have metadata in the database
+        const { data: existingVisparks } = await supabase
+          .from("visparks")
+          .select("video_id, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language")
+          .in("video_id", videoIds!)
+
+        const existingVisparksMap = new Map()
+        if (existingVisparks) {
+          existingVisparks.forEach(vispark => {
+            existingVisparksMap.set(vispark.video_id, vispark)
+          })
+        }
+
+        const videosData: VideoDetails[] = []
+        const videosToFetch: string[] = []
+
+        // Separate videos that have stored metadata from those that need to be fetched
+        videoIds!.forEach(videoId => {
+          const existingVispark = existingVisparksMap.get(videoId)
+          if (existingVispark) {
+            // Use stored metadata
+            videosData.push({
+              videoId: videoId,
+              title: existingVispark.video_title || "",
+              description: existingVispark.video_description || "",
+              channelTitle: existingVispark.video_channel_title || "",
+              publishedAt: existingVispark.video_published_at || "",
+              duration: existingVispark.video_duration || "",
+              thumbnails: existingVispark.video_thumbnails || {
+                default: { url: "", width: 0, height: 0 },
+                medium: { url: "", width: 0, height: 0 },
+                high: { url: "", width: 0, height: 0 },
+              },
+              defaultLanguage: existingVispark.video_default_language,
+              hasSummary: false, // Will be set below
+            })
+          } else {
+            // Need to fetch from YouTube API
+            videosToFetch.push(videoId)
+          }
+        })
+
+        // Fetch videos that don't have stored metadata
+        if (videosToFetch.length > 0) {
+          const fetchedVideos = await fetchBatchVideoDetailsFromYouTube(
+            videosToFetch,
+            youtubeApiKey,
+          )
+          videosData.push(...fetchedVideos)
+
+          // Store the fetched metadata in the database for future use
+          const metadataToStore = fetchedVideos.map(video => ({
+            video_id: video.videoId,
+            video_title: video.title,
+            video_description: video.description,
+            video_channel_title: video.channelTitle,
+            video_thumbnails: video.thumbnails,
+            video_published_at: video.publishedAt,
+            video_duration: video.duration,
+            video_default_language: video.defaultLanguage,
+          }))
+
+          if (metadataToStore.length > 0) {
+            await supabase
+              .from("visparks")
+              .upsert(metadataToStore, {
+                onConflict: 'video_id'
+              })
+          }
+        }
 
         // Check which videos have summaries
         const summaryMap = await checkVideoSummaries(supabase, videoIds!)
