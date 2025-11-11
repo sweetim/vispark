@@ -11,6 +11,7 @@ import { useRetryWithBackoff } from "@/hooks/useRetryWithBackoff"
 import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 import {
   fetchSummary,
+  fetchSummaryStream,
   fetchTranscript,
   fetchYouTubeVideoDetails,
   formatTranscript,
@@ -39,6 +40,7 @@ export const useVideoProcessing = ({
     loading,
     transcript,
     summary,
+    streamingSummary,
     error,
     step,
     errorStep,
@@ -49,6 +51,7 @@ export const useVideoProcessing = ({
     setLoading,
     setTranscript,
     setSummary,
+    setStreamingSummary,
     setError,
     setStep,
     setView,
@@ -156,8 +159,9 @@ export const useVideoProcessing = ({
         setStep("summarizing")
 
         try {
-          const summaryResult = await retryWithBackoff(
-            () => fetchSummary(segments),
+          // Use streaming for summary generation
+          const stream = await retryWithBackoff(
+            () => fetchSummaryStream(segments),
             RETRY_CONFIG.SUMMARY,
           )
 
@@ -165,44 +169,147 @@ export const useVideoProcessing = ({
             return
           }
 
-          const bullets = summaryResult.bullets ?? []
-          setSummary(bullets)
+          // Process the stream
+          const reader = stream.getReader()
+          const decoder = new TextDecoder()
+          let accumulatedContent = ""
 
-          // Only set view automatically if user hasn't expressed a preference
+          // Set view to summary when streaming starts
           if (!userViewPreference) {
-            setView(
-              bullets.length > 0 ? VIEW_MODES.SUMMARY : VIEW_MODES.TRANSCRIPT,
-            )
+            setView(VIEW_MODES.SUMMARY)
           }
-
-          setStep("complete")
 
           try {
-            // Extract channel ID from video metadata
-            // Only save if we have a valid channel ID
-            if (resolvedMetadata?.channelId) {
-              await saveVispark(
-                rawVideoId,
-                resolvedMetadata.channelId,
-                bullets,
-                resolvedMetadata,
-              )
-              if (!cancelled) {
-                await refreshSavedVisparks()
-              }
-            } else {
-              // Log warning if we don't have channel ID but don't fail the entire process
-              if (process.env.NODE_ENV !== "production") {
-                console.warn(DEV_WARNINGS.MISSING_CHANNEL_ID, rawVideoId)
-              }
-            }
-          } catch (persistError) {
-            if (process.env.NODE_ENV !== "production" && persistError) {
-              console.warn(DEV_WARNINGS.VISPARK_SAVE_FAILED, persistError)
-            }
-          }
+            while (true) {
+              const { done, value } = await reader.read()
 
-          onProcessingComplete?.()
+              if (done) break
+
+              const chunk = decoder.decode(value, { stream: true })
+
+              // The OpenAI SDK returns raw JSON chunks, not SSE format
+              // Each chunk is a JSON object with OpenAI streaming format
+              const lines = chunk.split("\n").filter((line) => line.trim())
+
+              for (const line of lines) {
+                try {
+                  const parsed = JSON.parse(line)
+                  const content = parsed.choices?.[0]?.delta?.content
+
+                  if (content) {
+                    accumulatedContent += content
+                    // Display the accumulated content as a single item in the streaming summary
+                    setStreamingSummary([accumulatedContent])
+                  }
+                } catch (e) {
+                  // Skip invalid JSON lines
+                }
+              }
+            }
+
+            // Try to parse the final accumulated content as JSON to extract bullets
+            // If it's not valid JSON, treat the entire content as a single bullet point
+            try {
+              const finalParsed = JSON.parse(accumulatedContent)
+              const bullets = finalParsed.bullets || []
+
+              // Final update with parsed bullets
+              setSummary(bullets)
+            } catch (e) {
+              // If parsing fails, treat the entire content as a single bullet point
+              setSummary([accumulatedContent])
+            }
+
+            setStreamingSummary([]) // Clear streaming state
+
+            setStep("complete")
+
+            // Get the final bullets for saving
+            const finalBullets = summary || []
+
+            try {
+              // Extract channel ID from video metadata
+              // Only save if we have a valid channel ID
+              if (resolvedMetadata?.channelId) {
+                await saveVispark(
+                  rawVideoId,
+                  resolvedMetadata.channelId,
+                  finalBullets,
+                  resolvedMetadata,
+                )
+                if (!cancelled) {
+                  await refreshSavedVisparks()
+                }
+              } else {
+                // Log warning if we don't have channel ID but don't fail the entire process
+                if (process.env.NODE_ENV !== "production") {
+                  console.warn(DEV_WARNINGS.MISSING_CHANNEL_ID, rawVideoId)
+                }
+              }
+            } catch (persistError) {
+              if (process.env.NODE_ENV !== "production" && persistError) {
+                console.warn(DEV_WARNINGS.VISPARK_SAVE_FAILED, persistError)
+              }
+            }
+
+            onProcessingComplete?.()
+          } catch (streamError) {
+            // If streaming fails, fall back to non-streaming
+            console.warn(
+              "Streaming failed, falling back to non-streaming:",
+              streamError,
+            )
+
+            const summaryResult = await retryWithBackoff(
+              () => fetchSummary(segments),
+              RETRY_CONFIG.SUMMARY,
+            )
+
+            if (cancelled) {
+              return
+            }
+
+            const fallbackBullets = summaryResult.bullets ?? []
+            setSummary(fallbackBullets)
+
+            // Only set view automatically if user hasn't expressed a preference
+            if (!userViewPreference) {
+              setView(
+                fallbackBullets.length > 0
+                  ? VIEW_MODES.SUMMARY
+                  : VIEW_MODES.TRANSCRIPT,
+              )
+            }
+
+            setStep("complete")
+
+            try {
+              // Extract channel ID from video metadata
+              // Only save if we have a valid channel ID
+              if (resolvedMetadata?.channelId) {
+                await saveVispark(
+                  rawVideoId,
+                  resolvedMetadata.channelId,
+                  fallbackBullets,
+                  resolvedMetadata,
+                )
+                if (!cancelled) {
+                  await refreshSavedVisparks()
+                }
+              } else {
+                // Log warning if we don't have channel ID but don't fail the entire process
+                if (process.env.NODE_ENV !== "production") {
+                  console.warn(DEV_WARNINGS.MISSING_CHANNEL_ID, rawVideoId)
+                }
+              }
+            } catch (persistError) {
+              if (process.env.NODE_ENV !== "production" && persistError) {
+                console.warn(DEV_WARNINGS.VISPARK_SAVE_FAILED, persistError)
+              }
+            }
+
+            onProcessingComplete?.()
+          }
         } catch (summaryError) {
           if (cancelled) {
             return
@@ -251,6 +358,7 @@ export const useVideoProcessing = ({
     loading,
     transcript,
     summary,
+    streamingSummary,
     error,
     step,
     errorStep,

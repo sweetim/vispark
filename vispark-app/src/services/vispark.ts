@@ -63,6 +63,45 @@ export const fetchSummary = async (
   return summaryData
 }
 
+export const fetchSummaryStream = async (
+  transcripts: TranscriptSegment[],
+): Promise<ReadableStream<Uint8Array>> => {
+  // Get the current session to include auth token
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  // Get the function URL directly
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("functions").getPublicUrl("summary")
+  const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/summary`
+
+  const response = await fetch(functionUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+      Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({ transcripts }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(
+      `Failed to fetch summary stream: ${response.status} ${response.statusText}. ${errorText}`,
+    )
+  }
+
+  if (!response.body) {
+    throw new Error("Response body is missing from summary service.")
+  }
+
+  return response.body
+}
+
 export const formatTranscript = (segments: TranscriptSegment[]): string =>
   segments
     .map(({ text }) => decodeHtmlEntities(text.trim()))

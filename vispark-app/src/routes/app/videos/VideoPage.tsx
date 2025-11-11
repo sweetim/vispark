@@ -11,6 +11,7 @@ const VideosVideoPage = () => {
     loading,
     transcript,
     summary,
+    streamingSummary,
     error,
     step,
     errorStep,
@@ -71,6 +72,7 @@ const VideosVideoPage = () => {
         hasSummary={hasSummary}
         hasTranscript={hasTranscript}
         summary={summary}
+        streamingSummary={streamingSummary}
         transcript={transcript}
         isGenerating={isGenerating}
         loading={loading}

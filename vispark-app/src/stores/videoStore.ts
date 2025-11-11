@@ -9,6 +9,7 @@ type VideoState = {
   loading: boolean
   transcript: string
   summary: string[] | null
+  streamingSummary: string[]
   error: string | null
   step: Step
   errorStep: ErrorStep
@@ -22,6 +23,7 @@ type VideoActions = {
   setLoading: (loading: boolean) => void
   setTranscript: (transcript: string) => void
   setSummary: (summary: string[] | null) => void
+  setStreamingSummary: (streamingSummary: string[]) => void
   setError: (error: string, errorStep: ErrorStep) => void
   setStep: (step: Step) => void
   setView: (view: ViewMode) => void
@@ -33,6 +35,7 @@ const initialState: VideoState = {
   loading: false,
   transcript: "",
   summary: null,
+  streamingSummary: [],
   error: null,
   step: "idle",
   errorStep: null,
@@ -60,6 +63,8 @@ export const useVideoStore = create<VideoState & VideoActions>((set) => ({
   setTranscript: (transcript) => set({ transcript }),
 
   setSummary: (summary) => set({ summary }),
+
+  setStreamingSummary: (streamingSummary) => set({ streamingSummary }),
 
   setError: (error, errorStep) =>
     set({

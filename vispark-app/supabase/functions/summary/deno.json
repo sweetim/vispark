@@ -14,5 +14,8 @@
   },
   "tasks": {
     "start": "deno run --allow-net --allow-env index.ts"
+  },
+  "imports": {
+    "openai": "npm:openai@^6.1.0"
   }
 }

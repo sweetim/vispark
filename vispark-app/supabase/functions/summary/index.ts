@@ -1,3 +1,5 @@
+import OpenAI from "openai";
+
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -12,6 +14,12 @@ const buildHeaders = (): HeadersInit => ({
   ...corsHeaders,
   ...jsonHeaders,
 })
+
+const streamHeaders: Record<string, string> = {
+  "Content-Type": "text/event-stream",
+  "Cache-Control": "no-cache",
+  "Connection": "keep-alive",
+}
 
 type TranscriptSegment = {
   text: string
@@ -72,10 +80,14 @@ const summarizeWithOpenAI = async ({
   apiKey: string
   model: string
 }): Promise<string[]> => {
-  const body = {
+  const openai = new OpenAI({
+    apiKey,
+  })
+
+  const completion = await openai.chat.completions.create({
     model,
     temperature: 1.0,
-    response_format: { type: "json_object" as const },
+    response_format: { type: "json_object" },
     messages: [
       {
         role: "system",
@@ -87,27 +99,9 @@ const summarizeWithOpenAI = async ({
         content: `Summarize the following transcript into 5–12 precise bullet points. Return a JSON object with a single field "bullets" of type string[]. Do not include any additional fields.\n\nTranscript:\n${transcriptText}`,
       },
     ],
-  }
-
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(body),
   })
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "")
-    throw new Error(`OpenAI request failed (${res.status}): ${errText}`)
-  }
-
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>
-  }
-
-  const content = data?.choices?.[0]?.message?.content ?? ""
+  const content = completion.choices[0]?.message?.content ?? ""
   let bullets: string[] | null = null
 
   // Try parsing as JSON first
@@ -135,6 +129,45 @@ const summarizeWithOpenAI = async ({
   return bullets
 }
 
+const summarizeWithOpenAIStream = async ({
+  transcriptText,
+  apiKey,
+  model,
+}: {
+  transcriptText: string
+  apiKey: string
+  model: string
+}): Promise<Response> => {
+  const openai = new OpenAI({
+    apiKey,
+  })
+
+  const stream = await openai.chat.completions.create({
+    model,
+    temperature: 1.0,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are an expert note-taker. Summarize transcripts into clear, concise bullet points that capture key ideas, decisions, actions, numbers, and takeaways. Avoid filler.",
+      },
+      {
+        role: "user",
+        content: `Summarize the following transcript into 5–12 precise bullet points. Return a JSON object with a single field "bullets" of type string[]. Do not include any additional fields.\n\nTranscript:\n${transcriptText}`,
+      },
+    ],
+    stream: true,
+  })
+
+  return new Response(stream.toReadableStream(), {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+    },
+  })
+}
+
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders })
@@ -149,6 +182,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       405,
     )
   }
+
+  // Check if client wants streaming response
+  const acceptHeader = req.headers.get("accept")
+  const wantsStream = acceptHeader?.includes("text/event-stream")
 
   let payload: SummaryRequestPayload
   try {
@@ -187,31 +224,72 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  const model = Deno.env.get("OPEN_AI_MODEL") || "gpt-5-nano"
+  const model = Deno.env.get("OPEN_AI_MODEL") || "gpt-4o-mini"
 
   try {
-    const bullets = await summarizeWithOpenAI({
-      transcriptText,
-      apiKey,
-      model,
-    })
+    if (wantsStream) {
+      // Return streaming response
+      const response = await summarizeWithOpenAIStream({
+        transcriptText,
+        apiKey,
+        model,
+      })
 
-    return respondWith(
-      {
-        bullets,
-      },
-      200,
-    )
+      // Add CORS headers to the streaming response
+      const headers = new Headers(response.headers)
+      Object.entries(corsHeaders).forEach(([key, value]) => {
+        headers.set(key, value)
+      })
+
+      return new Response(response.body, {
+        status: response.status,
+        headers,
+      })
+    } else {
+      // Return non-streaming response for backward compatibility
+      const bullets = await summarizeWithOpenAI({
+        transcriptText,
+        apiKey,
+        model,
+      })
+
+      return respondWith(
+        {
+          bullets,
+        },
+        200,
+      )
+    }
   } catch (error) {
     console.error("Failed to summarize transcript:", error)
     const message =
       error instanceof Error ? error.message : "Unable to generate summary."
-    return respondWith(
-      {
-        error: "Summary generation failed",
-        message,
-      },
-      502,
-    )
+
+    if (wantsStream) {
+      const encoder = new TextEncoder()
+      const errorStream = new ReadableStream({
+        start(controller) {
+          const errorData = JSON.stringify({ error: message })
+          controller.enqueue(encoder.encode(`data: ${errorData}\n\n`))
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"))
+          controller.close()
+        },
+      })
+
+      return new Response(errorStream, {
+        headers: {
+          ...corsHeaders,
+          ...streamHeaders,
+        },
+      })
+    } else {
+      return respondWith(
+        {
+          error: "Summary generation failed",
+          message,
+        },
+        502,
+      )
+    }
   }
 })

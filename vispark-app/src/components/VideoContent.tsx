@@ -7,6 +7,7 @@ type VideoContentProps = {
   hasSummary: boolean
   hasTranscript: boolean
   summary: string[] | null
+  streamingSummary: string[]
   transcript: string
   isGenerating: boolean
   loading: boolean
@@ -18,6 +19,7 @@ const VideoContent = ({
   hasSummary,
   hasTranscript,
   summary,
+  streamingSummary,
   transcript,
   isGenerating,
   loading,
@@ -33,8 +35,10 @@ const VideoContent = ({
     )
   }
 
-  if (view === "summary" && hasSummary) {
-    return <SummaryList items={summary ?? []} />
+  if (view === "summary" && (hasSummary || streamingSummary.length > 0)) {
+    // Show streaming summary if available, otherwise show regular summary
+    const itemsToDisplay = streamingSummary.length > 0 ? streamingSummary : (summary ?? [])
+    return <SummaryList items={itemsToDisplay} isStreaming={streamingSummary.length > 0} />
   }
 
   if (view === "transcript" && hasTranscript) {
