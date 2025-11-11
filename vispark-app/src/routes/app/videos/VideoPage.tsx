@@ -36,7 +36,7 @@ const VideosVideoPage = () => {
   }
 
   return (
-    <div className="w-full max-w-3xl h-full space-y-2 overflow-y-auto pb-20">
+    <div className="w-full max-w-3xl h-full space-y-2 overflow-y-auto">
       <div className="sticky top-0 z-20 space-y-3 py-2 backdrop-blur">
         <div className="w-full">
           {videoMetadata ? (

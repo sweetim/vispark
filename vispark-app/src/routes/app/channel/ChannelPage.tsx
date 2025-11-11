@@ -194,7 +194,7 @@ const ChannelPage = () => {
   }
 
   return (
-    <div ref={scrollContainerRef} className="w-full max-w-3xl h-full space-y-2 overflow-y-auto pb-20">
+    <div ref={scrollContainerRef} className="w-full max-w-3xl h-full space-y-2 overflow-y-auto">
       {/* Channel Header */}
       {loadingChannelDetails ? (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">

@@ -15,7 +15,7 @@ const WalletPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full w-full bg-gray-900 text-white p-4 pb-20 overflow-y-auto">
+      <div className="flex flex-col h-full w-full bg-gray-900 text-white p-4 overflow-y-auto">
         <div className="w-full max-w-lg mx-auto space-y-6">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-2">{t("analytics.title")}</h1>
@@ -28,7 +28,7 @@ const WalletPage = () => {
 
   if (error || !analytics) {
     return (
-      <div className="flex flex-col h-full w-full bg-gray-900 text-white p-4 pb-20 overflow-y-auto">
+      <div className="flex flex-col h-full w-full bg-gray-900 text-white p-4 overflow-y-auto">
         <div className="w-full max-w-lg mx-auto space-y-6">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-2">{t("analytics.title")}</h1>
@@ -43,7 +43,7 @@ const WalletPage = () => {
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-gray-900 text-white p-4 pb-20 overflow-y-auto">
+    <div className="flex flex-col h-full w-full bg-gray-900 text-white p-4 overflow-y-auto">
       <div className="w-full max-w-lg mx-auto space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">{t("analytics.title")}</h1>

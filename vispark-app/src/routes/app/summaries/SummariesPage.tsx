@@ -187,7 +187,7 @@ const SummariesPage = () => {
       <div className="pointer-events-none absolute top-20 left-[-12%] h-96 w-96 rounded-full bg-blue-500/20 blur-[140px]" />
       <div className="pointer-events-none absolute bottom-[-18%] right-[-8%] h-96 w-96 rounded-full bg-emerald-500/20 blur-[140px]" />
 
-      <div className="relative z-10 mx-auto h-full w-full max-w-7xl overflow-y-auto px-4 py-8 pb-20 sm:px-6">
+      <div className="relative z-10 mx-auto h-full w-full max-w-7xl overflow-y-auto px-4 py-8 sm:px-6">
         <header className="mb-8">
           <h1 className="flex items-center gap-3 text-3xl font-bold text-white sm:text-4xl">
             <ChartBarIcon size={32} className="text-indigo-400" />

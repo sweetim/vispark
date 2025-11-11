@@ -102,7 +102,7 @@ const BottomNavBar: FC = () => {
           animation: rainbow 3s linear infinite, sparkle 1.5s ease-in-out infinite;
         }
       `}</style>
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-800 border-none z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="h-full bg-zinc-800 border-none pb-safe">
         <div className={`grid h-full max-w-lg grid-cols-5 mx-auto font-medium`}>
           {navBarItems.map((item, index) => {
             const isActive = location.pathname.startsWith(item.to)

@@ -26,7 +26,7 @@ const SearchLayout = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto h-full space-y-2 overflow-y-auto pb-20 relative">
+    <div className="w-full max-w-4xl mx-auto h-full space-y-2 overflow-y-auto relative">
       <div className="absolute inset-0 pattern-bg -z-10"></div>
 
       {/* Header Section with Search Input */}
