@@ -148,7 +148,6 @@ const handlePost = async (req: Request): Promise<Response> => {
                     throw error
                   }
                 }
-                console.log("[TRANSCRIPT] Youtube-transcript-plus response:", transcriptResponse)
                 // Convert youtube-transcript-plus response to match our expected format
                 // youtube-transcript-plus returns Array<{text, duration, offset, lang}>
                 const transcript = Array.isArray(transcriptResponse)
@@ -354,7 +353,6 @@ const handlePost = async (req: Request): Promise<Response> => {
 
                     console.log("[TRANSCRIPT] Successfully fetched from local URL")
                     transcriptResponse = await localResponse.json()
-                    console.log("[TRANSCRIPT] Local URL response:", transcriptResponse)
                     console.log("[TRANSCRIPT] Responding with success using local URL fetch")
                     return respondWith(transcriptResponse, 200)
                   } catch (localError) {

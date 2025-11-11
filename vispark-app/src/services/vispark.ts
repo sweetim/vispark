@@ -84,6 +84,7 @@ type YouTubeThumbnails = {
   maxres?: YouTubeThumbnail
 }
 
+// Normalized video metadata type that works for both YouTube API and Supabase DB
 export type VideoMetadata = {
   videoId: string
   title: string
@@ -102,6 +103,56 @@ export type VideoMetadata = {
   defaultLanguage?: string
   defaultAudioLanguage?: string
   hasSummary?: boolean
+}
+
+// Type for metadata stored in Supabase visparks table
+export type VisparkVideoMetadata = {
+  videoId: string
+  title?: string
+  description?: string
+  channelTitle?: string
+  thumbnails?: YouTubeThumbnails
+  publishedAt?: string
+  duration?: string
+  defaultLanguage?: string
+}
+
+// Function to normalize metadata from Supabase to match VideoMetadata type
+export const normalizeVisparkMetadata = (
+  visparkMetadata: VisparkVideoMetadata,
+  fallbackMetadata?: Partial<VideoMetadata>,
+): VideoMetadata => {
+  return {
+    videoId: visparkMetadata.videoId,
+    title:
+      visparkMetadata.title
+      || fallbackMetadata?.title
+      || `Video ${visparkMetadata.videoId}`,
+    channelId: fallbackMetadata?.channelId || "",
+    channelTitle:
+      visparkMetadata.channelTitle
+      || fallbackMetadata?.channelTitle
+      || "Unknown Channel",
+    thumbnails: visparkMetadata.thumbnails
+      || fallbackMetadata?.thumbnails || {
+        default: { url: "" },
+        medium: { url: "" },
+        high: { url: "" },
+      },
+    channelThumbnailUrl: fallbackMetadata?.channelThumbnailUrl,
+    publishedAt: visparkMetadata.publishedAt || fallbackMetadata?.publishedAt,
+    duration: visparkMetadata.duration || fallbackMetadata?.duration,
+    viewCount: fallbackMetadata?.viewCount,
+    likeCount: fallbackMetadata?.likeCount,
+    commentCount: fallbackMetadata?.commentCount,
+    description: visparkMetadata.description || fallbackMetadata?.description,
+    tags: fallbackMetadata?.tags,
+    categoryId: fallbackMetadata?.categoryId,
+    defaultLanguage:
+      visparkMetadata.defaultLanguage || fallbackMetadata?.defaultLanguage,
+    defaultAudioLanguage: fallbackMetadata?.defaultAudioLanguage,
+    hasSummary: fallbackMetadata?.hasSummary,
+  }
 }
 
 export const getBestThumbnailUrl = (thumbnails?: YouTubeThumbnails): string =>
@@ -254,7 +305,7 @@ export const listVisparks = async (limit = 10): Promise<VisparkRow[]> => {
   const { data, error } = await supabase
     .from("visparks")
     .select(
-      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback",
+      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language",
     )
     .order("created_at", { ascending: false })
     .limit(limit)
@@ -299,7 +350,7 @@ export const listVisparksByChannelId = async (
   const { data, error } = await supabase
     .from("visparks")
     .select(
-      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback",
+      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language",
     )
     .eq("video_channel_id", videoChannelId)
     .order("created_at", { ascending: false })

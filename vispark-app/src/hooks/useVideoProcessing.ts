@@ -14,7 +14,9 @@ import {
   fetchTranscript,
   fetchYouTubeVideoDetails,
   formatTranscript,
+  normalizeVisparkMetadata,
   saveVispark,
+  type VisparkVideoMetadata,
 } from "@/services/vispark"
 import { useTranscriptLanguageStore } from "@/stores/transcriptLanguageStore"
 import { useVideoStore } from "@/stores/videoStore"
@@ -101,9 +103,12 @@ export const useVideoProcessing = ({
         setTranscript(formatTranscript(segments))
 
         let resolvedMetadata: any = currentExistingVispark?.metadata ?? null
+        let fallbackMetadata: any = null
+
+        // If we don't have metadata from the database, fetch from YouTube API
         if (!resolvedMetadata) {
           try {
-            resolvedMetadata = await retryWithBackoff(
+            fallbackMetadata = await retryWithBackoff(
               () => metadataPromise,
               RETRY_CONFIG.METADATA,
             )
@@ -115,6 +120,26 @@ export const useVideoProcessing = ({
               console.warn(DEV_WARNINGS.METADATA_FAILED, metadataError)
             }
           }
+        }
+
+        // Normalize metadata from database if available, otherwise use YouTube API data
+        if (currentExistingVispark) {
+          const visparkMetadata: VisparkVideoMetadata = {
+            videoId: currentExistingVispark.videoId,
+            title: currentExistingVispark.metadata?.title,
+            channelTitle: currentExistingVispark.metadata?.channelTitle,
+            thumbnails: currentExistingVispark.metadata?.thumbnails,
+            publishedAt: currentExistingVispark.metadata?.publishedAt,
+            duration: currentExistingVispark.metadata?.duration,
+            defaultLanguage: currentExistingVispark.metadata?.defaultLanguage,
+          }
+
+          resolvedMetadata = normalizeVisparkMetadata(
+            visparkMetadata,
+            fallbackMetadata,
+          )
+        } else if (fallbackMetadata) {
+          resolvedMetadata = fallbackMetadata
         }
 
         if (!cancelled && resolvedMetadata) {

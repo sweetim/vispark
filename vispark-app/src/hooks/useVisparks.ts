@@ -4,8 +4,10 @@ import {
   fetchYouTubeVideoDetails,
   listVisparks,
   listVisparksByChannelId,
+  normalizeVisparkMetadata,
   type VideoMetadata,
   type VisparkRow,
+  type VisparkVideoMetadata,
 } from "@/services/vispark"
 
 // Base SWR configuration for visparks
@@ -144,21 +146,21 @@ export const useVisparksWithMetadata = (limit = 200) => {
 
   // Combine visparks with stored metadata
   const visparksWithMetadata = visparks.map((vispark) => {
-    // Use stored metadata if available, otherwise create fallback metadata
-    const metadata = {
+    // Create vispark metadata from stored data
+    const visparkMetadata: VisparkVideoMetadata = {
       videoId: vispark.video_id,
-      title: vispark.video_title || `Video ${vispark.video_id}`,
-      channelId: vispark.video_channel_id || "",
-      channelTitle: vispark.video_channel_title || "Unknown Channel",
-      thumbnails: vispark.video_thumbnails || {
-        default: { url: "" },
-        medium: { url: "" },
-        high: { url: "" },
-      },
+      title: vispark.video_title,
+      channelTitle: vispark.video_channel_title,
+      thumbnails: vispark.video_thumbnails,
       publishedAt: vispark.video_published_at,
       duration: vispark.video_duration,
       defaultLanguage: vispark.video_default_language,
     }
+
+    // Normalize metadata to ensure consistent structure
+    const metadata = normalizeVisparkMetadata(visparkMetadata, {
+      channelId: vispark.video_channel_id || "",
+    })
 
     return {
       id: vispark.id,
@@ -191,21 +193,21 @@ export const useChannelVisparksWithMetadata = (channelId: string) => {
 
   // Combine visparks with stored metadata
   const visparksWithMetadata = visparks.map((vispark) => {
-    // Use stored metadata if available, otherwise create fallback metadata
-    const metadata = {
+    // Create vispark metadata from stored data
+    const visparkMetadata: VisparkVideoMetadata = {
       videoId: vispark.video_id,
-      title: vispark.video_title || `Video ${vispark.video_id}`,
-      channelId: vispark.video_channel_id || "",
-      channelTitle: vispark.video_channel_title || "Unknown Channel",
-      thumbnails: vispark.video_thumbnails || {
-        default: { url: "" },
-        medium: { url: "" },
-        high: { url: "" },
-      },
+      title: vispark.video_title,
+      channelTitle: vispark.video_channel_title,
+      thumbnails: vispark.video_thumbnails,
       publishedAt: vispark.video_published_at,
       duration: vispark.video_duration,
       defaultLanguage: vispark.video_default_language,
     }
+
+    // Normalize metadata to ensure consistent structure
+    const metadata = normalizeVisparkMetadata(visparkMetadata, {
+      channelId: vispark.video_channel_id || "",
+    })
 
     return {
       id: vispark.id,
