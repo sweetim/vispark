@@ -1,4 +1,4 @@
-import { useNavigate, useSearch } from "@tanstack/react-router"
+import { useSearch } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { useChannelSearch } from "@/hooks/useChannels"
 import ChannelList from "../components/ChannelList"
@@ -81,44 +81,12 @@ const EmptyStateIllustration = ({
 
 const SearchPage = () => {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const search = useSearch({ from: "/app/channels/search" })
   const searchQuery = (search as { q?: string }).q || ""
 
   // SWR hooks for data
   const { searchResults, isLoading: loadingSearch, error: searchError } = useChannelSearch(searchQuery, !!searchQuery)
-
-  const handleChannelClick = (channelId: string) => {
-    navigate({ to: `/app/channels/${channelId}` })
-  }
-
-  // Convert ChannelMetadata to YouTubeSearchResult format for ChannelList
-  const convertToYouTubeSearchResult = (
-    channel: any, // Using any to avoid type conflicts
-  ) => {
-    return {
-      etag: channel.channelId,
-      id: {
-        kind: "youtube#channel",
-        channelId: channel.channelId,
-      },
-      kind: "youtube#channel",
-      snippet: {
-        channelId: channel.channelId,
-        channelTitle: channel.channelTitle,
-        description: "",
-        liveBroadcastContent: "none",
-        publishTime: "",
-        publishedAt: "",
-        thumbnails: {
-          default: { url: channel.channelThumbnailUrl },
-          medium: { url: channel.channelThumbnailUrl },
-          high: { url: channel.channelThumbnailUrl },
-        },
-        title: channel.channelTitle,
-      },
-    }
-  }
+  console.log(searchResults)
 
   // If no search query, show empty state
   if (!searchQuery) {
@@ -208,9 +176,7 @@ const SearchPage = () => {
               <CountBadge count={searchResults.length} />
             </div>
             <ChannelList
-              items={searchResults.map(convertToYouTubeSearchResult)}
-              channelDetails={searchResults}
-              onSelect={handleChannelClick}
+              items={searchResults}
             />
           </div>
         </div>

@@ -1,4 +1,3 @@
-import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { useSubscribedChannels } from "@/hooks/useChannels"
 import ChannelList from "../components/ChannelList"
@@ -52,42 +51,10 @@ const EmptyStateIllustration = () => {
 
 const SubscribedPage = () => {
   const { t } = useTranslation()
-  const navigate = useNavigate()
 
   // SWR hooks for data
   const { channels: subscribedChannels, isLoading: loadingSubscriptions, error: subscriptionError } = useSubscribedChannels()
-
-  const handleChannelClick = (channelId: string) => {
-    navigate({ to: `/app/channels/${channelId}` })
-  }
-
-  // Convert ChannelMetadata to YouTubeSearchResult format for ChannelList
-  const convertToYouTubeSearchResult = (
-    channel: any, // Using any to avoid type conflicts
-  ) => {
-    return {
-      etag: channel.channelId,
-      id: {
-        kind: "youtube#channel",
-        channelId: channel.channelId,
-      },
-      kind: "youtube#channel",
-      snippet: {
-        channelId: channel.channelId,
-        channelTitle: channel.channelTitle,
-        description: "",
-        liveBroadcastContent: "none",
-        publishTime: "",
-        publishedAt: "",
-        thumbnails: {
-          default: { url: channel.channelThumbnailUrl },
-          medium: { url: channel.channelThumbnailUrl },
-          high: { url: channel.channelThumbnailUrl },
-        },
-        title: channel.channelTitle,
-      },
-    }
-  }
+  console.log(subscribedChannels)
 
   return (
     <>
@@ -150,9 +117,7 @@ const SubscribedPage = () => {
               <CountBadge count={subscribedChannels.length} />
             </div>
             <ChannelList
-              items={subscribedChannels.map(convertToYouTubeSearchResult)}
-              channelDetails={subscribedChannels}
-              onSelect={handleChannelClick}
+              items={subscribedChannels}
             />
           </div>
         </div>

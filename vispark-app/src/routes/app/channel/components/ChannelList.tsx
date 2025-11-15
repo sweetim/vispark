@@ -1,23 +1,18 @@
 import { useCallback, useEffect, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { useSWRConfig } from "swr"
 import { useAuth } from "@/modules/auth/useAuth.ts"
 import { useToast } from "@/contexts/ToastContext.tsx"
 import { useTranslation } from "react-i18next"
-import type { YouTubeSearchResult, ChannelMetadata } from "@/services/channel.ts"
+import type { ChannelMetadata } from "@/services/channel.ts"
 import {
   areChannelsSubscribed,
   subscribeToChannel,
   unsubscribeFromChannel,
 } from "@/services/channel.ts"
 
-type ChannelInfo = {
-  videoCount: number
-}
-
 type ChannelListProps = {
-  items: YouTubeSearchResult[]
-  channelDetails?: ChannelMetadata[] // Pre-fetched channel details
-  onSelect: (channelId: string) => void
+  items: ChannelMetadata[]
   emptyMessage?: string
 }
 
@@ -25,13 +20,12 @@ const defaultEmptyMessage = "No channels found."
 
 const ChannelList = ({
   items,
-  channelDetails = [],
-  onSelect,
   emptyMessage = defaultEmptyMessage,
 }: ChannelListProps) => {
   const { user } = useAuth()
   const { showToast } = useToast()
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { mutate: globalMutate } = useSWRConfig()
   const [subscriptionStatus, setSubscriptionStatus] = useState<
     Record<string, boolean>
@@ -40,46 +34,19 @@ const ChannelList = ({
     Record<string, boolean>
   >({})
 
-  // Create a map of channel details for easy lookup
-  const channelDetailsMap = channelDetails.reduce((acc, channel) => {
-    acc[channel.channelId] = channel
-    return acc
-  }, {} as Record<string, ChannelMetadata>)
-
-  const getChannelId = useCallback((item: YouTubeSearchResult): string => {
-    return item.id?.channelId ?? ""
+  const getChannelId = useCallback((item: ChannelMetadata): string => {
+    return item.channelId
   }, [])
 
-  const getChannelTitle = useCallback((item: YouTubeSearchResult): string => {
-    return item.snippet?.channelTitle ?? ""
+  const getChannelTitle = useCallback((item: ChannelMetadata): string => {
+    return item.channelTitle
   }, [])
 
   const getChannelThumbnail = useCallback(
-    (item: YouTubeSearchResult): string => {
-      return (
-        item.snippet?.thumbnails?.medium?.url
-        ?? item.snippet?.thumbnails?.default?.url
-        ?? ""
-      )
+    (item: ChannelMetadata): string => {
+      return item.channelThumbnailUrl
     },
     [],
-  )
-
-  const getChannelInfo = useCallback(
-    (channelId: string): ChannelInfo => {
-      // Use pre-fetched channel details if available
-      if (channelDetailsMap[channelId]) {
-        return {
-          videoCount: channelDetailsMap[channelId].videoCount,
-        }
-      }
-
-      // Fallback to default values
-      return {
-        videoCount: 0,
-      }
-    },
-    [channelDetailsMap],
   )
 
   const handleSubscriptionToggle = useCallback(
@@ -144,6 +111,10 @@ const ChannelList = ({
     [user, subscriptionStatus, items, getChannelId, getChannelTitle, showToast, t],
   )
 
+  const handleChannelClick = useCallback((channelId: string) => {
+    navigate({ to: `/app/channels/${channelId}` })
+  }, [navigate])
+
   // Load subscription status when component mounts
   useEffect(() => {
     const loadSubscriptionStatus = async () => {
@@ -175,15 +146,8 @@ const ChannelList = ({
     getChannelId,
   ])
 
-  // Sort channels by video count (highest first)
-  const sortedItems = [...items].sort((a, b) => {
-    const channelIdA = getChannelId(a)
-    const channelIdB = getChannelId(b)
-    const channelInfoA = getChannelInfo(channelIdA)
-    const channelInfoB = getChannelInfo(channelIdB)
-
-    return channelInfoB.videoCount - channelInfoA.videoCount
-  })
+  // No sorting needed since we don't have video count anymore
+  const sortedItems = [...items]
 
   return (
     <section
@@ -216,26 +180,19 @@ const ChannelList = ({
             const channelId = getChannelId(item)
             const channelTitle = getChannelTitle(item)
             const channelThumbnail = getChannelThumbnail(item)
-            const channelInfo = getChannelInfo(channelId)
             const isSubscribed = subscriptionStatus[channelId] ?? false
             const isLoading = loadingChannels[channelId] ?? false
 
             return (
               <li
-                key={item.etag}
+                key={channelId}
                 className="relative group"
               >
                 <div
-                  className="w-full text-left p-3 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 border border-gray-700/50 hover:border-indigo-500/30 cursor-pointer"
-                  onClick={() => onSelect(channelId)}
+                  className="w-full text-left p-3 bg-linear-to-br from-gray-800 to-gray-900 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 border border-gray-700/50 hover:border-indigo-500/30 cursor-pointer"
+                  onClick={() => handleChannelClick(channelId)}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      onSelect(channelId)
-                    }
-                  }}
                   aria-label={`View channel ${channelTitle}`}
                 >
                   <div className="flex items-center space-x-3">
@@ -250,7 +207,7 @@ const ChannelList = ({
                         }}
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shrink-0 ring-2 ring-gray-600 group-hover:ring-indigo-500 transition-all duration-300">
+                      <div className="w-12 h-12 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shrink-0 ring-2 ring-gray-600 group-hover:ring-indigo-500 transition-all duration-300">
                         {channelTitle.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -258,11 +215,6 @@ const ChannelList = ({
                       <h3 className="text-base font-semibold text-white truncate group-hover:text-indigo-300 transition-colors duration-200">
                         {channelTitle || "Unknown Channel"}
                       </h3>
-                      <p className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-200">
-                        {channelInfo
-                          ? `${channelInfo.videoCount.toLocaleString()} videos`
-                          : "Loading channel info..."}
-                      </p>
                     </div>
                     <div className="shrink-0">
                       <button
@@ -273,8 +225,8 @@ const ChannelList = ({
                           isLoading
                             ? "bg-gray-500 cursor-not-allowed"
                             : isSubscribed
-                            ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-green-500/25"
-                            : "bg-gradient-to-r from-gray-600 to-gray-700 hover:from-indigo-500 hover:to-indigo-600 shadow-md hover:shadow-indigo-500/25 group-hover:scale-105"
+                            ? "bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-green-500/25"
+                            : "bg-linear-to-r from-gray-600 to-gray-700 hover:from-indigo-500 hover:to-indigo-600 shadow-md hover:shadow-indigo-500/25 group-hover:scale-105"
                         }`}
                         aria-label={
                           isLoading
