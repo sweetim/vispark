@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "deno.window"
+    ]
+  },
+  "lint": {
+    "rules": {
+      "tags": [
+        "recommended"
+      ]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": [
+        "*.ts"
+      ]
+    }
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts"
+  },
+  "imports": {
+    "supabase": "https://esm.sh/@supabase/supabase-js@2"
+  }
+}

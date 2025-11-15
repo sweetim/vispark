@@ -16,9 +16,6 @@ const buildHeaders = (): HeadersInit => ({
 
 type YouTubeSearchRequestPayload = {
   query: string
-  type?: "channel" | "video"
-  maxResults?: number
-  order?: "relevance" | "date" | "rating" | "title" | "videoCount" | "viewCount"
 }
 
 type YouTubeSearchResponse = {
@@ -77,8 +74,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  const { query, type = "channel", maxResults = 25, order = "videoCount" } = (payload
-    ?? {}) as Partial<YouTubeSearchRequestPayload>
+  const { query } = (payload ?? {}) as Partial<YouTubeSearchRequestPayload>
+
+  // Set default values for the parameters
+  const type = "channel"
+  const maxResults = 25
+  const order = "videoCount"
 
   if (typeof query !== "string" || query.trim().length === 0) {
     return respondWith(
