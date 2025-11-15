@@ -82,7 +82,7 @@ const ChannelPage = () => {
   }) => {
     if (data.isLoading) {
       return (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="bg-gray-800/50 rounded-lg p-4 animate-pulse">
               <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
@@ -110,8 +110,8 @@ const ChannelPage = () => {
     }
 
     return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
           {data.items.map((item) => (
             <div
               key={item.id || item.videoId}
