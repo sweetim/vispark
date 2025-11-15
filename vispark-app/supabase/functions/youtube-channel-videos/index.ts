@@ -10,11 +10,7 @@ type Channel = {
   channelId: string
   title: string
   description: string
-  thumbnails: {
-    default: { url: string; width: number; height: number }
-    medium: { url: string; width: number; height: number }
-    high: { url: string; width: number; height: number }
-  }
+  thumbnails: string
   subscriberCount: number
   videoCount: number
   viewCount: number
@@ -26,11 +22,7 @@ type Video = {
   videoId: string
   title: string
   description: string
-  thumbnails: {
-    default: { url: string; width: number; height: number }
-    medium: { url: string; width: number; height: number }
-    high: { url: string; width: number; height: number }
-  }
+  thumbnails: string
   publishedAt: string
   defaultLanguage?: string
 }
@@ -184,7 +176,7 @@ const getChannelDetails = async (
     channelId,
     title: snippet.title,
     description: snippet.description || "",
-    thumbnails: snippet.thumbnails,
+    thumbnails: snippet.thumbnails.default.url,
     subscriberCount: parseInt(statistics.subscriberCount || "0", 10),
     videoCount: parseInt(statistics.videoCount || "0", 10),
     viewCount: parseInt(statistics.viewCount || "0", 10),
@@ -250,7 +242,7 @@ const getVideoDetailsBatch = async (
         videoId: item.id,
         title: snippet.title,
         description: snippet.description || "",
-        thumbnails: snippet.thumbnails,
+        thumbnails: snippet.thumbnails.standard.url,
         publishedAt: snippet.publishedAt,
         defaultLanguage: snippet.defaultLanguage,
       }

@@ -34,27 +34,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      channels: {
-        Row: {
-          channel_id: string
-          created_at: string
-          id: string
-          user_id: string | null
-        }
-        Insert: {
-          channel_id: string
-          created_at?: string
-          id?: string
-          user_id?: string | null
-        }
-        Update: {
-          channel_id?: string
-          created_at?: string
-          id?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       visparks: {
         Row: {
           created_at: string
@@ -136,6 +115,8 @@ export type Database = {
           renewal_error: string | null
           auto_renewal_enabled: boolean
           expires_at_buffer_days: number
+          channel_title: string | null
+          channel_thumbnail_url: string | null
         }
         Insert: {
           id?: string
@@ -154,6 +135,8 @@ export type Database = {
           renewal_error?: string | null
           auto_renewal_enabled?: boolean
           expires_at_buffer_days?: number
+          channel_title?: string | null
+          channel_thumbnail_url?: string | null
         }
         Update: {
           id?: string
@@ -172,6 +155,8 @@ export type Database = {
           renewal_error?: string | null
           auto_renewal_enabled?: boolean
           expires_at_buffer_days?: number
+          channel_title?: string | null
+          channel_thumbnail_url?: string | null
         }
         Relationships: []
       }

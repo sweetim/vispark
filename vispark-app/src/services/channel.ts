@@ -89,25 +89,6 @@ export const searchChannels = async (
 }
 
 /**
- * Get channel details from our database or fetch from YouTube API
- */
-export const getChannelDetails = async (
-  channelId: string,
-): Promise<ChannelMetadata> => {
-  const data = await makeAuthenticatedRequest<{
-    channels: ChannelMetadata[]
-  }>(`channel-details?id=${encodeURIComponent(channelId)}`, {
-    method: "GET",
-  })
-
-  if (!data?.channels || data.channels.length === 0) {
-    throw new Error("Channel not found.")
-  }
-
-  return data.channels[0]
-}
-
-/**
  * Get multiple channel details in a single batch request
  */
 export const getBatchChannelDetails = async (
@@ -184,11 +165,41 @@ export const getAllChannelVideos = async (
 /**
  * Subscribe to a channel
  */
-export const subscribeToChannel = async (channelId: string): Promise<void> => {
-  await makeAuthenticatedRequest<{ message: string }>("user-subscriptions", {
-    method: "POST",
-    body: JSON.stringify({ channelId }),
-  })
+export const subscribeToChannel = async (
+  channelId: string,
+  channelTitle: string,
+  channelThumbnailUrl: string,
+): Promise<void> => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    console.error("No session found when trying to subscribe to channel")
+    throw new Error("You must be logged in to subscribe to channels.")
+  }
+
+  console.log("Session found, user ID:", session.user.id)
+  console.log("Access token present:", session.access_token ? "Yes" : "No")
+
+  const { data, error } = await supabase.functions.invoke(
+    "youtube-push-subscribe",
+    {
+      body: { channelId, channelTitle, channelThumbnailUrl },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    },
+  )
+
+  if (error) {
+    console.error("YouTube push subscription error:", error)
+    throw new Error(
+      `Failed to subscribe to push notifications: ${error.message}`,
+    )
+  }
+
+  console.log("YouTube push subscription successful:", data)
 }
 
 /**
@@ -197,12 +208,26 @@ export const subscribeToChannel = async (channelId: string): Promise<void> => {
 export const unsubscribeFromChannel = async (
   channelId: string,
 ): Promise<void> => {
-  await makeAuthenticatedRequest<{ message: string }>(
-    `user-subscriptions/${encodeURIComponent(channelId)}`,
-    {
-      method: "DELETE",
-    },
-  )
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    throw new Error("You must be logged in to unsubscribe from channels.")
+  }
+
+  const { error } = await supabase
+    .from("youtube_push_subscriptions")
+    .delete()
+    .eq("channel_id", channelId)
+    .eq("user_id", session.user.id)
+
+  if (error) {
+    console.error("YouTube push unsubscription error:", error)
+    throw new Error(
+      `Failed to unsubscribe from push notifications: ${error.message}`,
+    )
+  }
 }
 
 /**
@@ -220,7 +245,7 @@ export const areChannelsSubscribed = async (
   }
 
   const { data, error } = await supabase
-    .from("channels")
+    .from("youtube_push_subscriptions")
     .select("channel_id")
     .eq("user_id", user.id)
     .in("channel_id", channelIds)
@@ -260,10 +285,10 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
     return []
   }
 
-  // Get the channel IDs from the database
+  // Get the channel subscriptions from the database
   const { data, error } = await supabase
-    .from("channels")
-    .select("channel_id, created_at")
+    .from("youtube_push_subscriptions")
+    .select("channel_id, channel_title, channel_thumbnail_url, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
@@ -279,63 +304,15 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
     return []
   }
 
-  // Extract channel IDs
-  const channelIds = data.map((channel) => channel.channel_id)
+  // Convert to ChannelMetadata format
+  const channels: ChannelMetadata[] = data.map((subscription) => ({
+    channelId: subscription.channel_id,
+    channelTitle: subscription.channel_title || "Unknown Channel",
+    channelThumbnailUrl: subscription.channel_thumbnail_url || "",
+    isSubscribed: true,
+  }))
 
-  if (channelIds.length === 0) {
-    console.log("No channel IDs to process")
-    return []
-  }
-
-  try {
-    // Fetch all channel details in a single batch request
-    const batchChannels = await getBatchChannelDetails(channelIds)
-
-    // Mark all channels as subscribed
-    const channels = batchChannels.map((channel) => ({
-      ...channel,
-      isSubscribed: true,
-    }))
-
-    return channels
-  } catch (error) {
-    console.error(
-      "Failed to fetch batch channel details, falling back to individual requests:",
-      error,
-    )
-
-    // Fallback to individual requests if batch fails
-    const channelPromises = data.map(async (channel) => {
-      try {
-        console.log(`Fetching details for channel ${channel.channel_id}`)
-        const channelDetails = await getChannelDetails(channel.channel_id)
-        console.log(
-          `Successfully fetched details for ${channel.channel_id}:`,
-          channelDetails,
-        )
-        return {
-          ...channelDetails,
-          isSubscribed: true,
-        }
-      } catch (error) {
-        console.error(
-          `Failed to fetch details for channel ${channel.channel_id}:`,
-          error,
-        )
-        // Return a basic channel object even if API call fails
-        return {
-          channelId: channel.channel_id,
-          channelTitle: "Unknown Channel",
-          channelThumbnailUrl: "",
-          isSubscribed: true,
-        }
-      }
-    })
-
-    const channels = await Promise.all(channelPromises)
-
-    return channels
-  }
+  return channels
 }
 
 /**
@@ -344,11 +321,65 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
 export const isChannelSubscribed = async (
   channelId: string,
 ): Promise<boolean> => {
-  const data = await makeAuthenticatedRequest<{
-    isSubscribed: boolean
-  }>(`user-subscriptions/${encodeURIComponent(channelId)}`, {
-    method: "GET",
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    return false
+  }
+
+  const { data, error } = await supabase
+    .from("youtube_push_subscriptions")
+    .select("id")
+    .eq("channel_id", channelId)
+    .eq("user_id", session.user.id)
+    .single()
+
+  if (error) {
+    console.error("Error checking push subscription status:", error)
+    return false
+  }
+
+  return !!data
+}
+
+/**
+ * Fetch YouTube channel details directly from YouTube API
+ */
+export const getYouTubeChannelDetails = async (
+  channelId: string,
+): Promise<{
+  channelId: string
+  channelName: string
+  videoCount: number
+  thumbnails: string
+  description: string
+  subscriberCount: number
+  customUrl: string
+}> => {
+  const { data, error } = await supabase.functions.invoke<{
+    channelId: string
+    channelName: string
+    videoCount: number
+    thumbnails: string
+    description: string
+    subscriberCount: number
+    customUrl: string
+  }>("youtube-channel-details", {
+    body: { channelId },
   })
 
-  return data?.isSubscribed ?? false
+  if (error) {
+    throw new Error(
+      error.message
+        ?? "Failed to fetch YouTube channel details. Please try again.",
+    )
+  }
+
+  if (!data) {
+    throw new Error("Failed to fetch YouTube channel details.")
+  }
+
+  return data
 }

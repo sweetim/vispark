@@ -5,8 +5,8 @@ import {
   type ChannelVideo,
   getAllChannelVideos,
   getBatchChannelDetails,
-  getChannelDetails,
   getSubscribedChannels,
+  getYouTubeChannelDetails,
   isChannelSubscribed,
   subscribeToChannel,
   unsubscribeFromChannel,
@@ -30,22 +30,6 @@ export const useSubscribedChannels = () => {
   console.log(data)
   return {
     channels: data || [],
-    isLoading,
-    error,
-    mutate,
-  }
-}
-
-// Hook for fetching channel details
-export const useChannelDetails = (channelId: string) => {
-  const { data, error, isLoading, mutate } = useSWR<ChannelMetadata>(
-    channelId ? `channel-details?channelId=${channelId}` : null,
-    channelId ? () => getChannelDetails(channelId) : null,
-    fetchConfig,
-  )
-
-  return {
-    channelDetails: data,
     isLoading,
     error,
     mutate,
@@ -106,7 +90,11 @@ export const useChannelVideos = (
 }
 
 // Hook for channel subscription management
-export const useChannelSubscriptionManager = (channelId: string) => {
+export const useChannelSubscriptionManager = (
+  channelId: string,
+  channelTitle?: string,
+  channelThumbnailUrl?: string,
+) => {
   const { isSubscribed, mutate: mutateSubscription } =
     useChannelSubscription(channelId)
   const { mutate: mutateChannels } = useSubscribedChannels()
@@ -118,7 +106,12 @@ export const useChannelSubscriptionManager = (channelId: string) => {
       if (isSubscribed) {
         await unsubscribeFromChannel(channelId)
       } else {
-        await subscribeToChannel(channelId)
+        if (!channelTitle || !channelThumbnailUrl) {
+          throw new Error(
+            "Channel title and thumbnail are required for subscription",
+          )
+        }
+        await subscribeToChannel(channelId, channelTitle, channelThumbnailUrl)
       }
 
       // Update local state immediately (optimistic update)
@@ -133,7 +126,14 @@ export const useChannelSubscriptionManager = (channelId: string) => {
       mutateSubscription(isSubscribed, false)
       throw error
     }
-  }, [channelId, isSubscribed, mutateSubscription, mutateChannels])
+  }, [
+    channelId,
+    channelTitle,
+    channelThumbnailUrl,
+    isSubscribed,
+    mutateSubscription,
+    mutateChannels,
+  ])
 
   return {
     isSubscribed,
@@ -172,30 +172,11 @@ export const useChannelSearch = (query: string, enabled = false) => {
       const { searchChannels } = await import("@/services/channel")
       const searchResults = await searchChannels(query)
 
-      // Extract channel IDs from search results
-      const channelIds = searchResults.map((result) => result.channelId)
-
-      // Fetch detailed channel information in batch
-      let detailedChannels: ChannelMetadata[] = []
-      if (channelIds.length > 0) {
-        try {
-          detailedChannels = await getBatchChannelDetails(channelIds)
-        } catch (error) {
-          console.error(
-            "Failed to fetch batch channel details for search results:",
-            error,
-          )
-          // Fallback to basic information from search results
-          detailedChannels = searchResults.map((result) => ({
-            channelId: result.channelId,
-            channelTitle: result.title,
-            channelThumbnailUrl: result.thumbnails,
-            isSubscribed: false, // Will be checked separately
-          }))
-        }
-      }
-
-      return detailedChannels
+      return searchResults.map((item) => ({
+        channelId: item.channelId,
+        channelTitle: item.channelTitle,
+        channelThumbnailUrl: item.thumbnails,
+      }))
     },
     {
       revalidateOnFocus: false,
@@ -207,6 +188,27 @@ export const useChannelSearch = (query: string, enabled = false) => {
 
   return {
     searchResults: data || [],
+    isLoading,
+    error,
+    mutate,
+  }
+}
+
+// Hook for fetching YouTube channel details directly from YouTube API
+export const useYouTubeChannelDetails = (channelId: string) => {
+  const { data, error, isLoading, mutate } = useSWR(
+    channelId ? `youtube-channel-details?channelId=${channelId}` : null,
+    channelId ? () => getYouTubeChannelDetails(channelId) : null,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 600000, // 10 minutes for YouTube channel details
+      errorRetryCount: 2,
+      errorRetryInterval: 5000,
+    },
+  )
+
+  return {
+    youtubeChannelDetails: data,
     isLoading,
     error,
     mutate,

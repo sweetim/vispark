@@ -1,137 +1,46 @@
-import { useCallback, useEffect, useState, useRef } from "react"
 import {
   Navigate,
   useNavigate,
   useParams,
 } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
-import VideoMetadataCard from "@/components/VideoMetadataCard"
-import CountBadge from "@/components/CountBadge"
-import { getAllChannelVideos } from "@/services/channel"
-import { useChannelSubscriptionManager, useChannelVideos, useChannelDetails } from "@/hooks/useChannels"
-import { useChannelVisparksWithMetadata } from "@/hooks/useVisparks"
+import { useChannelSubscriptionManager, useYouTubeChannelDetails } from "@/hooks/useChannels"
 import { useToast } from "@/contexts/ToastContext"
+import { useChannelVisparksWithMetadata } from "@/hooks/useVisparks"
+import { useYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
+import Expander from "@/components/Expander"
+import VideoMetadataCard from "@/components/VideoMetadataCard"
+import { useState } from "react"
 
 const ChannelPage = () => {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const { channelId: rawChannelId } = useParams({ from: '/app/channels/$channelId' })
   const { showToast } = useToast()
+  const navigate = useNavigate()
 
   const channelId = (rawChannelId ?? "").trim()
 
-  // Get channel details using the hook
-  const { channelDetails, isLoading: loadingChannelDetails } = useChannelDetails(channelId)
+  // State to track which expander is currently expanded
+  const [expandedSection, setExpandedSection] = useState<'libraries' | 'discover' | null>('libraries')
 
-  // SWR hooks for data
-  const { visparks, isLoading: loadingSavedVideos, error: savedVideosError } = useChannelVisparksWithMetadata(channelId)
-  const { isSubscribed, toggleSubscription } = useChannelSubscriptionManager(channelId)
-  const { nextPageToken } = useChannelVideos(channelId)
+  // Get YouTube channel details directly from YouTube API
+  const { youtubeChannelDetails,
+    isLoading: loadingYouTubeDetails, error: youtubeDetailsError } = useYouTubeChannelDetails(channelId)
 
-  // State for non-Vispark videos section
-  const [nonVisparkVideos, setNonVisparkVideos] = useState<Array<{
-    videoId: string
-    title: string
-    thumbnails: {
-      default: { url: string }
-      medium?: { url: string }
-      high: { url: string }
-    }
-    publishedAt: string
-  }>>([])
-  const [loadingNonVisparkVideos, setLoadingNonVisparkVideos] = useState(false)
-  const [nonVisparkVideosError, setNonVisparkVideosError] = useState<string | null>(null)
-  const [hasMoreVideos, setHasMoreVideos] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const isLoading = loadingYouTubeDetails
 
-  // State for expandable sections
-  const [isLibraryExpanded, setIsLibraryExpanded] = useState(true)
-  const [isNonVisparkExpanded, setIsNonVisparkExpanded] = useState(false)
+  // Extract display values from YouTube API
+  const channelName = youtubeChannelDetails?.channelName || ""
+  const channelThumbnail = youtubeChannelDetails?.thumbnails || ""
+  const videoCount = youtubeChannelDetails?.videoCount || 0
+  const subscriberCount = youtubeChannelDetails?.subscriberCount
 
-  // Transform visparks to match expected format
-  const savedVideos = visparks.map(vispark => ({
-    videoId: vispark.videoId,
-    title: vispark.metadata.title,
-    channelId: vispark.metadata.channelId,
-    channelTitle: vispark.metadata.channelTitle,
-    thumbnails: vispark.metadata.thumbnails,
-    summaries: vispark.summaries,
-    created_at: vispark.createdTime,
-  }))
-
-  // Filter out videos that already have summaries
-
-  const fetchNonVisparkVideos = useCallback(async (reset: boolean = true) => {
-    if (reset) {
-      setLoadingNonVisparkVideos(true)
-      setNonVisparkVideosError(null)
-      setNonVisparkVideos([])
-      setHasMoreVideos(true)
-    } else {
-      setIsLoadingMore(true)
-    }
-
-    try {
-      let currentPageToken = reset ? undefined : nextPageToken
-      let allNewVideos: Array<{
-        videoId: string
-        title: string
-        thumbnails: {
-          default: { url: string }
-          medium?: { url: string }
-          high: { url: string }
-        }
-        publishedAt: string
-      }> = []
-
-      // Keep fetching until we find at least 10 videos without summaries or run out of pages
-      while (allNewVideos.length < 10 && currentPageToken !== null) {
-        const result = await getAllChannelVideos(channelId, currentPageToken, 50)
-
-        // Filter out videos that already have summaries and transform to match our state structure
-        const newVideos = result.videos
-          .filter(video => !video.hasSummary)
-          .map(video => ({
-            videoId: video.videoId,
-            title: video.title,
-            thumbnails: video.thumbnails,
-            publishedAt: video.publishedAt,
-          }))
-
-        allNewVideos = [...allNewVideos, ...newVideos]
-        currentPageToken = result.nextPageToken
-
-        // If we found enough videos or there's no more pages, break
-        if (allNewVideos.length >= 10 || !currentPageToken) {
-          break
-        }
-      }
-
-      // Limit to 10 videos for display
-      const videosToAdd = allNewVideos.slice(0, 10)
-
-      if (reset) {
-        setNonVisparkVideos(videosToAdd)
-      } else {
-        setNonVisparkVideos(prev => [...prev, ...videosToAdd])
-      }
-
-      // Note: setNextPageToken is not needed as we're using SWR's mutate
-      setHasMoreVideos(currentPageToken !== null)
-    } catch (error) {
-      console.error("Failed to fetch non-Vispark videos:", error)
-      setNonVisparkVideosError(
-        error instanceof Error ? error.message : "Failed to fetch channel videos",
-      )
-    } finally {
-      if (reset) {
-        setLoadingNonVisparkVideos(false)
-      } else {
-        setIsLoadingMore(false)
-      }
-    }
-  }, [channelId, nextPageToken])
+  // Get subscription manager with channel details
+  const { isSubscribed, toggleSubscription } = useChannelSubscriptionManager(
+    channelId,
+    channelName,
+    channelThumbnail
+  )
 
   const handleSubscriptionToggle = async () => {
     try {
@@ -149,42 +58,90 @@ const ChannelPage = () => {
     }
   }
 
-  // Fetch non-Vispark videos when section is expanded
-  useEffect(() => {
-    if (channelId.length > 0 && isNonVisparkExpanded && nonVisparkVideos.length === 0) {
-      void fetchNonVisparkVideos(true)
+  // Unified Content Component for both Libraries and Discover
+  const ContentGrid = ({
+    data,
+    emptyMessage,
+    errorMessage
+  }: {
+    data: {
+      items: Array<{
+        id?: string
+        videoId: string
+        title: string
+        channelTitle: string
+        thumbnail: string
+        createdTime: string | undefined
+        isNewFromCallback?: boolean
+      }>
+      isLoading: boolean
+      error: any
     }
-  }, [channelId, isNonVisparkExpanded, fetchNonVisparkVideos, nonVisparkVideos.length])
-
-  // Infinite scroll implementation
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!scrollContainerRef.current || !hasMoreVideos || isLoadingMore || !isNonVisparkExpanded) {
-        return
-      }
-
-      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current
-      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight
-
-      // Load more when user scrolls to 80% of the content
-      if (scrollPercentage > 0.8) {
-        void fetchNonVisparkVideos(false)
-      }
+    emptyMessage: string
+    errorMessage: string
+  }) => {
+    if (data.isLoading) {
+      return (
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-gray-800/50 rounded-lg p-4 animate-pulse">
+              <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-700 rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+      )
     }
 
-    const scrollContainer = scrollContainerRef.current
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll)
-      return () => {
-        scrollContainer.removeEventListener('scroll', handleScroll)
-      }
+    if (data.error) {
+      return (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+          <p className="text-red-400">{errorMessage}: {data.error.message}</p>
+        </div>
+      )
     }
-  }, [hasMoreVideos, isLoadingMore, isNonVisparkExpanded, fetchNonVisparkVideos])
 
-  const hasSavedVideos = savedVideos.length > 0
-  const hasNonVisparkVideos = nonVisparkVideos.length > 0
+    if (data.items.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-gray-400">{emptyMessage}</p>
+        </div>
+      )
+    }
 
-  if (channelId.length === 0) {
+    return (
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {data.items.map((item) => (
+            <div
+              key={item.id || item.videoId}
+              className="group relative transform transition-all duration-300 hover:scale-105"
+            >
+              <div className="absolute -inset-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
+              <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
+                <VideoMetadataCard
+                  metadata={{
+                    videoId: item.videoId,
+                    title: item.title,
+                    channelId: channelId,
+                    channelTitle: item.channelTitle,
+                    thumbnails: item.thumbnail,
+                  }}
+                  createdTime={item.createdTime}
+                  isNewFromCallback={item.isNewFromCallback || false}
+                  onClick={() =>
+                    navigate({ to: `/app/videos/${item.videoId}` })
+                  }
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+    if (channelId.length === 0) {
     return (
       <Navigate
         to="/app/channels"
@@ -194,9 +151,9 @@ const ChannelPage = () => {
   }
 
   return (
-    <div ref={scrollContainerRef} className="w-full max-w-3xl h-full space-y-2 overflow-y-auto">
+    <div className="w-full max-w-3xl h-full space-y-2 overflow-y-auto">
       {/* Channel Header */}
-      {loadingChannelDetails ? (
+      {isLoading ? (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center space-x-4">
@@ -209,28 +166,33 @@ const ChannelPage = () => {
             <div className="w-10 h-10 bg-gray-700 rounded-full animate-pulse"></div>
           </div>
         </div>
-      ) : channelDetails ? (
+      ) : channelName ? (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center space-x-4">
               <img
-                src={channelDetails.channelThumbnailUrl}
-                alt={channelDetails.channelTitle}
+                src={channelThumbnail}
+                alt={channelName}
                 className="w-12 h-12 rounded-full object-cover"
               />
               <div>
                 <h1 className="text-xl font-semibold text-white">
-                  {channelDetails.channelTitle}
+                  {channelName}
                 </h1>
                 <p className="text-sm text-gray-400">
-                  {channelDetails.videoCount?.toLocaleString() || 0} videos
+                  {videoCount.toLocaleString()} videos
+                  {subscriberCount && (
+                    <span className="ml-2">
+                      • {subscriberCount.toLocaleString()} subscribers
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
             <button
               type="button"
               onClick={handleSubscriptionToggle}
-              disabled={false} // Loading state managed by SWR hook
+              disabled={false}
               className={`p-2 rounded-lg transition-colors ${
                 isSubscribed
                   ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
@@ -238,9 +200,7 @@ const ChannelPage = () => {
               }`}
               title={isSubscribed ? t("channels.unsubscribe") : t("channels.subscribe")}
             >
-              {false ? ( // Loading state managed by SWR hook
-                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-              ) : isSubscribed ? (
+              {isSubscribed ? (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <title>{t("channels.unsubscribe")}</title>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -255,271 +215,68 @@ const ChannelPage = () => {
             </button>
           </div>
         </div>
+      ) : youtubeDetailsError ? (
+        <div className="glass-effect border-b border-gray-800 px-6 py-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+              <h3 className="text-red-400 font-medium mb-2">
+                {t("channels.errorLoadingChannel")}
+              </h3>
+              <p className="text-red-300/80 text-sm">{youtubeDetailsError.message}</p>
+            </div>
+          </div>
+        </div>
       ) : null}
 
-      {/* Libraries Section */}
-      <div className="space-y-3">
-        <div
-          className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
-          onClick={() => {
-            setIsLibraryExpanded(!isLibraryExpanded)
-            if (!isLibraryExpanded) {
-              setIsNonVisparkExpanded(false)
-            }
-          }}
+      {/* Libraries and Discover Expanders */}
+      <div className="space-y-2">
+        {/* Libraries Expander */}
+        <Expander
+          title="Libraries"
+          isExpanded={expandedSection === 'libraries'}
+          onToggle={() => setExpandedSection(expandedSection === 'libraries' ? null : 'libraries')}
         >
-          <div className="flex items-center space-x-3">
-            <div className={`transform transition-transform duration-200 ${isLibraryExpanded ? 'rotate-90' : ''}`}>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-white">{t("channels.libraries")}</h2>
-          </div>
-          {hasSavedVideos && (
-            <CountBadge count={savedVideos.length} />
-          )}
-        </div>
+          <ContentGrid
+            data={{
+              items: useChannelVisparksWithMetadata(channelId).visparks.map(vispark => ({
+                id: vispark.id,
+                videoId: vispark.videoId,
+                title: vispark.metadata.title,
+                channelTitle: vispark.metadata.channelTitle || '',
+                thumbnail: vispark.metadata.thumbnails || '',
+                createdTime: vispark.publishedAt || '',
+                isNewFromCallback: vispark.isNewFromCallback
+              })),
+              isLoading: useChannelVisparksWithMetadata(channelId).isLoading,
+              error: useChannelVisparksWithMetadata(channelId).error
+            }}
+            emptyMessage="No vispark summaries found for this channel."
+            errorMessage="Error loading libraries"
+          />
+        </Expander>
 
-        {isLibraryExpanded && (
-          <div className="space-y-4 pl-4">
-
-        {/* Loading State for Saved Videos */}
-        {loadingSavedVideos && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-indigo-500/30 rounded-full"></div>
-              <div className="w-16 h-16 border-4 border-indigo-500 rounded-full animate-spin border-t-transparent absolute top-0 left-0"></div>
-            </div>
-            <p className="mt-4 text-gray-400 font-medium">
-              {t("channels.loadingVideoLibrary")}
-            </p>
-          </div>
-        )}
-
-        {/* Error State for Saved Videos */}
-        {savedVideosError && (
-          <div className="relative overflow-hidden bg-red-500/10 backdrop-blur-sm border border-red-500/30 rounded-xl p-6">
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-red-500 to-pink-500"></div>
-            <div className="flex items-start space-x-3">
-              <div className="shrink-0 w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
-                <span className="text-red-400 text-sm">!</span>
-              </div>
-              <div>
-                <h3 className="text-red-400 font-medium mb-1">
-                  {t("channels.errorLoadingVideos")}
-                </h3>
-                <p className="text-red-300/80 text-sm">{savedVideosError}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Saved Videos Grid */}
-        {!loadingSavedVideos && !savedVideosError && hasSavedVideos && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {savedVideos.map((video) => (
-              <div
-                key={video.videoId}
-                className="group relative transform transition-all duration-300 hover:scale-105"
-              >
-                <div className="absolute -inset-1 bg-linear-to-r from-indigo-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
-                <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
-                  <VideoMetadataCard
-                    metadata={{
-                      videoId: video.videoId,
-                      title: video.title,
-                      channelId: video.channelId,
-                      channelTitle: video.channelTitle,
-                      thumbnails: {
-                        default: video.thumbnails.default,
-                        medium:
-                          video.thumbnails.medium || video.thumbnails.default,
-                        high: video.thumbnails.high,
-                      },
-                    }}
-                    createdTime={video.created_at}
-                    onClick={() =>
-                      navigate({ to: `/app/videos/${video.videoId}` })
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Empty State for Saved Videos */}
-        {!loadingSavedVideos && !savedVideosError && !hasSavedVideos && (
-          <div className="relative overflow-hidden bg-gray-800/30 backdrop-blur-sm border border-dashed border-gray-700 rounded-2xl p-12 text-center">
-            <div className="absolute inset-0 bg-linear-to-br from-indigo-500/5 to-purple-500/5"></div>
-            <div className="relative">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-700/50 flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <title>Video Library Icon</title>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                {t("channels.noVideosInLibrary")}
-              </h3>
-              <p className="text-gray-400 max-w-md mx-auto">
-                {channelDetails
-                  ? t("channels.startBuildingCollection", { channel: channelDetails.channelTitle })
-                  : t("channels.searchChannelsAddVideos")}
-              </p>
-            </div>
-          </div>
-        )}
-          </div>
-        )}
-      </div>
-
-      {/* Non-Vispark Videos Section */}
-      <div className="space-y-3">
-        <div
-          className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
-          onClick={() => {
-            setIsNonVisparkExpanded(!isNonVisparkExpanded)
-            if (!isNonVisparkExpanded) {
-              setIsLibraryExpanded(false)
-            }
-          }}
+        {/* Discover Expander */}
+        <Expander
+          title="Discover"
+          isExpanded={expandedSection === 'discover'}
+          onToggle={() => setExpandedSection(expandedSection === 'discover' ? null : 'discover')}
         >
-          <div className="flex items-center space-x-3">
-            <div className={`transform transition-transform duration-200 ${isNonVisparkExpanded ? 'rotate-90' : ''}`}>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-white">{t("channels.discoverVideos")}</h2>
-          </div>
-        </div>
-
-        {isNonVisparkExpanded && (
-          <div className="space-y-4 pl-4">
-            {/* Loading State for Non-Vispark Videos */}
-            {loadingNonVisparkVideos && (
-              <div className="flex flex-col items-center justify-center py-16">
-                <div className="relative">
-                  <div className="w-16 h-16 border-4 border-purple-500/30 rounded-full"></div>
-                  <div className="w-16 h-16 border-4 border-purple-500 rounded-full animate-spin border-t-transparent absolute top-0 left-0"></div>
-                </div>
-                <p className="mt-4 text-gray-400 font-medium">
-                  {t("channels.loadingChannelVideos")}
-                </p>
-              </div>
-            )}
-
-            {/* Error State for Non-Vispark Videos */}
-            {nonVisparkVideosError && (
-              <div className="relative overflow-hidden bg-red-500/10 backdrop-blur-sm border border-red-500/30 rounded-xl p-6">
-                <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-red-500 to-pink-500"></div>
-                <div className="flex items-start space-x-3">
-                  <div className="shrink-0 w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
-                    <span className="text-red-400 text-sm">!</span>
-                  </div>
-                  <div>
-                    <h3 className="text-red-400 font-medium mb-1">
-                      {t("channels.errorLoadingVideos")}
-                    </h3>
-                    <p className="text-red-300/80 text-sm">{nonVisparkVideosError}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Non-Vispark Videos Grid with Virtual Scrolling */}
-            {!loadingNonVisparkVideos && !nonVisparkVideosError && hasNonVisparkVideos && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {nonVisparkVideos.map((video) => (
-                    <div
-                      key={video.videoId}
-                      className="group relative transform transition-all duration-300 hover:scale-105"
-                    >
-                      <div className="absolute -inset-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
-                      <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
-                        <VideoMetadataCard
-                          metadata={{
-                            videoId: video.videoId,
-                            title: video.title,
-                            channelId: channelId,
-                            channelTitle: channelDetails?.channelTitle || '',
-                            thumbnails: {
-                              default: video.thumbnails.default,
-                              medium:
-                                video.thumbnails.medium || video.thumbnails.default,
-                              high: video.thumbnails.high,
-                            },
-                          }}
-                          createdTime={video.publishedAt}
-                          onClick={() =>
-                            navigate({ to: `/app/videos/${video.videoId}` })
-                          }
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Loading More Indicator */}
-                {isLoadingMore && (
-                  <div className="flex justify-center pt-4">
-                    <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                )}
-
-                {!hasMoreVideos && nonVisparkVideos.length > 0 && (
-                  <div className="text-center py-4 text-gray-400">
-                    <p>{t("channels.noMoreVideosToLoad")}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Empty State for Non-Vispark Videos */}
-            {!loadingNonVisparkVideos && !nonVisparkVideosError && !hasNonVisparkVideos && (
-              <div className="relative overflow-hidden bg-gray-800/30 backdrop-blur-sm border border-dashed border-gray-700 rounded-2xl p-12 text-center">
-                <div className="absolute inset-0 bg-linear-to-br from-purple-500/5 to-pink-500/5"></div>
-                <div className="relative">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-700/50 flex items-center justify-center">
-                    <svg
-                      className="w-10 h-10 text-gray-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <title>Discover Videos Icon</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    {t("channels.noNewVideosToDiscover")}
-                  </h3>
-                  <p className="text-gray-400 max-w-md mx-auto">
-                    {t("channels.allVideosSummarized", { channel: channelDetails?.channelTitle || t("common.unknown") })}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+          <ContentGrid
+            data={{
+              items: useYouTubeChannelVideos(channelId).videos.map(video => ({
+                videoId: video.videoId,
+                title: video.title,
+                channelTitle: youtubeChannelDetails?.channelName || '',
+                thumbnail: video.thumbnails,
+                createdTime: video.publishedAt
+              })),
+              isLoading: useYouTubeChannelVideos(channelId).isLoading,
+              error: useYouTubeChannelVideos(channelId).error
+            }}
+            emptyMessage="No videos with vispark summaries found for this channel."
+            errorMessage="Error loading videos"
+          />
+        </Expander>
       </div>
     </div>
   )

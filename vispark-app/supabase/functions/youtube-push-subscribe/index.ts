@@ -17,6 +17,8 @@ const buildHeaders = (): HeadersInit => ({
 
 type PushSubscribeRequestPayload = {
   channelId: string
+  channelTitle: string
+  channelThumbnailUrl: string
 }
 
 type PushSubscribeSuccessResponse = {
@@ -119,7 +121,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  const { channelId } = (payload ?? {}) as Partial<PushSubscribeRequestPayload>
+  const { channelId, channelTitle, channelThumbnailUrl } = (payload ?? {}) as PushSubscribeRequestPayload
 
   if (typeof channelId !== "string" || channelId.trim().length === 0) {
     return respondWith(
@@ -127,6 +129,28 @@ Deno.serve(async (req: Request): Promise<Response> => {
         success: false,
         error: "Missing fields",
         message: "The request body must include a non-empty channelId.",
+      },
+      400,
+    )
+  }
+
+  if (typeof channelTitle !== "string" || channelTitle.trim().length === 0) {
+    return respondWith(
+      {
+        success: false,
+        error: "Missing fields",
+        message: "The request body must include a non-empty channelTitle.",
+      },
+      400,
+    )
+  }
+
+  if (typeof channelThumbnailUrl !== "string" || channelThumbnailUrl.trim().length === 0) {
+    return respondWith(
+      {
+        success: false,
+        error: "Missing fields",
+        message: "The request body must include a non-empty channelThumbnailUrl.",
       },
       400,
     )
@@ -266,6 +290,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
         lease_seconds: leaseSeconds,
         expires_at: expiresAt,
         callback_url: callbackUrl,
+        channel_title: channelTitle,
+        channel_thumbnail_url: channelThumbnailUrl,
       })
 
     if (insertError) {

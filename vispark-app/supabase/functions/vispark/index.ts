@@ -26,7 +26,7 @@ type VisparkRequestPayload = {
     title?: string
     description?: string
     channelTitle?: string
-    thumbnails?: any
+    thumbnails?: string
     publishedAt?: string
     duration?: string
     defaultLanguage?: string
@@ -42,7 +42,7 @@ type VisparkInsert = {
   video_title?: string
   video_description?: string
   video_channel_title?: string
-  video_thumbnails?: any
+  video_thumbnails?: string
   video_published_at?: string
   video_duration?: string
   video_default_language?: string

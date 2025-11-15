@@ -1,34 +1,20 @@
 import { formatDistanceToNow } from "date-fns"
 import { decodeHtmlEntities } from "@/utils"
 import { useTranslation } from "react-i18next"
-import type { VideoMetadata } from "@/services/vispark.ts"
 
 type VideoMetadataCardProps = {
-  metadata: VideoMetadata
+  metadata: {
+    videoId: string
+    title: string,
+    channelId: string,
+    channelTitle: string,
+    thumbnails: string
+  }
   className?: string
   onClick?: () => void
   isActive?: boolean
   createdTime?: string
   isNewFromCallback?: boolean
-}
-
-type ThumbnailShape = {
-  url: string
-}
-
-type ThumbnailsShape = {
-  default?: ThumbnailShape
-  medium?: ThumbnailShape
-  high?: ThumbnailShape
-}
-
-function selectBestThumbnailAddress(thumbnails?: ThumbnailsShape): string | null {
-  return (
-    thumbnails?.high?.url
-    ?? thumbnails?.medium?.url
-    ?? thumbnails?.default?.url
-    ?? null
-  )
 }
 
 function formatRelativeTime(createdTime?: string): string {
@@ -57,7 +43,6 @@ export default function VideoMetadataCard({
   isNewFromCallback,
 }: VideoMetadataCardProps) {
   const { t } = useTranslation()
-  const imageAddress = selectBestThumbnailAddress(metadata.thumbnails)
   const videoAddress = `https://www.youtube.com/watch?v=${metadata.videoId}`
   const baseClasses =
     "relative block aspect-video w-full overflow-hidden rounded-xl border border-gray-700 bg-gray-800 shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:ring-offset-2 focus:ring-offset-gray-900 transition-transform duration-200 hover:scale-[1.002]"
@@ -68,9 +53,9 @@ export default function VideoMetadataCard({
 
   const content = (
     <>
-      {imageAddress && (
+      {metadata.thumbnails && (
         <img
-          src={imageAddress}
+          src={metadata.thumbnails}
           alt={`${decodeHtmlEntities(metadata.title)} — ${decodeHtmlEntities(metadata.channelTitle)}`}
           className="absolute inset-0 h-full w-full object-cover"
         />
