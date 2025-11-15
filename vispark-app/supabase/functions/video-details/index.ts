@@ -425,7 +425,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         // First check if video metadata exists in the database
         const { data: existingVispark } = await supabase
           .from("visparks")
-          .select("video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language")
+          .select("video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_default_language")
           .eq("video_id", videoId!)
           .single()
 
@@ -441,7 +441,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
             channelTitle: existingVispark.video_channel_title || "",
             channelThumbnailUrl: "", // We don't store this in visparks table
             publishedAt: existingVispark.video_published_at || "",
-            duration: existingVispark.video_duration || "",
             viewCount: 0, // We don't store these in visparks table
             likeCount: 0,
             commentCount: 0,
@@ -472,7 +471,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
               video_channel_title: videoData.channelTitle,
               video_thumbnails: videoData.thumbnails,
               video_published_at: videoData.publishedAt,
-              video_duration: videoData.duration,
               video_default_language: videoData.defaultLanguage,
             }, {
               onConflict: 'video_id'
@@ -491,7 +489,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         // First check which videos have metadata in the database
         const { data: existingVisparks } = await supabase
           .from("visparks")
-          .select("video_id, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language")
+          .select("video_id, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_default_language")
           .in("video_id", videoIds!)
 
         const existingVisparksMap = new Map()
@@ -515,7 +513,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
               description: existingVispark.video_description || "",
               channelTitle: existingVispark.video_channel_title || "",
               publishedAt: existingVispark.video_published_at || "",
-              duration: existingVispark.video_duration || "",
               thumbnails: existingVispark.video_thumbnails || {
                 default: { url: "", width: 0, height: 0 },
                 medium: { url: "", width: 0, height: 0 },
@@ -546,7 +543,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
             video_channel_title: video.channelTitle,
             video_thumbnails: video.thumbnails,
             video_published_at: video.publishedAt,
-            video_duration: video.duration,
             video_default_language: video.defaultLanguage,
           }))
 

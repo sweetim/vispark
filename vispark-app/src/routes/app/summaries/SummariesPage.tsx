@@ -1,10 +1,9 @@
 import { useMemo } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
-import { getBestThumbnailUrl } from "@/services/vispark.ts"
-import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 import { ChartBarIcon } from "@phosphor-icons/react"
 import CountBadge from "@/components/CountBadge"
+import { useVisparks } from "@/hooks/useVisparks"
 
 type ChannelGroupEntry = {
   id: string
@@ -13,7 +12,6 @@ type ChannelGroupEntry = {
   channelTitle: string
   channelId: string
   createdTime: string
-  publishedAt?: string
   thumbnailUrl: string
 }
 
@@ -93,40 +91,38 @@ const LoadingSkeleton = () => (
 const SummariesPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { visparks, isLoading, error } = useVisparksWithMetadata(200)
+  const { visparks, isLoading, error } = useVisparks()
 
   // Group visparks by channel
   const groups = useMemo(() => {
     const groupedMap = new Map<string, ChannelGroup>()
 
-    for (const vispark of visparks) {
-      const channelTitle = vispark.metadata.channelTitle
+    for (const item of visparks) {
+      const channelTitle = item.video_channel_title
       const existing = groupedMap.get(channelTitle)
 
       if (existing) {
         existing.entries.push({
-          id: vispark.id,
-          videoId: vispark.videoId,
-          videoTitle: vispark.metadata.title,
-          channelTitle: vispark.metadata.channelTitle,
-          channelId: vispark.metadata.channelId,
-          createdTime: vispark.createdTime,
-          publishedAt: vispark.publishedAt,
-          thumbnailUrl: getBestThumbnailUrl(vispark.metadata.thumbnails) || fallbackThumbnailUrl(vispark.videoId),
+          id: item.id,
+          videoId: item.video_id,
+          videoTitle: item.video_title,
+          channelTitle: item.video_channel_title,
+          channelId: item.video_channel_id,
+          createdTime: item.created_at,
+          thumbnailUrl: item.video_thumbnails,
         })
       } else {
         groupedMap.set(channelTitle, {
-          channelTitle: vispark.metadata.channelTitle,
-          channelId: vispark.metadata.channelId,
+          channelTitle: item.video_channel_title,
+          channelId: item.video_channel_id,
           entries: [{
-            id: vispark.id,
-            videoId: vispark.videoId,
-            videoTitle: vispark.metadata.title,
-            channelTitle: vispark.metadata.channelTitle,
-            channelId: vispark.metadata.channelId,
-            createdTime: vispark.createdTime,
-            publishedAt: vispark.publishedAt,
-            thumbnailUrl: getBestThumbnailUrl(vispark.metadata.thumbnails) || fallbackThumbnailUrl(vispark.videoId),
+            id: item.id,
+            videoId: item.video_id,
+            videoTitle: item.video_title,
+            channelTitle: item.video_channel_title,
+            channelId: item.video_channel_id,
+            createdTime: item.created_at,
+            thumbnailUrl: item.video_thumbnails,
           }],
         })
       }
@@ -154,7 +150,7 @@ const SummariesPage = () => {
     let latestVideoUploadedIso: string | null = null
     for (const entry of allEntries) {
       // Use publishedAt if available, otherwise fall back to createdTime
-      const dateToUse = entry.publishedAt || entry.createdTime
+      const dateToUse = entry.createdTime
 
       const date = new Date(dateToUse)
       if (Number.isNaN(date.getTime())) {
@@ -275,7 +271,7 @@ const SummariesPage = () => {
                                 {entry.videoTitle}
                               </p>
                               <p className="text-xs text-gray-400">
-                                {formatRelativeToNow(entry.publishedAt || entry.createdTime)}
+                                {formatRelativeToNow(entry.createdTime)}
                               </p>
                             </div>
                           </button>

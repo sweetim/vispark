@@ -1,6 +1,6 @@
 import useSWR from "swr"
 import { supabase } from "@/config/supabaseClient"
-import { useChannelVisparksWithMetadata } from "@/hooks/useVisparks"
+import { useVisparksByChannel } from "@/hooks/useVisparks"
 
 export type YouTubeChannelVideo = {
   videoId: string
@@ -85,7 +85,7 @@ export const useVisparkVideos = (channelId: string) => {
     visparks,
     isLoading: loadingVisparks,
     error: visparksError,
-  } = useChannelVisparksWithMetadata(channelId)
+  } = useVisparksByChannel(channelId)
 
   // Get all channel videos
   const {
@@ -95,7 +95,7 @@ export const useVisparkVideos = (channelId: string) => {
   } = useYouTubeChannelVideos(channelId, undefined, 50)
 
   // Create a Set of video IDs that have vispark summaries for efficient lookup
-  const visparkVideoIds = new Set(visparks.map((vispark) => vispark.videoId))
+  const visparkVideoIds = new Set(visparks.map((vispark) => vispark.video_id))
 
   // Filter channel videos to only include those that have vispark summaries
   const videosWithSummaries = videos.filter((video) =>

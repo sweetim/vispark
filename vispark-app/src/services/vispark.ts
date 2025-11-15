@@ -42,27 +42,6 @@ export const fetchTranscript = async (
   return data
 }
 
-export const fetchSummary = async (
-  transcripts: TranscriptSegment[],
-): Promise<SummaryResult> => {
-  const { data: summaryData, error } =
-    await supabase.functions.invoke<SummaryResult>("summary", {
-      body: { transcripts },
-    })
-
-  if (error) {
-    throw new Error(
-      error.message ?? "Failed to fetch summary. Please try again.",
-    )
-  }
-
-  if (!summaryData) {
-    throw new Error("Unexpected response format from summary service.")
-  }
-
-  return summaryData
-}
-
 export const fetchSummaryStream = async (
   transcripts: TranscriptSegment[],
 ): Promise<ReadableStream<Uint8Array>> => {
@@ -108,97 +87,21 @@ export const formatTranscript = (segments: TranscriptSegment[]): string =>
     .filter((segment) => segment.length > 0)
     .join(" ")
 
-// YouTube Video Metadata (no abbreviations in identifiers)
-type YouTubeThumbnail = {
-  url: string
-  width?: number
-  height?: number
-}
-
-type YouTubeThumbnails = {
-  default: YouTubeThumbnail
-  medium: YouTubeThumbnail
-  high: YouTubeThumbnail
-  standard?: YouTubeThumbnail
-  maxres?: YouTubeThumbnail
-}
-
 // Normalized video metadata type that works for both YouTube API and Supabase DB
 export type VideoMetadata = {
   videoId: string
   title: string
   channelId: string
   channelTitle: string
-  thumbnails: YouTubeThumbnails
-  channelThumbnailUrl?: string
-  publishedAt?: string
-  duration?: string
-  viewCount?: number
-  likeCount?: number
-  commentCount?: number
-  description?: string
-  tags?: string[]
-  categoryId?: string
-  defaultLanguage?: string
-  defaultAudioLanguage?: string
-  hasSummary?: boolean
+  thumbnails: string
+  channelThumbnailUrl: string
+  publishedAt: string
+  description: string
+  categoryId: string
+  defaultLanguage: string
+  defaultAudioLanguage: string
+  hasSummary: boolean
 }
-
-// Type for metadata stored in Supabase visparks table
-export type VisparkVideoMetadata = {
-  videoId: string
-  title?: string
-  description?: string
-  channelTitle?: string
-  thumbnails?: YouTubeThumbnails
-  publishedAt?: string
-  duration?: string
-  defaultLanguage?: string
-}
-
-// Function to normalize metadata from Supabase to match VideoMetadata type
-export const normalizeVisparkMetadata = (
-  visparkMetadata: VisparkVideoMetadata,
-  fallbackMetadata?: Partial<VideoMetadata>,
-): VideoMetadata => {
-  return {
-    videoId: visparkMetadata.videoId,
-    title:
-      visparkMetadata.title
-      || fallbackMetadata?.title
-      || `Video ${visparkMetadata.videoId}`,
-    channelId: fallbackMetadata?.channelId || "",
-    channelTitle:
-      visparkMetadata.channelTitle
-      || fallbackMetadata?.channelTitle
-      || "Unknown Channel",
-    thumbnails: visparkMetadata.thumbnails
-      || fallbackMetadata?.thumbnails || {
-        default: { url: "" },
-        medium: { url: "" },
-        high: { url: "" },
-      },
-    channelThumbnailUrl: fallbackMetadata?.channelThumbnailUrl,
-    publishedAt: visparkMetadata.publishedAt || fallbackMetadata?.publishedAt,
-    duration: visparkMetadata.duration || fallbackMetadata?.duration,
-    viewCount: fallbackMetadata?.viewCount,
-    likeCount: fallbackMetadata?.likeCount,
-    commentCount: fallbackMetadata?.commentCount,
-    description: visparkMetadata.description || fallbackMetadata?.description,
-    tags: fallbackMetadata?.tags,
-    categoryId: fallbackMetadata?.categoryId,
-    defaultLanguage:
-      visparkMetadata.defaultLanguage || fallbackMetadata?.defaultLanguage,
-    defaultAudioLanguage: fallbackMetadata?.defaultAudioLanguage,
-    hasSummary: fallbackMetadata?.hasSummary,
-  }
-}
-
-export const getBestThumbnailUrl = (thumbnails?: YouTubeThumbnails): string =>
-  thumbnails?.high?.url
-  ?? thumbnails?.medium?.url
-  ?? thumbnails?.default?.url
-  ?? ""
 
 /**
  * Fetch video metadata (title, channel name, thumbnails) from the Supabase video-details function.
@@ -299,7 +202,6 @@ export const saveVispark = async (
               channelTitle: videoMetadata.channelTitle,
               thumbnails: videoMetadata.thumbnails,
               publishedAt: videoMetadata.publishedAt,
-              duration: videoMetadata.duration,
               defaultLanguage: videoMetadata.defaultLanguage,
             }
           : undefined,
@@ -323,17 +225,16 @@ export const saveVispark = async (
 export type VisparkRow = {
   id: string
   video_id: string
-  video_channel_id?: string
-  summaries: string[]
+  video_channel_id: string
+  summaries: string
   created_at: string
-  is_new_from_callback?: boolean
-  video_title?: string
-  video_description?: string
-  video_channel_title?: string
-  video_thumbnails?: any
-  video_published_at?: string
-  video_duration?: string
-  video_default_language?: string
+  is_new_from_callback: boolean
+  video_title: string
+  video_description: string
+  video_channel_title: string
+  video_thumbnails: string
+  video_published_at: string
+  video_default_language: string
 }
 
 /**
@@ -344,7 +245,7 @@ export const listVisparks = async (limit = 10): Promise<VisparkRow[]> => {
   const { data, error } = await supabase
     .from("visparks")
     .select(
-      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language",
+      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_default_language",
     )
     .order("created_at", { ascending: false })
     .limit(limit)
@@ -389,7 +290,7 @@ export const listVisparksByChannelId = async (
   const { data, error } = await supabase
     .from("visparks")
     .select(
-      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language",
+      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_default_language",
     )
     .eq("video_channel_id", videoChannelId)
     .order("created_at", { ascending: false })

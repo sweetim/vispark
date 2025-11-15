@@ -1,13 +1,12 @@
 import { useTranslation } from "react-i18next"
-import SummaryList from "@/components/SummaryList"
 import TranscriptView from "@/components/TranscriptView"
 
 type VideoContentProps = {
   view: "summary" | "transcript"
   hasSummary: boolean
   hasTranscript: boolean
-  summary: string[] | null
-  streamingSummary: string[]
+  summary: string | null
+  streamingSummary: string
   transcript: string
   isGenerating: boolean
   loading: boolean
@@ -37,8 +36,22 @@ const VideoContent = ({
 
   if (view === "summary" && (hasSummary || streamingSummary.length > 0)) {
     // Show streaming summary if available, otherwise show regular summary
-    const itemsToDisplay = streamingSummary.length > 0 ? streamingSummary : (summary ?? [])
-    return <SummaryList items={itemsToDisplay} isStreaming={streamingSummary.length > 0} />
+    const isStreaming = streamingSummary.length > 0
+    const summaryText = isStreaming ? streamingSummary : (summary ?? "")
+
+    return (
+      <div className={`text-sm leading-relaxed bg-gray-800 border border-gray-700 rounded-md p-4 ${isStreaming ? 'border-blue-500/30' : ''}`}>
+        <div className="whitespace-pre-wrap">
+          {summaryText}
+        </div>
+        {isStreaming && (
+          <div className="text-gray-400 animate-pulse mt-2">
+            <span className="inline-block w-2 h-4 bg-gray-400 rounded-full mr-2"></span>
+            Generating...
+          </div>
+        )}
+      </div>
+    )
   }
 
   if (view === "transcript" && hasTranscript) {

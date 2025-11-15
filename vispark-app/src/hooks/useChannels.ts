@@ -2,8 +2,6 @@ import { useCallback } from "react"
 import useSWR from "swr"
 import {
   type ChannelMetadata,
-  type ChannelVideo,
-  getAllChannelVideos,
   getBatchChannelDetails,
   getSubscribedChannels,
   getYouTubeChannelDetails,
@@ -27,7 +25,7 @@ export const useSubscribedChannels = () => {
     getSubscribedChannels,
     fetchConfig,
   )
-  console.log(data)
+
   return {
     channels: data || [],
     isLoading,
@@ -51,38 +49,6 @@ export const useChannelSubscription = (channelId: string) => {
 
   return {
     isSubscribed: data || false,
-    isLoading,
-    error,
-    mutate,
-  }
-}
-
-// Hook for channel videos with pagination
-export const useChannelVideos = (
-  channelId: string,
-  initialPageToken?: string,
-) => {
-  const { data, error, isLoading, mutate } = useSWR<{
-    videos: ChannelVideo[]
-    nextPageToken?: string
-  }>(
-    channelId
-      ? `channel-videos?channelId=${channelId}&pageToken=${initialPageToken || ""}`
-      : null,
-    channelId
-      ? () => getAllChannelVideos(channelId, initialPageToken, 50)
-      : null,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 120000, // 2 minutes for videos
-      errorRetryCount: 2,
-      errorRetryInterval: 3000,
-    },
-  )
-
-  return {
-    videos: data?.videos || [],
-    nextPageToken: data?.nextPageToken,
     isLoading,
     error,
     mutate,

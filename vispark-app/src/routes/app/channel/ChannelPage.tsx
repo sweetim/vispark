@@ -6,7 +6,7 @@ import {
 import { useTranslation } from "react-i18next"
 import { useChannelSubscriptionManager, useYouTubeChannelDetails } from "@/hooks/useChannels"
 import { useToast } from "@/contexts/ToastContext"
-import { useChannelVisparksWithMetadata } from "@/hooks/useVisparks"
+import { useVisparksByChannel } from "@/hooks/useVisparks"
 import { useYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
 import Expander from "@/components/Expander"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
@@ -130,7 +130,16 @@ const ChannelPage = () => {
                   createdTime={item.createdTime}
                   isNewFromCallback={item.isNewFromCallback || false}
                   onClick={() =>
-                    navigate({ to: `/app/videos/${item.videoId}` })
+                    navigate({
+                      to: `/app/videos/${item.videoId}`,
+                      search: {
+                        title: item.title,
+                        channelTitle: item.channelTitle,
+                        thumbnail: item.thumbnail,
+                        createdTime: item.createdTime,
+                        channelId: channelId
+                      }
+                    })
                   }
                 />
               </div>
@@ -238,17 +247,17 @@ const ChannelPage = () => {
         >
           <ContentGrid
             data={{
-              items: useChannelVisparksWithMetadata(channelId).visparks.map(vispark => ({
+              items: useVisparksByChannel(channelId).visparks.map(vispark => ({
                 id: vispark.id,
-                videoId: vispark.videoId,
-                title: vispark.metadata.title,
-                channelTitle: vispark.metadata.channelTitle || '',
-                thumbnail: vispark.metadata.thumbnails || '',
-                createdTime: vispark.publishedAt || '',
-                isNewFromCallback: vispark.isNewFromCallback
+                videoId: vispark.video_id,
+                title: vispark.video_title,
+                channelTitle: vispark.video_channel_title,
+                thumbnail: vispark.video_thumbnails,
+                createdTime: vispark.video_published_at,
+                isNewFromCallback: vispark.is_new_from_callback
               })),
-              isLoading: useChannelVisparksWithMetadata(channelId).isLoading,
-              error: useChannelVisparksWithMetadata(channelId).error
+              isLoading: useVisparksByChannel(channelId).isLoading,
+              error: useVisparksByChannel(channelId).error
             }}
             emptyMessage="No vispark summaries found for this channel."
             errorMessage="Error loading libraries"

@@ -28,7 +28,6 @@ type VisparkRequestPayload = {
     channelTitle?: string
     thumbnails?: string
     publishedAt?: string
-    duration?: string
     defaultLanguage?: string
   }
 }
@@ -44,7 +43,6 @@ type VisparkInsert = {
   video_channel_title?: string
   video_thumbnails?: string
   video_published_at?: string
-  video_duration?: string
   video_default_language?: string
 }
 
@@ -62,6 +60,12 @@ type VisparkSuccessResponse = {
   videoChannelId?: string
   summaries: string[]
   createdTime: string
+  videoTitle?: string
+  videoDescription?: string
+  videoChannelTitle?: string
+  videoThumbnails?: string
+  videoPublishedAt?: string
+  videoDefaultLanguage?: string
 }
 
 type VisparkErrorResponse = {
@@ -82,11 +86,111 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  if (req.method === "GET") {
+    // Handle GET request to retrieve vispark by videoId
+    const url = new URL(req.url)
+    const videoId = url.searchParams.get("videoId")
+
+    if (!videoId || videoId.trim().length === 0) {
+      return respondWith(
+        {
+          error: "Missing parameters",
+          message: "GET requests must include a non-empty videoId parameter.",
+        },
+        400,
+      )
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return respondWith(
+        {
+          error: "Server misconfiguration",
+          message:
+            "SUPABASE_URL or SUPABASE_ANON_KEY is not set. Configure them in your environment before calling this function.",
+        },
+        500,
+      )
+    }
+
+    // Forward the caller's JWT so RLS applies and we can read user identity
+    const authHeader = req.headers.get("Authorization") ?? ""
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      return respondWith(
+        {
+          error: "Unauthorized",
+          message: "You must be signed in to retrieve a vispark.",
+        },
+        401,
+      )
+    }
+
+    // Query the visparks table for the given videoId
+    const { data: vispark, error: fetchError } = await supabase
+      .from("visparks")
+      .select("id, video_id, video_channel_id, summaries, created_at, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_default_language")
+      .eq("video_id", videoId.trim())
+      .eq("user_id", user.id)
+      .single()
+
+    if (fetchError) {
+      console.error("Failed to fetch vispark:", fetchError)
+      return respondWith(
+        {
+          error: "Fetch failed",
+          message:
+            fetchError.message
+            ?? "Unable to retrieve vispark. Ensure the 'visparks' table exists and RLS policies allow reads for the authenticated user.",
+        },
+        502,
+      )
+    }
+
+    if (!vispark) {
+      return respondWith(
+        {
+          error: "Not found",
+          message: "No vispark found for the given videoId.",
+        },
+        404,
+      )
+    }
+
+    return respondWith(
+      {
+        id: String(vispark.id),
+        videoId: String(vispark.video_id),
+        videoChannelId: vispark.video_channel_id,
+        summaries: vispark.summaries,
+        createdTime: String(vispark.created_at),
+        videoTitle: vispark.video_title,
+        videoDescription: vispark.video_description,
+        videoChannelTitle: vispark.video_channel_title,
+        videoThumbnails: vispark.video_thumbnails,
+        videoPublishedAt: vispark.video_published_at,
+        videoDefaultLanguage: vispark.video_default_language,
+      },
+      200,
+    )
+  }
+
   if (req.method !== "POST") {
     return respondWith(
       {
         error: "Method Not Allowed",
-        message: "Only POST is supported.",
+        message: "Only GET and POST are supported.",
       },
       405,
     )
@@ -182,7 +286,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
     video_channel_title: videoMetadata?.channelTitle,
     video_thumbnails: videoMetadata?.thumbnails,
     video_published_at: videoMetadata?.publishedAt,
-    video_duration: videoMetadata?.duration,
     video_default_language: videoMetadata?.defaultLanguage,
   }
 
@@ -196,7 +299,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const { data: inserted, error: insertError } = await supabase
     .from("visparks")
     .insert(record)
-    .select("id, video_id, video_channel_id, summaries, created_at, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_duration, video_default_language")
+    .select("id, video_id, video_channel_id, summaries, created_at, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_default_language")
     .single()
 
   if (insertError || !inserted) {
@@ -214,11 +317,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   return respondWith(
     {
-      id: String((inserted as InsertedVispark).id),
-      videoId: String((inserted as InsertedVispark).video_id),
-      videoChannelId: (inserted as InsertedVispark).video_channel_id,
-      summaries: (inserted as InsertedVispark).summaries,
-      createdTime: String((inserted as InsertedVispark).created_at),
+      id: String(inserted.id),
+      videoId: String(inserted.video_id),
+      videoChannelId: inserted.video_channel_id,
+      summaries: inserted.summaries,
+      createdTime: String(inserted.created_at),
+      videoTitle: inserted.video_title,
+      videoDescription: inserted.video_description,
+      videoChannelTitle: inserted.video_channel_title,
+      videoThumbnails: inserted.video_thumbnails,
+      videoPublishedAt: inserted.video_published_at,
+      videoDefaultLanguage: inserted.video_default_language,
     },
     200,
   )

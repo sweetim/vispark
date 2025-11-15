@@ -1,4 +1,4 @@
-import { Navigate } from "@tanstack/react-router"
+import { Navigate, useSearch } from "@tanstack/react-router"
 import ProgressTimeline from "@/components/ProgressTimeline"
 import VideoContent from "@/components/VideoContent"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
@@ -7,6 +7,8 @@ import ViewToggle from "@/components/ViewToggle"
 import { useVideoProcessing } from "@/hooks/useVideoProcessing"
 
 const VideosVideoPage = () => {
+  const search = useSearch({ from: "/app/videos/$videoId" })
+
   const {
     loading,
     transcript,
@@ -25,7 +27,7 @@ const VideosVideoPage = () => {
     setView,
     setUserViewPreference,
   } = useVideoProcessing()
-
+  console.log({videoMetadata, transcript, streamingSummary})
   if (rawVideoId.length === 0) {
     return (
       <Navigate
@@ -41,7 +43,13 @@ const VideosVideoPage = () => {
       <div className="sticky top-0 z-20 space-y-3 py-2 backdrop-blur">
         <div className="w-full">
           {videoMetadata ? (
-            <VideoMetadataCard metadata={videoMetadata} />
+            <VideoMetadataCard metadata={{
+              channelId: search.channelId,
+              channelTitle: search.channelTitle,
+              thumbnails: search.thumbnail,
+              title: search.title,
+              videoId: rawVideoId
+            }} />
           ) : (
             <VideoMetadataSkeleton />
           )}

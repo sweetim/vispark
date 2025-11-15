@@ -3,27 +3,23 @@ import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { SparkleIcon } from "@phosphor-icons/react"
 import { extractYouTubeVideoId } from "../../../utils/youtube"
-import { useVisparksWithMetadata } from "@/hooks/useVisparks"
 import { updateVisparkCallbackFlag } from "@/services/vispark"
 import HistoryList from "./components/HistoryList"
+import { useVisparks } from "@/hooks/useVisparks"
 
 export type VideosSavedItem = {
   id: string
   createdTime: string
-  publishedAt?: string
+  publishedAt: string
   metadata: {
     videoId: string
     title: string
     channelId: string
     channelTitle: string
-    thumbnails: {
-      default: { url: string }
-      medium: { url: string }
-      high: { url: string }
-    }
+    thumbnails: string
   }
-  summaries: string[]
-  isNewFromCallback?: boolean
+  summaries: string
+  isNewFromCallback: boolean
 }
 
 const VideosSearchPage = () => {
@@ -31,14 +27,20 @@ const VideosSearchPage = () => {
   const navigate = useNavigate()
   // For now, we'll get saved visparks directly from the hook
   // TODO: Implement proper context sharing with TanStack Router
-  const { visparks, mutate } = useVisparksWithMetadata(20)
-  const savedVideos: VideosSavedItem[] = visparks.map((vispark) => ({
-    id: vispark.id,
-    createdTime: vispark.createdTime,
-    publishedAt: vispark.publishedAt,
-    metadata: vispark.metadata,
-    summaries: vispark.summaries,
-    isNewFromCallback: vispark.isNewFromCallback,
+  const { visparks, mutate } = useVisparks()
+  const savedVideos: VideosSavedItem[] = visparks.map((item) => ({
+    id: item.id,
+    createdTime: item.created_at,
+    publishedAt: item.video_published_at,
+    metadata: {
+      channelId: item.video_channel_id,
+      title: item.video_title,
+      thumbnails: item.video_thumbnails,
+      videoId: item.video_id,
+      channelTitle: item.video_channel_title
+    },
+    summaries: item.summaries,
+    isNewFromCallback: item.is_new_from_callback,
   }))
   const [videoId, setVideoId] = useState("")
   const reactId = useId()

@@ -187,6 +187,13 @@ const videosIdRoute = createRoute({
   stringifyParams: (params) => ({
     videoId: params.videoId,
   }),
+  validateSearch: (search: Record<string, string>) => ({
+    title: z.string().parse(search.title),
+    channelTitle: z.string().parse(search.channelTitle),
+    thumbnail: z.string().parse(search.thumbnail),
+    createdTime: z.string().parse(search.createdTime),
+    channelId: z.string().parse(search.channelId),
+  }),
 })
 
 
