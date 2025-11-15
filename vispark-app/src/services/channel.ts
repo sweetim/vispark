@@ -1,5 +1,42 @@
 import { supabase } from "@/config/supabaseClient.ts"
 
+// Helper function to make authenticated requests to our new RESTful endpoints
+const makeAuthenticatedRequest = async <T>(
+  functionName: string,
+  options: RequestInit = {},
+): Promise<T> => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  const token = session?.access_token
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...((options.headers as Record<string, string>) || {}),
+  }
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`
+  }
+
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`,
+    {
+      ...options,
+      headers,
+    },
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(
+      errorData.message || `Request failed with status ${response.status}`,
+    )
+  }
+
+  return response.json()
+}
+
 export type ChannelMetadata = {
   channelId: string
   channelTitle: string
@@ -50,7 +87,7 @@ export const searchChannels = async (
 ): Promise<YouTubeSearchResult[]> => {
   const { data, error } = await supabase.functions.invoke<{
     items: YouTubeSearchResult[]
-  }>("youtube-search", {
+  }>("youtube-channel-search", {
     body: { query, type: "channel", order: "videoCount" },
   })
 
@@ -73,23 +110,17 @@ export const searchChannels = async (
 export const getChannelDetails = async (
   channelId: string,
 ): Promise<ChannelMetadata> => {
-  const { data, error } = await supabase.functions.invoke<{
-    channel: ChannelMetadata
-  }>("channel", {
-    body: { channelId, action: "getDetails" },
+  const data = await makeAuthenticatedRequest<{
+    channels: ChannelMetadata[]
+  }>(`channel-details?id=${encodeURIComponent(channelId)}`, {
+    method: "GET",
   })
 
-  if (error) {
-    throw new Error(
-      error.message ?? "Failed to fetch channel details. Please try again.",
-    )
+  if (!data?.channels || data.channels.length === 0) {
+    throw new Error("Channel not found.")
   }
 
-  if (!data?.channel) {
-    throw new Error("Unexpected response format from channel service.")
-  }
-
-  return data.channel
+  return data.channels[0]
 }
 
 /**
@@ -102,18 +133,11 @@ export const getBatchChannelDetails = async (
     return []
   }
 
-  const { data, error } = await supabase.functions.invoke<{
+  const data = await makeAuthenticatedRequest<{
     channels: ChannelMetadata[]
-  }>("channel", {
-    body: { channelIds, action: "getBatchDetails" },
+  }>(`channel-details?ids=${encodeURIComponent(channelIds.join(","))}`, {
+    method: "GET",
   })
-
-  if (error) {
-    throw new Error(
-      error.message
-        ?? "Failed to fetch batch channel details. Please try again.",
-    )
-  }
 
   if (!data?.channels) {
     throw new Error("Unexpected response format from channel service.")
@@ -128,17 +152,11 @@ export const getBatchChannelDetails = async (
 export const getChannelVideosWithSummaries = async (
   channelId: string,
 ): Promise<ChannelVideo[]> => {
-  const { data, error } = await supabase.functions.invoke<{
+  const data = await makeAuthenticatedRequest<{
     videos: ChannelVideo[]
-  }>("channel", {
-    body: { channelId, action: "getVideosWithSummaries" },
+  }>(`channel-videos/${encodeURIComponent(channelId)}?summaries=true`, {
+    method: "GET",
   })
-
-  if (error) {
-    throw new Error(
-      error.message ?? "Failed to fetch channel videos. Please try again.",
-    )
-  }
 
   if (!data?.videos) {
     throw new Error("Unexpected response format from channel service.")
@@ -155,18 +173,19 @@ export const getAllChannelVideos = async (
   pageToken?: string,
   maxResults: number = 10,
 ): Promise<{ videos: ChannelVideo[]; nextPageToken?: string }> => {
-  const { data, error } = await supabase.functions.invoke<{
+  const queryParams = new URLSearchParams()
+  if (pageToken) queryParams.set("pageToken", pageToken)
+  if (maxResults !== 10) queryParams.set("maxResults", maxResults.toString())
+
+  const queryString = queryParams.toString()
+  const url = `channel-videos/${encodeURIComponent(channelId)}${queryString ? `?${queryString}` : ""}`
+
+  const data = await makeAuthenticatedRequest<{
     videos: ChannelVideo[]
     nextPageToken?: string
-  }>("channel", {
-    body: { channelId, action: "getAllVideos", pageToken, maxResults },
+  }>(url, {
+    method: "GET",
   })
-
-  if (error) {
-    throw new Error(
-      error.message ?? "Failed to fetch channel videos. Please try again.",
-    )
-  }
 
   if (!data?.videos) {
     throw new Error("Unexpected response format from channel service.")
@@ -179,45 +198,13 @@ export const getAllChannelVideos = async (
 }
 
 /**
- * Update channel information in database
- */
-export const updateChannelInfo = async (
-  channelId: string,
-): Promise<ChannelMetadata> => {
-  const { data, error } = await supabase.functions.invoke<{
-    channel: ChannelMetadata
-  }>("channel", {
-    body: { channelId, action: "updateInfo" },
-  })
-
-  if (error) {
-    throw new Error(
-      error.message ?? "Failed to update channel info. Please try again.",
-    )
-  }
-
-  if (!data?.channel) {
-    throw new Error("Unexpected response format from channel service.")
-  }
-
-  return data.channel
-}
-
-/**
  * Subscribe to a channel
  */
 export const subscribeToChannel = async (channelId: string): Promise<void> => {
-  const { error } = await supabase.functions.invoke<{
-    message: string
-  }>("channel", {
-    body: { channelId, action: "subscribe" },
+  await makeAuthenticatedRequest<{ message: string }>("user-subscriptions", {
+    method: "POST",
+    body: JSON.stringify({ channelId }),
   })
-
-  if (error) {
-    throw new Error(
-      error.message ?? "Failed to subscribe to channel. Please try again.",
-    )
-  }
 }
 
 /**
@@ -226,17 +213,12 @@ export const subscribeToChannel = async (channelId: string): Promise<void> => {
 export const unsubscribeFromChannel = async (
   channelId: string,
 ): Promise<void> => {
-  const { error } = await supabase.functions.invoke<{
-    message: string
-  }>("channel", {
-    body: { channelId, action: "unsubscribe" },
-  })
-
-  if (error) {
-    throw new Error(
-      error.message ?? "Failed to unsubscribe from channel. Please try again.",
-    )
-  }
+  await makeAuthenticatedRequest<{ message: string }>(
+    `user-subscriptions/${encodeURIComponent(channelId)}`,
+    {
+      method: "DELETE",
+    },
+  )
 }
 
 /**
@@ -379,6 +361,11 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
 export const isChannelSubscribed = async (
   channelId: string,
 ): Promise<boolean> => {
-  const subscriptionStatus = await areChannelsSubscribed([channelId])
-  return subscriptionStatus[channelId] ?? false
+  const data = await makeAuthenticatedRequest<{
+    isSubscribed: boolean
+  }>(`user-subscriptions/${encodeURIComponent(channelId)}`, {
+    method: "GET",
+  })
+
+  return data?.isSubscribed ?? false
 }
