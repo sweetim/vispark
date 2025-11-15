@@ -13,7 +13,7 @@ import {
 } from "@/services/channel"
 
 // Base SWR configuration for channels
-const channelConfig = {
+const fetchConfig = {
   revalidateOnFocus: false,
   dedupingInterval: 300000, // 5 minutes
   errorRetryCount: 3,
@@ -25,9 +25,9 @@ export const useSubscribedChannels = () => {
   const { data, error, isLoading, mutate } = useSWR<ChannelMetadata[]>(
     "subscribed-channels",
     getSubscribedChannels,
-    channelConfig,
+    fetchConfig,
   )
-
+  console.log(data)
   return {
     channels: data || [],
     isLoading,
@@ -41,7 +41,7 @@ export const useChannelDetails = (channelId: string) => {
   const { data, error, isLoading, mutate } = useSWR<ChannelMetadata>(
     channelId ? `channel-details?channelId=${channelId}` : null,
     channelId ? () => getChannelDetails(channelId) : null,
-    channelConfig,
+    fetchConfig,
   )
 
   return {
@@ -148,7 +148,7 @@ export const useBatchChannelDetails = (channelIds: string[]) => {
       ? `batch-channel-details?ids=${channelIds.sort().join(",")}`
       : null,
     () => getBatchChannelDetails(channelIds),
-    channelConfig,
+    fetchConfig,
   )
 
   return {
@@ -173,7 +173,7 @@ export const useChannelSearch = (query: string, enabled = false) => {
       const searchResults = await searchChannels(query)
 
       // Extract channel IDs from search results
-      const channelIds = searchResults.map((result) => result.id.channelId)
+      const channelIds = searchResults.map((result) => result.channelId)
 
       // Fetch detailed channel information in batch
       let detailedChannels: ChannelMetadata[] = []
@@ -187,10 +187,9 @@ export const useChannelSearch = (query: string, enabled = false) => {
           )
           // Fallback to basic information from search results
           detailedChannels = searchResults.map((result) => ({
-            channelId: result.id.channelId,
-            channelTitle: result.snippet.channelTitle,
-            channelThumbnailUrl: result.snippet.thumbnails.default.url,
-            videoCount: 0, // Not available in search results
+            channelId: result.channelId,
+            channelTitle: result.title,
+            channelThumbnailUrl: result.thumbnails,
             isSubscribed: false, // Will be checked separately
           }))
         }

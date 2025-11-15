@@ -41,42 +41,26 @@ export type ChannelMetadata = {
   channelId: string
   channelTitle: string
   channelThumbnailUrl: string
-  videoCount: number
   isSubscribed?: boolean
 }
 
 export type ChannelVideo = {
   videoId: string
   title: string
-  thumbnails: {
-    default: { url: string }
-    high: { url: string }
-  }
+  thumbnails: string
   publishedAt: string
   hasSummary: boolean
 }
 
 export type YouTubeSearchResult = {
-  etag: string
-  id: {
-    kind: string
-    channelId: string
-  }
-  kind: string
-  snippet: {
-    channelId: string
-    channelTitle: string
-    description: string
-    liveBroadcastContent: string
-    publishTime: string
-    publishedAt: string
-    thumbnails: {
-      default: { url: string }
-      medium: { url: string }
-      high: { url: string }
-    }
-    title: string
-  }
+  channelId: string
+  channelTitle: string
+  description: string
+  liveBroadcastContent: string
+  publishTime: string
+  publishedAt: string
+  thumbnails: string
+  title: string
 }
 
 /**
@@ -88,7 +72,7 @@ export const searchChannels = async (
   const { data, error } = await supabase.functions.invoke<{
     items: YouTubeSearchResult[]
   }>("youtube-channel-search", {
-    body: { query, type: "channel", order: "videoCount" },
+    body: { query },
   })
 
   if (error) {
@@ -343,7 +327,6 @@ export const getSubscribedChannels = async (): Promise<ChannelMetadata[]> => {
           channelId: channel.channel_id,
           channelTitle: "Unknown Channel",
           channelThumbnailUrl: "",
-          videoCount: 0,
           isSubscribed: true,
         }
       }

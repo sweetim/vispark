@@ -96,7 +96,7 @@ const summarizeWithOpenAI = async ({
       },
       {
         role: "user",
-        content: `Summarize the following transcript into 5–12 precise bullet points. Return a JSON object with a single field "bullets" of type string[]. Do not include any additional fields.\n\nTranscript:\n${transcriptText}`,
+        content: `Summarize the following transcript into 5–12 precise bullet points. Return a list of text with bullet points.\n\nTranscript:\n${transcriptText}`,
       },
     ],
   })

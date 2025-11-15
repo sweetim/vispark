@@ -62,13 +62,6 @@ type RawYouTubeSearchResult = {
   snippet: RawSnippet
 }
 
-type YouTubeSearchResult = {
-  kind: string
-  etag: string
-  id: Id
-  snippet: Snippet
-}
-
 type SuccessResponse = {
   items: Snippet[]
   nextPageToken?: string

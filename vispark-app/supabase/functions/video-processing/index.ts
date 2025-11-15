@@ -31,7 +31,7 @@ type SummaryResponse = {
 }
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!
-const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+const supabaseServiceRoleKey = Deno.env.get("NEW_SUPABASE_SERVICE_ROLE_KEY")!
 
 Deno.serve(async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -75,8 +75,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          videoId: video_id,
-          local: true // Use local transcript fetching first
+          videoId: video_id
         }),
       })
 
