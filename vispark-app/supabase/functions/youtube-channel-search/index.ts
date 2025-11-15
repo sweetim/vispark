@@ -18,15 +18,59 @@ type YouTubeSearchRequestPayload = {
   query: string
 }
 
-type YouTubeSearchResponse = {
-  items: any[]
-  nextPageToken?: string
-  regionCode?: string
-  totalResults?: number
+type Thumbnail = {
+  url: string
+}
+
+type Thumbnails = {
+  default: Thumbnail
+  medium: Thumbnail
+  high: Thumbnail
+}
+
+type RawSnippet = {
+  publishedAt: string
+  channelId: string
+  title: string
+  description: string
+  thumbnails: Thumbnails
+  channelTitle: string
+  liveBroadcastContent: string
+  publishTime: string
+}
+
+type Snippet = {
+  publishedAt: string
+  channelId: string
+  title: string
+  description: string
+  thumbnails: string
+  channelTitle: string
+  liveBroadcastContent: string
+  publishTime: string
+}
+
+type Id = {
+  kind: string
+  channelId: string
+}
+
+type RawYouTubeSearchResult = {
+  kind: string
+  etag: string
+  id: Id
+  snippet: RawSnippet
+}
+
+type YouTubeSearchResult = {
+  kind: string
+  etag: string
+  id: Id
+  snippet: Snippet
 }
 
 type SuccessResponse = {
-  items: any[]
+  items: Snippet[]
   nextPageToken?: string
   regionCode?: string
   totalResults?: number
@@ -141,7 +185,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const json = await response.json()
     console.log(`YouTube API response:`, json)
 
-    const items = json?.items ?? []
+    const items = (json?.items ?? []).map((item: RawYouTubeSearchResult) => ({
+      ...item.snippet,
+      thumbnails: item.snippet.thumbnails.default.url
+    }))
     console.log(`Found ${items.length} ${type}s`)
 
     return respondWith({
@@ -149,7 +196,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       nextPageToken: json?.nextPageToken,
       regionCode: json?.regionCode,
       totalResults: json?.pageInfo?.totalResults,
-    }, 200)
+    } as SuccessResponse, 200)
   } catch (error) {
     console.error("YouTube search function error:", error)
     return respondWith(
