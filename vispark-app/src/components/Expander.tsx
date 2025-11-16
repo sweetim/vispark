@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { CaretDownIcon, CaretRightIcon } from "@phosphor-icons/react"
+import { CaretDownIcon } from "@phosphor-icons/react"
 
 type ExpanderProps = {
   title: string

@@ -58,6 +58,7 @@ const ChannelList = ({
       const isSubscribed = subscriptionStatus[channelId] ?? false
       const channelItem = items.find(item => getChannelId(item) === channelId)
       const channelTitle = channelItem ? getChannelTitle(channelItem) : ""
+      const channelThumbnail = channelItem ? getChannelThumbnail(channelItem) : ""
 
       // Set loading state for this channel
       setLoadingChannels((prev) => ({
@@ -80,7 +81,7 @@ const ChannelList = ({
           // Refresh the subscribed channels cache to get the latest list
           globalMutate("subscribed-channels")
         } else {
-          await subscribeToChannel(channelId)
+          await subscribeToChannel(channelId, channelTitle, channelThumbnail)
           setSubscriptionStatus((prev) => ({
             ...prev,
             [channelId]: true,

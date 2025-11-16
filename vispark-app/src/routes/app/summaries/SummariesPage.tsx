@@ -29,9 +29,6 @@ const gradientPalette = [
   "from-lime-500/35 via-emerald-500/25 to-teal-500/30",
 ] as const
 
-const fallbackThumbnailUrl = (videoId: string): string =>
-  `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
-
 const formatRelativeToNow = (iso: string): string => {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) {

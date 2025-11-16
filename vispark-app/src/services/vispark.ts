@@ -51,9 +51,6 @@ export const fetchSummaryStream = async (
   } = await supabase.auth.getSession()
 
   // Get the function URL directly
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("functions").getPublicUrl("summary")
   const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/summary`
 
   const response = await fetch(functionUrl, {
