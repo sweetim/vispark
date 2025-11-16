@@ -78,7 +78,6 @@ const processSummaryStream = async (
       const { done, value } = await reader.read()
 
       if (done) break
-
       buffer += decoder.decode(value, { stream: true })
 
       // Process complete lines
@@ -86,22 +85,28 @@ const processSummaryStream = async (
       buffer = lines.pop() || ""
 
       for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const data = line.slice(6)
-          if (data === "[DONE]") {
+        const trimmedLine = line.trim()
+        if (!trimmedLine) continue
+
+        try {
+          // Parse the JSON directly from the line
+          const parsed = JSON.parse(trimmedLine)
+
+          // Extract content if available
+          const content = parsed.choices?.[0]?.delta?.content
+          if (content) {
+            onChunk(content)
+            summaryText += content
+          }
+
+          // Check if stream is finished
+          if (parsed.choices?.[0]?.finish_reason === "stop") {
             onComplete(summaryText)
             return
           }
-
-          try {
-            const parsed = JSON.parse(data)
-            if (parsed.content) {
-              onChunk(parsed.content)
-              summaryText += parsed.content
-            }
-          } catch (e) {
-            // Ignore JSON parse errors for streaming
-          }
+        } catch (e) {
+          // Ignore JSON parse errors for streaming
+          console.warn("Failed to parse stream line:", trimmedLine, e)
         }
       }
     }
@@ -214,7 +219,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
       await retryWithBackoff(
         async () => {
           const stream = await fetchSummaryStream(transcriptData.transcript)
-          console.log(stream)
+
           await processSummaryStream(
             stream,
             (chunk) => {

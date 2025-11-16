@@ -32,7 +32,7 @@ type SummaryRequestPayload = {
 }
 
 type SummarySuccessResponse = {
-  bullets: string[]
+  data: string
 }
 
 type SummaryErrorResponse = {
@@ -79,7 +79,7 @@ const summarizeWithOpenAI = async ({
   transcriptText: string
   apiKey: string
   model: string
-}): Promise<string[]> => {
+}): Promise<string> => {
   const openai = new OpenAI({
     apiKey,
   })
@@ -87,7 +87,7 @@ const summarizeWithOpenAI = async ({
   const completion = await openai.chat.completions.create({
     model,
     temperature: 1.0,
-    response_format: { type: "json_object" },
+    response_format: { type: "text" },
     messages: [
       {
         role: "system",
@@ -102,31 +102,12 @@ const summarizeWithOpenAI = async ({
   })
 
   const content = completion.choices[0]?.message?.content ?? ""
-  let bullets: string[] | null = null
 
-  // Try parsing as JSON first
-  try {
-    const parsed = JSON.parse(content)
-    if (parsed && Array.isArray(parsed.bullets)) {
-      bullets = parsed.bullets.map((x: unknown) => String(x)).filter(Boolean)
-    }
-  } catch {
-    // ignore, will try fallback
-  }
-
-  // Fallback: split by lines and normalize if model didn't return JSON
-  if (!bullets) {
-    bullets = content
-      .split("\n")
-      .map((l) => l.replace(/^\s*[-*•]\s*/, "").trim())
-      .filter((l) => l.length > 0)
-  }
-
-  if (bullets.length === 0) {
+  if (content.length === 0) {
     throw new Error("OpenAI returned an empty summary.")
   }
 
-  return bullets
+  return content
 }
 
 const summarizeWithOpenAIStream = async ({
@@ -153,7 +134,7 @@ const summarizeWithOpenAIStream = async ({
       },
       {
         role: "user",
-        content: `Summarize the following transcript into 5–12 precise bullet points. Return a JSON object with a single field "bullets" of type string[]. Do not include any additional fields.\n\nTranscript:\n${transcriptText}`,
+        content: `Summarize the following transcript into 5–12 precise bullet points. Return a list of text with bullet points.\n\nTranscript:\n${transcriptText}`,
       },
     ],
     stream: true,
@@ -247,7 +228,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       })
     } else {
       // Return non-streaming response for backward compatibility
-      const bullets = await summarizeWithOpenAI({
+      const data = await summarizeWithOpenAI({
         transcriptText,
         apiKey,
         model,
@@ -255,7 +236,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       return respondWith(
         {
-          bullets,
+          data,
         },
         200,
       )

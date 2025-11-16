@@ -27,7 +27,7 @@ const VideosVideoPage = () => {
     setView,
     setUserViewPreference,
   } = useVideoProcessing()
-  console.log({videoMetadata, transcript, streamingSummary})
+
   if (rawVideoId.length === 0) {
     return (
       <Navigate

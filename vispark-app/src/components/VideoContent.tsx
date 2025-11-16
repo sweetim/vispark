@@ -44,12 +44,6 @@ const VideoContent = ({
         <div className="whitespace-pre-wrap">
           {summaryText}
         </div>
-        {isStreaming && (
-          <div className="text-gray-400 animate-pulse mt-2">
-            <span className="inline-block w-2 h-4 bg-gray-400 rounded-full mr-2"></span>
-            Generating...
-          </div>
-        )}
       </div>
     )
   }
