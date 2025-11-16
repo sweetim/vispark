@@ -50,10 +50,10 @@ const VideosVideoPage = () => {
         <div className="w-full">
           {videoMetadata ? (
             <VideoMetadataCard metadata={{
-              channelId: search.channelId,
-              channelTitle: search.channelTitle,
-              thumbnails: search.thumbnail,
-              title: search.title,
+              channelId: search.channelId || videoMetadata.channelId,
+              channelTitle: search.channelTitle || videoMetadata.channelTitle,
+              thumbnails: search.thumbnail || videoMetadata.thumbnails,
+              title: search.title || videoMetadata.title,
               videoId: rawVideoId
             }} />
           ) : (

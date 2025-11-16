@@ -188,11 +188,11 @@ const videosIdRoute = createRoute({
     videoId: params.videoId,
   }),
   validateSearch: (search: Record<string, string>) => ({
-    title: z.string().parse(search.title),
-    channelTitle: z.string().parse(search.channelTitle),
-    thumbnail: z.string().parse(search.thumbnail),
-    createdTime: z.string().parse(search.createdTime),
-    channelId: z.string().parse(search.channelId),
+    title: z.string().optional().parse(search.title),
+    channelTitle: z.string().optional().parse(search.channelTitle),
+    thumbnail: z.string().optional().parse(search.thumbnail),
+    createdTime: z.string().optional().parse(search.createdTime),
+    channelId: z.string().optional().parse(search.channelId),
   }),
 })
 

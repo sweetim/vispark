@@ -65,6 +65,11 @@ const VideosSearchPage = () => {
     if (!finalVideoId) {
       return
     }
+
+    // Navigate to video page with just the video ID
+    navigate({
+      to: `/app/videos/${finalVideoId}`
+    })
   }
 
   const handleVideoSelect = async (videoId: string) => {
