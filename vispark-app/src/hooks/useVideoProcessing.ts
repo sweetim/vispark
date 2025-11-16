@@ -44,6 +44,8 @@ type UseVideoProcessingReturn = {
   setView: (view: View) => void
   setUserViewPreference: (view: View) => void
   isSummarySaved: boolean
+  isTranscriptLoading: boolean
+  videoExistsInVispark: boolean
 }
 
 const fetchVideoMetadata = async (videoId: string): Promise<VideoMetadata> => {
@@ -367,6 +369,9 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
   const hasSummary = Boolean(summary) || Boolean(visparkData?.summaries)
   const showViewToggle = hasTranscript || hasSummary
   const loading = !videoMetadata || (!transcriptData && !transcriptError)
+  const videoExistsInVispark = Boolean(visparkData?.summaries)
+  const isTranscriptLoading =
+    step === "gathering" && !hasTranscript && videoExistsInVispark
 
   return {
     loading,
@@ -386,5 +391,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     setView,
     setUserViewPreference,
     isSummarySaved,
+    isTranscriptLoading,
+    videoExistsInVispark,
   }
 }

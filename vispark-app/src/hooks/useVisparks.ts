@@ -12,7 +12,7 @@ import {
 // Base SWR configuration for visparks
 const visparkConfig = {
   revalidateOnFocus: true,
-  dedupingInterval: 60000, // 1 minute
+  dedupingInterval: 0, // No deduping to ensure fresh data
   errorRetryCount: 3,
   errorRetryInterval: 5000,
 }

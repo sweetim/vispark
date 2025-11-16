@@ -1,4 +1,4 @@
-import { type FormEvent, useId, useMemo, useState } from "react"
+import { type FormEvent, useId, useMemo, useState, useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { SparkleIcon } from "@phosphor-icons/react"
@@ -28,6 +28,11 @@ const VideosSearchPage = () => {
   // For now, we'll get saved visparks directly from the hook
   // TODO: Implement proper context sharing with TanStack Router
   const { visparks, mutate } = useVisparks()
+
+  // Always fetch the latest visparks when the page loads
+  useEffect(() => {
+    mutate()
+  }, [mutate])
   const savedVideos: VideosSavedItem[] = visparks.map((item) => ({
     id: item.id,
     createdTime: item.created_at,

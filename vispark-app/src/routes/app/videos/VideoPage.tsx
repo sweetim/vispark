@@ -27,6 +27,8 @@ const VideosVideoPage = () => {
     showViewToggle,
     setView,
     setUserViewPreference,
+    isTranscriptLoading,
+    videoExistsInVispark,
   } = useVideoProcessing()
 
   // Check if video exists in vispark table
@@ -64,6 +66,7 @@ const VideosVideoPage = () => {
             view={view}
             hasSummary={hasSummary || Boolean(vispark?.summaries)}
             hasTranscript={hasTranscript}
+            isTranscriptLoading={isTranscriptLoading}
             onChange={(newView) => {
               setView(newView)
               setUserViewPreference(newView)
@@ -72,7 +75,7 @@ const VideosVideoPage = () => {
         )}
       </div>
 
-      {step !== "idle" && step !== "complete" && (
+      {!videoExistsInVispark && step !== "idle" && step !== "complete" && (
         <ProgressTimeline
           step={step}
           errorStep={errorStep}
