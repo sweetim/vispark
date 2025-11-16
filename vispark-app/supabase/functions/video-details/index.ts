@@ -25,27 +25,14 @@ type VideoDetailsRequestPayload = {
 type VideoDetails = {
   videoId: string
   title: string
-  description?: string
-  channelId?: string
-  channelTitle?: string
-  channelThumbnailUrl?: string
-  publishedAt?: string
-  duration?: string
-  viewCount?: number
-  likeCount?: number
-  commentCount?: number
-  thumbnails?: {
-    default?: { url: string; width?: number; height?: number }
-    medium?: { url: string; width?: number; height?: number }
-    high?: { url: string; width?: number; height?: number }
-    standard?: { url: string; width?: number; height?: number }
-    maxres?: { url: string; width?: number; height?: number }
-  }
-  tags?: string[]
-  categoryId?: string
-  defaultLanguage?: string
-  defaultAudioLanguage?: string
-  hasSummary?: boolean
+  description: string
+  channelId: string
+  channelTitle: string
+  channelThumbnailUrl: string
+  publishedAt: string
+  thumbnails: string
+  defaultLanguage: string
+  hasSummary: boolean
 }
 
 type VideoDetailsSuccessResponse = {
@@ -116,9 +103,6 @@ const fetchVideoDetailsFromYouTube = async (
     throw new Error(`Failed to fetch channel details: ${channelResponse.status}`)
   }
 
-  const channelJson = await channelResponse.json()
-  const channelItem = channelJson?.items?.[0]
-
   // Process video details
   const snippet = videoItem.snippet as {
     title: string
@@ -139,45 +123,17 @@ const fetchVideoDetailsFromYouTube = async (
     defaultAudioLanguage?: string
   }
 
-  const contentDetails = videoItem.contentDetails as {
-    duration: string
-  }
-
-  const statistics = videoItem.statistics as {
-    viewCount: string
-    likeCount: string
-    commentCount: string
-  }
-
-  const channelSnippet = channelItem?.snippet as {
-    thumbnails: {
-      default: { url: string }
-      medium: { url: string }
-      high: { url: string }
-    }
-  } | undefined
-
-  // Convert duration from ISO 8601 to readable format
-  const duration = contentDetails.duration
-
   const videoData: VideoDetails = {
     videoId,
+    hasSummary: false,
     title: snippet.title,
     description: snippet.description,
     channelId: snippet.channelId,
     channelTitle: snippet.channelTitle,
-    channelThumbnailUrl: channelSnippet?.thumbnails?.medium?.url ??
-                        channelSnippet?.thumbnails?.default?.url ?? "",
+    channelThumbnailUrl: snippet?.thumbnails.standard?.url || "",
     publishedAt: snippet.publishedAt,
-    duration,
-    viewCount: parseInt(statistics.viewCount || "0", 10),
-    likeCount: parseInt(statistics.likeCount || "0", 10),
-    commentCount: parseInt(statistics.commentCount || "0", 10),
-    thumbnails: snippet.thumbnails,
-    tags: snippet.tags,
-    categoryId: snippet.categoryId,
-    defaultLanguage: snippet.defaultLanguage,
-    defaultAudioLanguage: snippet.defaultAudioLanguage,
+    thumbnails: snippet.thumbnails.standard?.url || "",
+    defaultLanguage: snippet.defaultAudioLanguage || ""
   }
 
   console.log(`Processed video data:`, videoData)
@@ -259,31 +215,39 @@ const fetchBatchVideoDetailsFromYouTube = async (
     for (const videoItem of videoItems) {
       if (!videoItem?.snippet || !videoItem?.id) continue
 
-      const snippet = videoItem.snippet as any
-      const contentDetails = videoItem.contentDetails as any
-      const statistics = videoItem.statistics as any
+      const snippet = videoItem.snippet as {
+        title: string
+        description: string
+        channelId: string
+        channelTitle: string
+        publishedAt: string
+        thumbnails: {
+          default: { url: string; width: number; height: number }
+          medium: { url: string; width: number; height: number }
+          high: { url: string; width: number; height: number }
+          standard?: { url: string; width: number; height: number }
+          maxres?: { url: string; width: number; height: number }
+        }
+        tags?: string[]
+        categoryId: string
+        defaultLanguage?: string
+        defaultAudioLanguage?: string
+      }
       const channelId = snippet.channelId
 
       const channelSnippet = channelDetailsMap[channelId]
 
       const videoData: VideoDetails = {
+        hasSummary: false,
         videoId: videoItem.id,
         title: snippet.title,
         description: snippet.description,
         channelId: snippet.channelId,
         channelTitle: snippet.channelTitle,
-        channelThumbnailUrl: channelSnippet?.thumbnails?.medium?.url ??
-                            channelSnippet?.thumbnails?.default?.url ?? "",
+        channelThumbnailUrl: channelSnippet?.thumbnails?.standard?.url || "",
         publishedAt: snippet.publishedAt,
-        duration: contentDetails.duration,
-        viewCount: parseInt(statistics.viewCount || "0", 10),
-        likeCount: parseInt(statistics.likeCount || "0", 10),
-        commentCount: parseInt(statistics.commentCount || "0", 10),
-        thumbnails: snippet.thumbnails,
-        tags: snippet.tags,
-        categoryId: snippet.categoryId,
-        defaultLanguage: snippet.defaultLanguage,
-        defaultAudioLanguage: snippet.defaultAudioLanguage,
+        thumbnails: snippet.thumbnails.standard?.url || "",
+        defaultLanguage: snippet.defaultLanguage || "",
       }
 
       allVideos.push(videoData)
@@ -441,17 +405,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
             channelTitle: existingVispark.video_channel_title || "",
             channelThumbnailUrl: "", // We don't store this in visparks table
             publishedAt: existingVispark.video_published_at || "",
-            viewCount: 0, // We don't store these in visparks table
-            likeCount: 0,
-            commentCount: 0,
-            thumbnails: existingVispark.video_thumbnails || {
-              default: { url: "", width: 0, height: 0 },
-              medium: { url: "", width: 0, height: 0 },
-              high: { url: "", width: 0, height: 0 },
-            },
+            thumbnails: typeof existingVispark.video_thumbnails === 'string'
+              ? existingVispark.video_thumbnails
+              : JSON.stringify(existingVispark.video_thumbnails),
             defaultLanguage: existingVispark.video_default_language,
-            defaultAudioLanguage: undefined,
-            categoryId: "",
             hasSummary: false, // Will be set below
           }
         } else {
@@ -508,16 +465,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
           if (existingVispark) {
             // Use stored metadata
             videosData.push({
-              videoId: videoId,
-              title: existingVispark.video_title || "",
-              description: existingVispark.video_description || "",
-              channelTitle: existingVispark.video_channel_title || "",
-              publishedAt: existingVispark.video_published_at || "",
-              thumbnails: existingVispark.video_thumbnails || {
-                default: { url: "", width: 0, height: 0 },
-                medium: { url: "", width: 0, height: 0 },
-                high: { url: "", width: 0, height: 0 },
-              },
+              videoId,
+              title: existingVispark.video_title,
+              description: existingVispark.video_description,
+              channelId: existingVispark.video_channel_id, // We don't store this in visparks table
+              channelTitle: existingVispark.video_channel_title,
+              channelThumbnailUrl: "", // We don't store this in visparks table
+              publishedAt: existingVispark.video_published_at,
+              thumbnails: existingVispark.video_thumbnails,
               defaultLanguage: existingVispark.video_default_language,
               hasSummary: false, // Will be set below
             })

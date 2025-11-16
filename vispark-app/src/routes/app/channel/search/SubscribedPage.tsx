@@ -54,7 +54,6 @@ const SubscribedPage = () => {
 
   // SWR hooks for data
   const { channels: subscribedChannels, isLoading: loadingSubscriptions, error: subscriptionError } = useSubscribedChannels()
-  console.log(subscribedChannels)
 
   return (
     <>

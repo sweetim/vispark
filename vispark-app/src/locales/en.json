@@ -234,7 +234,12 @@
     "searchPlaceholder": "Video ID or YouTube URL",
     "search": "Search for a video to create a Video Summary",
     "go": "GO",
-    "noTranscriptOrSummary": "No transcript or summary available for this video yet."
+    "noTranscriptOrSummary": "No transcript or summary available for this video yet.",
+    "noSummary": "No summary available for this video yet.",
+    "noTranscript": "No transcript available for this video yet.",
+    "generatingSummary": "Generating summary...",
+    "noSummaryYet": "No summary available yet",
+    "summaryWillBeGenerated": "Summary will be generated automatically when transcript is ready"
   },
   "viewToggle": {
     "summary": "Summary",

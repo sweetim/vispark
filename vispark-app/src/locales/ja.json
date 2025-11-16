@@ -234,7 +234,12 @@
     "searchPlaceholder": "動画IDまたはYouTube URL",
     "search": "動画要約を作成するために動画を検索",
     "go": "検索",
-    "noTranscriptOrSummary": "この動画ではまだ転写や要約が利用できません。"
+    "noTranscriptOrSummary": "この動画ではまだ転写や要約が利用できません。",
+    "noSummary": "この動画ではまだ要約が利用できません。",
+    "noTranscript": "この動画ではまだ転写が利用できません。",
+    "generatingSummary": "要約を生成中...",
+    "noSummaryYet": "まだ要約が利用できません",
+    "summaryWillBeGenerated": "転写が準備できたら自動的に要約が生成されます"
   },
   "viewToggle": {
     "summary": "要約",

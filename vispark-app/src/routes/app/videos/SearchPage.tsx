@@ -60,8 +60,6 @@ const VideosSearchPage = () => {
     if (!finalVideoId) {
       return
     }
-
-    navigate({ to: `/app/videos/${finalVideoId}` })
   }
 
   const handleVideoSelect = async (videoId: string) => {
@@ -79,7 +77,16 @@ const VideosSearchPage = () => {
       }
     }
 
-    navigate({ to: `/app/videos/${videoId}` })
+    navigate({
+      to: `/app/videos/${videoId}`,
+      search: {
+        title: vispark?.metadata.title || "",
+        channelTitle: vispark?.metadata.channelTitle || "",
+        thumbnail: vispark?.metadata.thumbnails || "",
+        createdTime: vispark?.publishedAt || vispark?.createdTime || new Date().toISOString(),
+        channelId: vispark?.metadata.channelId || "",
+      }
+    })
   }
 
   return (

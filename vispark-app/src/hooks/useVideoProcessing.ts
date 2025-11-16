@@ -1,4 +1,4 @@
-import { useParams, useSearch } from "@tanstack/react-router"
+import { useParams } from "@tanstack/react-router"
 import { useCallback, useEffect, useRef, useState } from "react"
 import useSWR from "swr"
 import {
@@ -11,10 +11,13 @@ import {
 import {
   fetchSummaryStream,
   fetchTranscript,
+  fetchVisparkByVideoId,
   fetchYouTubeVideoDetails,
   formatTranscript,
+  saveVispark,
   type TranscriptResult,
   type VideoMetadata,
+  type VisparkRow,
 } from "@/services/vispark"
 
 import { useRetryWithBackoff } from "./useRetryWithBackoff"
@@ -40,6 +43,7 @@ type UseVideoProcessingReturn = {
   showViewToggle: boolean
   setView: (view: View) => void
   setUserViewPreference: (view: View) => void
+  isSummarySaved: boolean
 }
 
 const fetchVideoMetadata = async (videoId: string): Promise<VideoMetadata> => {
@@ -67,6 +71,7 @@ const processSummaryStream = async (
   onChunk: (chunk: string) => void,
   onComplete: (summary: string) => void,
   onError: (error: Error) => void,
+  onSave?: (summary: string) => Promise<void>,
 ) => {
   try {
     const reader = stream.getReader()
@@ -102,6 +107,14 @@ const processSummaryStream = async (
           // Check if stream is finished
           if (parsed.choices?.[0]?.finish_reason === "stop") {
             onComplete(summaryText)
+            // Save the summary to vispark table if save function is provided
+            if (onSave) {
+              try {
+                await onSave(summaryText)
+              } catch (saveError) {
+                console.error("Failed to save summary:", saveError)
+              }
+            }
             return
           }
         } catch (e) {
@@ -123,6 +136,18 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
 
   const rawVideoId = params.videoId || ""
 
+  // Check if video exists in vispark table
+  const { data: visparkData } = useSWR<VisparkRow | null>(
+    rawVideoId ? `vispark?videoId=${rawVideoId}` : null,
+    rawVideoId ? () => fetchVisparkByVideoId(rawVideoId) : null,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      errorRetryCount: 1,
+      errorRetryInterval: 1000,
+    },
+  )
+
   // State management
   const [view, setView] = useState<View>(VIEW_MODES.SUMMARY)
   const [step, setStep] = useState<Step>(PROCESSING_STEPS.IDLE)
@@ -132,6 +157,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
   const [isGenerating, setIsGenerating] = useState(false)
   const [transcriptText, setTranscriptText] = useState("")
   const [summary, setSummary] = useState<string | null>(null)
+  const [isSummarySaved, setIsSummarySaved] = useState(false)
 
   const streamAbortControllerRef = useRef<AbortController | null>(null)
   const { retryWithBackoff } = useRetryWithBackoff()
@@ -152,7 +178,10 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
   const { data: transcriptData, error: transcriptError } =
     useSWR<TranscriptResult>(
       rawVideoId ? ["transcript", rawVideoId] : null,
-      () => fetchVideoTranscript(rawVideoId),
+      () => {
+        setStep(PROCESSING_STEPS.GATHERING)
+        return fetchVideoTranscript(rawVideoId)
+      },
       {
         revalidateOnFocus: false,
         revalidateOnReconnect: false,
@@ -160,6 +189,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
         errorRetryInterval: RETRY_CONFIG.TRANSCRIPT.baseDelay,
         onSuccess: (data) => {
           setTranscriptText(formatTranscript(data.transcript))
+          // Don't change step here - let the summary generation handle the transition
         },
       },
     )
@@ -172,6 +202,8 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     setStreamingSummary("")
     setSummary(null)
     setIsGenerating(false)
+    setTranscriptText("")
+    setIsSummarySaved(false)
 
     // Cancel any ongoing stream
     if (streamAbortControllerRef.current) {
@@ -203,6 +235,27 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     }
   }, [transcriptError])
 
+  // Save summary to vispark table
+  const saveSummaryToVispark = useCallback(
+    async (summaryText: string) => {
+      if (!videoMetadata || !rawVideoId) return
+
+      try {
+        await saveVispark(
+          rawVideoId,
+          videoMetadata.channelId,
+          summaryText,
+          videoMetadata,
+        )
+        setIsSummarySaved(true)
+      } catch (error) {
+        console.error("Failed to save summary to vispark:", error)
+        throw error
+      }
+    },
+    [videoMetadata, rawVideoId],
+  )
+
   // Generate summary from transcript
   const generateSummary = useCallback(async () => {
     if (!transcriptData || isGenerating) return
@@ -212,6 +265,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     setError(null)
     setErrorStep(null)
     setStreamingSummary("")
+    setIsSummarySaved(false)
 
     streamAbortControllerRef.current = new AbortController()
 
@@ -233,6 +287,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
             (streamError) => {
               throw streamError
             },
+            saveSummaryToVispark,
           )
         },
         {
@@ -249,7 +304,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     } finally {
       streamAbortControllerRef.current = null
     }
-  }, [transcriptData, isGenerating, retryWithBackoff])
+  }, [transcriptData, isGenerating, retryWithBackoff, saveSummaryToVispark])
 
   // Auto-generate summary when transcript is available
   useEffect(() => {
@@ -257,6 +312,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
       transcriptData
       && transcriptText
       && !summary
+      && !visparkData?.summaries // Don't generate if we already have a summary in vispark
       && !isGenerating
       && !error
     ) {
@@ -266,6 +322,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     transcriptData,
     transcriptText,
     summary,
+    visparkData?.summaries,
     isGenerating,
     error,
     generateSummary,
@@ -298,16 +355,23 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     }
   }, [])
 
+  // Auto-switch to summary view when summarizing starts
+  useEffect(() => {
+    if (step === PROCESSING_STEPS.SUMMARIZING && view !== VIEW_MODES.SUMMARY) {
+      setView(VIEW_MODES.SUMMARY)
+    }
+  }, [step, view])
+
   // Computed values
   const hasTranscript = Boolean(transcriptText)
-  const hasSummary = Boolean(summary)
+  const hasSummary = Boolean(summary) || Boolean(visparkData?.summaries)
   const showViewToggle = hasTranscript || hasSummary
   const loading = !videoMetadata || (!transcriptData && !transcriptError)
 
   return {
     loading,
     transcript: transcriptText,
-    summary,
+    summary: visparkData?.summaries || summary,
     streamingSummary,
     error,
     step,
@@ -321,5 +385,6 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     showViewToggle,
     setView,
     setUserViewPreference,
+    isSummarySaved,
   }
 }

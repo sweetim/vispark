@@ -17,55 +17,47 @@ const buildHeaders = (): HeadersInit => ({
 
 type VisparkRequestPayload = {
   videoId: string
-  videoChannelId?: string
-  summaries: string[]
+  videoChannelId: string
+  summaries: string
   // createdTime can be provided by client but will be ignored in favor of server time
   createdTime?: string
   // Video metadata to store
-  videoMetadata?: {
-    title?: string
-    description?: string
-    channelTitle?: string
-    thumbnails?: string
-    publishedAt?: string
-    defaultLanguage?: string
+  videoMetadata: {
+    title: string
+    description: string
+    channelTitle: string
+    thumbnails: string
+    publishedAt: string
+    defaultLanguage: string
   }
 }
 
 type VisparkInsert = {
   user_id: string
   video_id: string
-  video_channel_id?: string
-  summaries: string[]
+  video_channel_id: string
+  summaries: string
   created_at: string
-  video_title?: string
-  video_description?: string
-  video_channel_title?: string
-  video_thumbnails?: string
-  video_published_at?: string
-  video_default_language?: string
-}
-
-type InsertedVispark = {
-  id: string
-  video_id: string
-  video_channel_id?: string
-  summaries: string[]
-  created_at: string
+  video_title: string
+  video_description: string
+  video_channel_title: string
+  video_thumbnails: string
+  video_published_at: string
+  video_default_language: string
 }
 
 type VisparkSuccessResponse = {
   id: string
   videoId: string
-  videoChannelId?: string
-  summaries: string[]
+  videoChannelId: string
+  summaries: string
   createdTime: string
-  videoTitle?: string
-  videoDescription?: string
-  videoChannelTitle?: string
-  videoThumbnails?: string
-  videoPublishedAt?: string
-  videoDefaultLanguage?: string
+  videoTitle: string
+  videoDescription: string
+  videoChannelTitle: string
+  videoThumbnails: string
+  videoPublishedAt: string
+  videoDefaultLanguage: string
 }
 
 type VisparkErrorResponse = {
@@ -211,7 +203,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const { videoId, videoChannelId, summaries, videoMetadata } = (payload
-    ?? {}) as Partial<VisparkRequestPayload>
+    ?? {}) as VisparkRequestPayload
 
   if (typeof videoId !== "string" || videoId.trim().length === 0) {
     return respondWith(
@@ -223,15 +215,32 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
-  if (
-    !Array.isArray(summaries)
-    || summaries.some((s) => typeof s !== "string")
-  ) {
+  if (typeof videoChannelId !== "string" || videoChannelId.trim().length === 0) {
+    return respondWith(
+      {
+        error: "Missing fields",
+        message: "The request body must include a non-empty videoChannelId.",
+      },
+      400,
+    )
+  }
+
+  if (typeof summaries !== "string" || summaries.trim().length === 0) {
     return respondWith(
       {
         error: "Invalid fields",
         message:
-          "The request body must include summaries as an array of strings.",
+          "The request body must include summaries as a non-empty string.",
+      },
+      400,
+    )
+  }
+
+  if (!videoMetadata) {
+    return respondWith(
+      {
+        error: "Missing fields",
+        message: "The request body must include videoMetadata.",
       },
       400,
     )
@@ -278,15 +287,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const record: VisparkInsert = {
     user_id: user.id,
     video_id: videoId.trim(),
-    video_channel_id: videoChannelId?.trim(),
+    video_channel_id: videoChannelId.trim(),
     summaries,
     created_at: nowIso,
-    video_title: videoMetadata?.title,
-    video_description: videoMetadata?.description,
-    video_channel_title: videoMetadata?.channelTitle,
-    video_thumbnails: videoMetadata?.thumbnails,
-    video_published_at: videoMetadata?.publishedAt,
-    video_default_language: videoMetadata?.defaultLanguage,
+    video_title: videoMetadata.title,
+    video_description: videoMetadata.description,
+    video_channel_title: videoMetadata.channelTitle,
+    video_thumbnails: videoMetadata.thumbnails,
+    video_published_at: videoMetadata.publishedAt,
+    video_default_language: videoMetadata.defaultLanguage,
   }
 
   // Insert row into visparks table; expects columns:

@@ -1,6 +1,7 @@
 import useSWR from "swr"
 import {
   fetchBatchYouTubeVideoDetails,
+  fetchVisparkByVideoId,
   fetchYouTubeVideoDetails,
   listVisparks,
   listVisparksByChannelId,
@@ -10,7 +11,7 @@ import {
 
 // Base SWR configuration for visparks
 const visparkConfig = {
-  revalidateOnFocus: false,
+  revalidateOnFocus: true,
   dedupingInterval: 60000, // 1 minute
   errorRetryCount: 3,
   errorRetryInterval: 5000,
@@ -39,7 +40,7 @@ export const useVisparksByChannel = (channelId: string) => {
     channelId ? () => listVisparksByChannelId(channelId) : null,
     visparkConfig,
   )
-  console.log(data)
+
   return {
     visparks: data || [],
     isLoading,
@@ -127,6 +128,22 @@ export const useBatchVideoMetadata = (videoIds: string[]) => {
 
   return {
     metadataMap: data || new Map(),
+    isLoading,
+    error,
+    mutate,
+  }
+}
+
+// Hook for fetching a vispark by video ID
+export const useVisparkByVideoId = (videoId: string) => {
+  const { data, error, isLoading, mutate } = useSWR<VisparkRow | null>(
+    videoId ? `vispark?videoId=${videoId}` : null,
+    videoId ? () => fetchVisparkByVideoId(videoId) : null,
+    visparkConfig,
+  )
+
+  return {
+    vispark: data,
     isLoading,
     error,
     mutate,

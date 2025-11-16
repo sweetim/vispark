@@ -174,8 +174,8 @@ export type SaveVisparkResult = {
 export const saveVispark = async (
   videoId: string,
   videoChannelId: string,
-  summaries: string[],
-  videoMetadata?: VideoMetadata,
+  summaries: string,
+  videoMetadata: VideoMetadata,
 ): Promise<SaveVisparkResult> => {
   // Ensure Authorization header is forwarded to the Edge Function
   const {
@@ -195,16 +195,14 @@ export const saveVispark = async (
         videoId,
         videoChannelId,
         summaries,
-        videoMetadata: videoMetadata
-          ? {
-              title: videoMetadata.title,
-              description: videoMetadata.description,
-              channelTitle: videoMetadata.channelTitle,
-              thumbnails: videoMetadata.thumbnails,
-              publishedAt: videoMetadata.publishedAt,
-              defaultLanguage: videoMetadata.defaultLanguage,
-            }
-          : undefined,
+        videoMetadata: {
+          title: videoMetadata.title,
+          description: videoMetadata.description,
+          channelTitle: videoMetadata.channelTitle,
+          thumbnails: videoMetadata.thumbnails,
+          publishedAt: videoMetadata.publishedAt,
+          defaultLanguage: videoMetadata.defaultLanguage,
+        },
       },
     },
   )
@@ -304,4 +302,28 @@ export const listVisparksByChannelId = async (
   }
 
   return (data ?? []) as VisparkRow[]
+}
+
+/**
+ * Fetch a vispark by video ID for the authenticated user.
+ * Requires RLS policy allowing select of rows where user_id = auth.uid().
+ */
+export const fetchVisparkByVideoId = async (
+  videoId: string,
+): Promise<VisparkRow | null> => {
+  const { data, error } = await supabase
+    .from("visparks")
+    .select(
+      "id, video_id, video_channel_id, summaries, created_at, is_new_from_callback, video_title, video_description, video_channel_title, video_thumbnails, video_published_at, video_default_language",
+    )
+    .eq("video_id", videoId)
+    .single()
+
+  if (error) {
+    throw new Error(
+      error.message ?? "Failed to fetch vispark by video ID. Please try again.",
+    )
+  }
+
+  return data as VisparkRow | null
 }

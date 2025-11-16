@@ -42,14 +42,26 @@ export type Database = {
           user_id: string
           video_channel_id: string | null
           video_id: string
+          video_title: string
+          video_description: string
+          video_channel_title: string
+          video_thumbnails: Json
+          video_published_at: string
+          video_default_language: string
         }
         Insert: {
           created_at?: string
           id?: string
           summaries: Json
           user_id: string
-          video_channel_id?: string | null
+          video_channel_id: string | null
           video_id: string
+          video_title: string
+          video_description: string
+          video_channel_title: string
+          video_thumbnails: Json
+          video_published_at: string
+          video_default_language: string
         }
         Update: {
           created_at?: string
@@ -58,6 +70,12 @@ export type Database = {
           user_id?: string
           video_channel_id?: string | null
           video_id?: string
+          video_title?: string
+          video_description?: string
+          video_channel_title?: string
+          video_thumbnails?: Json
+          video_published_at?: string
+          video_default_language?: string
         }
         Relationships: []
       }

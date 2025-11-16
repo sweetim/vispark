@@ -23,7 +23,7 @@ const ProgressTimeline: FC<ProgressTimelineProps> = ({
   const isSummarizingDone = step === "complete"
   const isSummarizingError = step === "error" && errorStep === "summarizing"
 
-  if (!isSubmitting && step !== "error") {
+  if (!isSubmitting && step !== "error" && step !== "gathering") {
     return null
   }
 
