@@ -17,15 +17,19 @@ export type SummaryResult = {
   bullets: string[]
 }
 
+export type FetchTranscriptParams = {
+  videoId: string
+  local?: boolean
+  lang?: string
+}
+
 export const fetchTranscript = async (
-  videoId: string,
-  local?: boolean,
-  lang?: string,
+  params: FetchTranscriptParams,
 ): Promise<TranscriptResult> => {
   const { data, error } = await supabase.functions.invoke<TranscriptResult>(
     "transcript",
     {
-      body: { videoId, local, lang },
+      body: params,
     },
   )
 
@@ -96,7 +100,6 @@ export type VideoMetadata = {
   description: string
   categoryId: string
   defaultLanguage: string
-  defaultAudioLanguage: string
   hasSummary: boolean
 }
 

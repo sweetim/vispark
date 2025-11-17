@@ -9,6 +9,7 @@ import {
   VIEW_MODES,
 } from "@/constants/videoConstants"
 import {
+  type FetchTranscriptParams,
   fetchSummaryStream,
   fetchTranscript,
   fetchVisparkByVideoId,
@@ -59,9 +60,15 @@ const fetchVideoMetadata = async (videoId: string): Promise<VideoMetadata> => {
 
 const fetchVideoTranscript = async (
   videoId: string,
+  videoMetadata?: VideoMetadata | null,
 ): Promise<TranscriptResult> => {
   try {
-    return await fetchTranscript(videoId, true)
+    const params: FetchTranscriptParams = {
+      videoId,
+      lang: videoMetadata?.defaultLanguage,
+    }
+
+    return await fetchTranscript(params)
   } catch (error) {
     console.error("Failed to fetch transcript:", error)
     throw error
@@ -179,10 +186,12 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
   // Fetch transcript
   const { data: transcriptData, error: transcriptError } =
     useSWR<TranscriptResult>(
-      rawVideoId ? ["transcript", rawVideoId] : null,
+      rawVideoId
+        ? ["transcript", rawVideoId, videoMetadata?.defaultLanguage]
+        : null,
       () => {
         setStep(PROCESSING_STEPS.GATHERING)
-        return fetchVideoTranscript(rawVideoId)
+        return fetchVideoTranscript(rawVideoId, videoMetadata)
       },
       {
         revalidateOnFocus: false,

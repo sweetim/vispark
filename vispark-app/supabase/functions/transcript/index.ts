@@ -88,7 +88,9 @@ const handlePost = async (req: Request): Promise<Response> => {
             local: P.optional(P.boolean),
           },
           async ({ videoId, lang, local }: TranscriptRequestPayload) => {
-            console.log("[TRANSCRIPT] Processing transcript request", { videoId, lang, local })
+            // Auto-detect local development environment if not explicitly set
+            const isLocalDev = local !== undefined ? local : Deno.env.get("DENO_ENV") === "development"
+            console.log("[TRANSCRIPT] Processing transcript request", { videoId, lang, local, isLocalDev })
 
             const trimmedVideoId = videoId.trim()
 
@@ -111,9 +113,9 @@ const handlePost = async (req: Request): Promise<Response> => {
             console.log("[TRANSCRIPT] Normalized parameters", { trimmedVideoId, normalizedLang, local })
 
             try {
-              // Use youtube-transcript-plus when local is true
-              if (local) {
-                console.log("[TRANSCRIPT] Using LOCAL fetch type: youtube-transcript-plus library")
+              // Use youtube-transcript-plus when local is true or in development environment
+              if (isLocalDev) {
+                console.log("[TRANSCRIPT] Using LOCAL fetch type: youtube-transcript-plus library (local: " + isLocalDev + ")")
                 console.log("[TRANSCRIPT] Fetching transcript with youtube-transcript-plus", { trimmedVideoId, normalizedLang, local })
                 let transcriptResponse
                 try {
