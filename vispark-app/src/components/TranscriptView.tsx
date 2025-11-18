@@ -12,7 +12,7 @@ const TranscriptView: FC<TranscriptViewProps> = ({ transcript }) => {
 
   return (
     <div>
-      <div className="text-sm leading-relaxed whitespace-pre-wrap bg-gray-800 border border-gray-700 rounded-md p-4">
+      <div className="glass-effect text-sm leading-relaxed whitespace-pre-wrap bg-white/5 border border-gray-700/50 rounded-xl p-4 backdrop-blur-sm">
         {decodeHtmlEntities(transcript)}
       </div>
     </div>
