@@ -31,7 +31,7 @@ const Expander = ({
   }
 
   return (
-    <div className={`border border-gray-800 rounded-lg overflow-hidden ${className}`}>
+    <div className={`border border-gray-800 rounded-lg ${className}`}>
       <div
         className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50"
         onClick={handleToggle}
@@ -44,7 +44,7 @@ const Expander = ({
         </div>
       </div>
       {isExpanded && (
-        <div className="pl-3 py-2  bg-gray-900/30">
+        <div className="pl-3 py-2 bg-gray-900/30">
           {children}
         </div>
       )}

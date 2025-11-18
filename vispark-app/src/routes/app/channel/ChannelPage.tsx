@@ -11,6 +11,12 @@ import { useYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
 import Expander from "@/components/Expander"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
 import { useState } from "react"
+import {
+  VideoCameraIcon,
+  UsersIcon,
+  BellIcon,
+  BellSlashIcon
+} from "@phosphor-icons/react"
 
 const ChannelPage = () => {
   const { t } = useTranslation()
@@ -164,7 +170,7 @@ const ChannelPage = () => {
       {/* Channel Header */}
       {isLoading ? (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 rounded-full bg-gray-700 animate-pulse"></div>
               <div>
@@ -176,26 +182,30 @@ const ChannelPage = () => {
           </div>
         </div>
       ) : channelName ? (
-        <div className="glass-effect border-b border-gray-800 px-6 py-4">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
+        <div className="glass-effect border-b border-gray-800 px-3 py-2">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <img
                 src={channelThumbnail}
                 alt={channelName}
                 className="w-12 h-12 rounded-full object-cover"
               />
-              <div>
+              <div className="space-y-2">
                 <h1 className="text-xl font-semibold text-white">
                   {channelName}
                 </h1>
-                <p className="text-sm text-gray-400">
-                  {videoCount.toLocaleString()} videos
+                <div className="flex items-center space-x-2 text-sm">
+                  <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-indigo-500/10 text-indigo-300">
+                    <VideoCameraIcon className="w-4 h-4" />
+                    <span>{videoCount.toLocaleString()}</span>
+                  </div>
                   {subscriberCount && (
-                    <span className="ml-2">
-                      • {subscriberCount.toLocaleString()} subscribers
-                    </span>
+                    <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-purple-500/10 text-purple-300">
+                      <UsersIcon className="w-4 h-4" />
+                      <span>{subscriberCount.toLocaleString()}</span>
+                    </div>
                   )}
-                </p>
+                </div>
               </div>
             </div>
             <button
@@ -210,29 +220,20 @@ const ChannelPage = () => {
               title={isSubscribed ? t("channels.unsubscribe") : t("channels.subscribe")}
             >
               {isSubscribed ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <title>{t("channels.unsubscribe")}</title>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
-                </svg>
+                <BellSlashIcon className="w-5 h-5" />
               ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <title>{t("channels.subscribe")}</title>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
+                <BellIcon className="w-5 h-5" />
               )}
             </button>
           </div>
         </div>
       ) : youtubeDetailsError ? (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-              <h3 className="text-red-400 font-medium mb-2">
-                {t("channels.errorLoadingChannel")}
-              </h3>
-              <p className="text-red-300/80 text-sm">{youtubeDetailsError.message}</p>
-            </div>
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <h3 className="text-red-400 font-medium mb-2">
+              {t("channels.errorLoadingChannel")}
+            </h3>
+            <p className="text-red-300/80 text-sm">{youtubeDetailsError.message}</p>
           </div>
         </div>
       ) : null}
