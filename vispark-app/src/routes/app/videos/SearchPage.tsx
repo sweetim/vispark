@@ -6,6 +6,7 @@ import { extractYouTubeVideoId } from "../../../utils/youtube"
 import { updateVisparkCallbackFlag } from "@/services/vispark"
 import HistoryList from "./components/HistoryList"
 import { useVisparks } from "@/hooks/useVisparks"
+import { useVideoStore } from "@/stores/videoStore"
 
 export type VideosSavedItem = {
   id: string
@@ -28,25 +29,45 @@ const VideosSearchPage = () => {
   // For now, we'll get saved visparks directly from the hook
   // TODO: Implement proper context sharing with TanStack Router
   const { visparks, mutate } = useVisparks()
+  const { processingVideoId, status, videoMetadata } = useVideoStore()
 
   // Always fetch the latest visparks when the page loads
   useEffect(() => {
     mutate()
   }, [mutate])
-  const savedVideos: VideosSavedItem[] = visparks.map((item) => ({
-    id: item.id,
-    createdTime: item.created_at,
-    publishedAt: item.video_published_at,
-    metadata: {
-      channelId: item.video_channel_id,
-      title: item.video_title,
-      thumbnails: item.video_thumbnails,
-      videoId: item.video_id,
-      channelTitle: item.video_channel_title
-    },
-    summaries: item.summaries,
-    isNewFromCallback: item.is_new_from_callback,
-  }))
+  // Add currently processing video if it's not already in the list
+  const shouldAddProcessingVideo = processingVideoId && status !== "idle" && status !== "complete" && videoMetadata && !visparks.some(v => v.video_id === processingVideoId)
+
+  const savedVideos: VideosSavedItem[] = [
+    ...visparks.map((item) => ({
+      id: item.id,
+      createdTime: item.created_at,
+      publishedAt: item.video_published_at,
+      metadata: {
+        channelId: item.video_channel_id,
+        title: item.video_title,
+        thumbnails: item.video_thumbnails,
+        videoId: item.video_id,
+        channelTitle: item.video_channel_title
+      },
+      summaries: item.summaries,
+      isNewFromCallback: item.is_new_from_callback,
+    })),
+    ...(shouldAddProcessingVideo ? [{
+      id: `processing-${processingVideoId}`,
+      createdTime: new Date().toISOString(),
+      publishedAt: videoMetadata.publishedAt || new Date().toISOString(),
+      metadata: {
+        channelId: videoMetadata.channelId,
+        title: videoMetadata.title,
+        thumbnails: videoMetadata.thumbnails,
+        videoId: processingVideoId,
+        channelTitle: videoMetadata.channelTitle
+      },
+      summaries: "",
+      isNewFromCallback: false,
+    }] : [])
+  ]
   const [videoId, setVideoId] = useState("")
   const reactId = useId()
   const inputId = useMemo(() => `videos-video-id-${reactId}`, [reactId])

@@ -500,7 +500,7 @@ const ChannelPage = () => {
                 isLoading={loadingVideos}
                 isLoadingMore={loadingMoreVideos || false}
                 loadMoreRows={() => setVideosSize(videosSize + 1) as any}
-                rowCount={isReachingEndVideos ? videos.length : videos.length + 1}
+                rowCount={isReachingEndVideos ? videos.filter(video => video.videoId !== processingVideoId).length : videos.filter(video => video.videoId !== processingVideoId).length + 1}
                 scrollElement={scrollElement}
                 emptyMessage="No videos found for this channel."
                 errorMessage="Error loading videos"

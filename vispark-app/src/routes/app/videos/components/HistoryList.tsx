@@ -1,5 +1,6 @@
 import VideoMetadataCard from "@/components/VideoMetadataCard"
 import type { VideosSavedItem } from "../SearchPage"
+import { useVideoStore } from "@/stores/videoStore"
 
 type VideosHistoryListProps = {
   items: VideosSavedItem[]
@@ -15,6 +16,7 @@ const VideosHistoryList = ({
   onSelect,
   emptyMessage = defaultEmptyMessage,
 }: VideosHistoryListProps) => {
+  const { processingVideoId, status } = useVideoStore()
   return (
     <section
       aria-label="Recent video history"
@@ -36,6 +38,7 @@ const VideosHistoryList = ({
                 onClick={() => onSelect(item.metadata.videoId)}
                 createdTime={item.publishedAt || item.createdTime}
                 isNewFromCallback={item.isNewFromCallback}
+                isSummarizing={processingVideoId === item.metadata.videoId && (status === "gathering" || status === "summarizing")}
               />
             </li>
           ))}

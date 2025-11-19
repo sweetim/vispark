@@ -91,12 +91,13 @@ const SummariesPage = () => {
   const { visparks, isLoading, error, mutate: mutateVisparks } = useVisparks()
   const navigate = useNavigate()
   const [expandedChannels, setExpandedChannels] = useState<Set<string>>(new Set())
-  const { status } = useVideoStore()
+  const { processingVideoId, status, videoMetadata } = useVideoStore()
 
   // Group visparks by channel
   const groups = useMemo(() => {
     const groupedMap = new Map<string, ChannelGroup>()
 
+    // Add existing visparks
     for (const item of visparks) {
       const channelTitle = item.video_channel_title
       const existing = groupedMap.get(channelTitle)
@@ -128,6 +129,32 @@ const SummariesPage = () => {
       }
     }
 
+    // Add currently processing video if it's not already in the list
+    if (processingVideoId && status !== "idle" && status !== "complete" && videoMetadata) {
+      const channelTitle = videoMetadata.channelTitle
+      const existing = groupedMap.get(channelTitle)
+
+      const processingEntry: ChannelGroupEntry = {
+        id: `processing-${processingVideoId}`,
+        videoId: processingVideoId,
+        videoTitle: videoMetadata.title,
+        channelTitle: videoMetadata.channelTitle,
+        channelId: videoMetadata.channelId,
+        createdTime: new Date().toISOString(),
+        thumbnailUrl: videoMetadata.thumbnails,
+      }
+
+      if (existing) {
+        existing.entries.push(processingEntry)
+      } else {
+        groupedMap.set(channelTitle, {
+          channelTitle: videoMetadata.channelTitle,
+          channelId: videoMetadata.channelId,
+          entries: [processingEntry],
+        })
+      }
+    }
+
     // Sort entries within each group by creation time (newest first)
     for (const group of groupedMap.values()) {
       group.entries.sort((a, b) =>
@@ -141,7 +168,7 @@ const SummariesPage = () => {
       const latestB = new Date(b.entries[0]?.createdTime ?? 0).getTime()
       return latestB - latestA
     })
-  }, [visparks])
+  }, [visparks, processingVideoId, status, videoMetadata])
 
   const stats = useMemo(() => {
     const allEntries = groups.flatMap((group) => group.entries)
@@ -299,34 +326,59 @@ const SummariesPage = () => {
 
                       {expandedChannels.has(group.channelId) && (
                         <div className="mt-4 grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
-                          {group.entries.map((entry) => (
-                            <button
-                              key={entry.id}
-                              type="button"
-                              onClick={() =>
-                                navigate({ to: `/app/videos/${entry.videoId}` })
-                              }
-                              className="group flex items-center gap-3 rounded-lg border border-white/10 bg-gray-900/50 p-3 text-left backdrop-blur transition hover:bg-gray-800/50 hover:border-white/20"
-                            >
-                              <div className="relative w-24 shrink-0 overflow-hidden rounded">
-                                <img
-                                  src={entry.thumbnailUrl}
-                                  alt={entry.videoTitle}
-                                  loading="lazy"
-                                  className="aspect-video w-full object-cover transition duration-300 group-hover:scale-105"
-                                />
-                              </div>
+                          {group.entries.map((entry) => {
+                            const isSummarizing = status === "gathering" || status === "summarizing"
+                            const isCurrentlyProcessing = processingVideoId === entry.videoId && isSummarizing
 
-                              <div className="flex-1 min-w-0">
-                                <p className="truncate text-sm font-medium text-white">
-                                  {entry.videoTitle}
-                                </p>
-                                <p className="text-xs text-gray-400">
-                                  {formatRelativeToNow(entry.createdTime)}
-                                </p>
-                              </div>
-                            </button>
-                          ))}
+                            return (
+                              <button
+                                key={entry.id}
+                                type="button"
+                                onClick={() =>
+                                  navigate({ to: `/app/videos/${entry.videoId}` })
+                                }
+                                className="group flex items-center gap-3 rounded-lg border border-white/10 bg-gray-900/50 p-3 text-left backdrop-blur transition hover:bg-gray-800/50 hover:border-white/20"
+                              >
+                                <div className="relative w-24 shrink-0 overflow-hidden rounded">
+                                  <img
+                                    src={entry.thumbnailUrl}
+                                    alt={entry.videoTitle}
+                                    loading="lazy"
+                                    className="aspect-video w-full object-cover transition duration-300 group-hover:scale-105"
+                                  />
+                                  {isCurrentlyProcessing && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                      <div className="flex flex-col items-center">
+                                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        <span className="text-white text-xs mt-1">Processing...</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <p className="truncate text-sm font-medium text-white">
+                                      {entry.videoTitle}
+                                    </p>
+                                    {isCurrentlyProcessing && (
+                                      <div className="inline-flex h-5 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse">
+                                        <div className="flex items-center space-x-1">
+                                          <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+                                          <span className="text-xs font-medium text-white">
+                                            SUMMARIZING
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-400">
+                                    {formatRelativeToNow(entry.createdTime)}
+                                  </p>
+                                </div>
+                              </button>
+                            )
+                          })}
                         </div>
                       )}
                     </div>
