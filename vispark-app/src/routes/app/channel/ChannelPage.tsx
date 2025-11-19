@@ -14,7 +14,8 @@ import {
   VideoCameraIcon,
   UsersIcon,
   BellIcon,
-  BellSlashIcon
+  BellSlashIcon,
+  CaretDownIcon
 } from "@phosphor-icons/react"
 import {
   AutoSizer,
@@ -382,16 +383,18 @@ const ChannelPage = () => {
         <div className="border border-gray-800 rounded-lg overflow-hidden bg-gray-900/50">
           <button
             type="button"
-            className="w-full px-4 py-3 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
+            className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50 w-full"
             onClick={() => setExpandedSection(expandedSection === 'libraries' ? null : 'libraries')}
           >
-            <span className="font-medium text-white">Libraries</span>
-            <span className={`transform transition-transform duration-200 ${expandedSection === 'libraries' ? 'rotate-180' : ''}`}>
-              ▼
-            </span>
+            <div className="flex items-center space-x-3">
+              <div className={`transform transition-transform duration-200 ${expandedSection === 'libraries' ? 'rotate-180' : ''}`}>
+                <CaretDownIcon className="w-5 h-5 text-gray-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white">Libraries</h2>
+            </div>
           </button>
           {expandedSection === 'libraries' && (
-            <div className="p-2">
+            <div className="pl-3 py-2 bg-gray-900/30">
               <VirtualizedContentGrid
                 items={visparks.map(vispark => ({
                   id: vispark.id,
@@ -420,16 +423,18 @@ const ChannelPage = () => {
         <div className="border border-gray-800 rounded-lg overflow-hidden bg-gray-900/50">
           <button
             type="button"
-            className="w-full px-4 py-3 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
+            className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50 w-full"
             onClick={() => setExpandedSection(expandedSection === 'discover' ? null : 'discover')}
           >
-            <span className="font-medium text-white">Discover</span>
-            <span className={`transform transition-transform duration-200 ${expandedSection === 'discover' ? 'rotate-180' : ''}`}>
-              ▼
-            </span>
+            <div className="flex items-center space-x-3">
+              <div className={`transform transition-transform duration-200 ${expandedSection === 'discover' ? 'rotate-180' : ''}`}>
+                <CaretDownIcon className="w-5 h-5 text-gray-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white">Discover</h2>
+            </div>
           </button>
           {expandedSection === 'discover' && (
-            <div className="p-2">
+            <div className="pl-3 py-2 bg-gray-900/30">
               <VirtualizedContentGrid
                 items={videos.map(video => ({
                   videoId: video.videoId,

@@ -23,3 +23,13 @@
     - Gear => GearIcon
 
 - css file, The class `bg-gradient-to-r` can be written as `bg-linear-to-r`(suggestCanonicalClasses)
+
+
+# App styles
+
+- A dark theme with primary colors like indigo, purple, and blue
+- Glass morphism effects with backdrop blur
+- Gradient backgrounds and accents
+- Consistent spacing and border radius
+- The glass-effect class for containers
+- Pattern backgrounds with radial gradients
