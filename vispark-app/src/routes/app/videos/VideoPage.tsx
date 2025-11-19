@@ -28,7 +28,6 @@ const VideosVideoPage = () => {
     setView,
     setUserViewPreference,
     isTranscriptLoading,
-    videoExistsInVispark,
   } = useVideoProcessing()
 
   // Check if video exists in vispark table
