@@ -320,6 +320,19 @@ const SummariesPage = () => {
                           >
                             {group.channelTitle}
                           </button>
+                          {group.entries.some(entry =>
+                            entry.videoId === processingVideoId &&
+                            (status === "gathering" || status === "summarizing")
+                          ) && (
+                            <div className="inline-flex h-5 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+                                <span className="text-xs font-medium text-white">
+                                  SUMMARIZING
+                                </span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <CountBadge count={group.entries.length} />
                       </div>

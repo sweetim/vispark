@@ -9,14 +9,14 @@ import { useToast } from "@/contexts/ToastContext"
 import { useInfiniteVisparksByChannel } from "@/hooks/useVisparks"
 import { useInfiniteYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
+import Expander from "@/components/Expander"
 import { useVideoStore } from "@/stores/videoStore"
 import { useState, useRef, useEffect } from "react"
 import {
   VideoCameraIcon,
   UsersIcon,
   BellIcon,
-  BellSlashIcon,
-  CaretDownIcon
+  BellSlashIcon
 } from "@phosphor-icons/react"
 import {
   AutoSizer,
@@ -420,98 +420,76 @@ const ChannelPage = () => {
       {/* Libraries and Discover Expanders */}
       <div className="space-y-2">
         {/* Libraries Expander */}
-        <div className="border border-gray-800 rounded-lg overflow-hidden bg-gray-900/50">
-          <button
-            type="button"
-            className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50 w-full"
-            onClick={() => setExpandedSection(expandedSection === 'libraries' ? null : 'libraries')}
-          >
-            <div className="flex items-center space-x-3">
-              <div className={`transform transition-transform duration-200 ${expandedSection === 'libraries' ? 'rotate-180' : ''}`}>
-                <CaretDownIcon className="w-5 h-5 text-gray-400" />
-              </div>
-              <h2 className="text-xl font-bold text-white">Libraries</h2>
-            </div>
-          </button>
-          {expandedSection === 'libraries' && (
-            <div className="pl-3 py-2 bg-gray-900/30">
-              <VirtualizedContentGrid
-                items={[
-                  ...visparks.map(vispark => ({
-                    id: vispark.id,
-                    videoId: vispark.video_id,
-                    title: vispark.video_title,
-                    channelTitle: vispark.video_channel_title,
-                    thumbnail: vispark.video_thumbnails,
-                    createdTime: vispark.video_published_at,
-                    isNewFromCallback: vispark.is_new_from_callback
-                  })),
-                  // Add currently processing video from Discover section if it belongs to this channel
-                  ...(processingVideoId && videos.some(v => v.videoId === processingVideoId) ? [{
-                    id: `processing-${processingVideoId}`,
-                    videoId: processingVideoId,
-                    title: videos.find(v => v.videoId === processingVideoId)?.title || '',
-                    channelTitle: youtubeChannelDetails?.channelName || '',
-                    thumbnail: videos.find(v => v.videoId === processingVideoId)?.thumbnails || '',
-                    createdTime: videos.find(v => v.videoId === processingVideoId)?.publishedAt,
-                    isNewFromCallback: false
-                  }] : [])
-                ]}
-                isLoading={loadingVisparks}
-                isLoadingMore={loadingMoreVisparks || false}
-                loadMoreRows={() => setVisparksSize(visparksSize + 1) as any}
-                rowCount={isReachingEndVisparks ? visparks.length : visparks.length + 1}
-                scrollElement={scrollElement}
-                emptyMessage="No vispark summaries found for this channel."
-                errorMessage="Error loading libraries"
-                error={visparksError}
-                onItemClick={handleItemClick}
-                processingVideoId={processingVideoId}
-                processingStatus={status}
-              />
-            </div>
-          )}
-        </div>
+        <Expander
+          title="Libraries"
+          isExpanded={expandedSection === 'libraries'}
+          onToggle={() => setExpandedSection(expandedSection === 'libraries' ? null : 'libraries')}
+          isSummarizing={Boolean(processingVideoId && videos.some(v => v.videoId === processingVideoId) && (status === "gathering" || status === "summarizing"))}
+        >
+          <VirtualizedContentGrid
+            items={[
+              ...visparks.map(vispark => ({
+                id: vispark.id,
+                videoId: vispark.video_id,
+                title: vispark.video_title,
+                channelTitle: vispark.video_channel_title,
+                thumbnail: vispark.video_thumbnails,
+                createdTime: vispark.video_published_at,
+                isNewFromCallback: vispark.is_new_from_callback
+              })),
+              // Add currently processing video from Discover section if it belongs to this channel
+              ...(processingVideoId && videos.some(v => v.videoId === processingVideoId) ? [{
+                id: `processing-${processingVideoId}`,
+                videoId: processingVideoId,
+                title: videos.find(v => v.videoId === processingVideoId)?.title || '',
+                channelTitle: youtubeChannelDetails?.channelName || '',
+                thumbnail: videos.find(v => v.videoId === processingVideoId)?.thumbnails || '',
+                createdTime: videos.find(v => v.videoId === processingVideoId)?.publishedAt,
+                isNewFromCallback: false
+              }] : [])
+            ]}
+            isLoading={loadingVisparks}
+            isLoadingMore={loadingMoreVisparks || false}
+            loadMoreRows={() => setVisparksSize(visparksSize + 1) as any}
+            rowCount={isReachingEndVisparks ? visparks.length : visparks.length + 1}
+            scrollElement={scrollElement}
+            emptyMessage="No vispark summaries found for this channel."
+            errorMessage="Error loading libraries"
+            error={visparksError}
+            onItemClick={handleItemClick}
+            processingVideoId={processingVideoId}
+            processingStatus={status}
+          />
+        </Expander>
 
         {/* Discover Expander */}
-        <div className="border border-gray-800 rounded-lg overflow-hidden bg-gray-900/50">
-          <button
-            type="button"
-            className="sticky top-0 z-10 flex items-center justify-between cursor-pointer p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl transition-all duration-200 hover:bg-gray-800/50 w-full"
-            onClick={() => setExpandedSection(expandedSection === 'discover' ? null : 'discover')}
-          >
-            <div className="flex items-center space-x-3">
-              <div className={`transform transition-transform duration-200 ${expandedSection === 'discover' ? 'rotate-180' : ''}`}>
-                <CaretDownIcon className="w-5 h-5 text-gray-400" />
-              </div>
-              <h2 className="text-xl font-bold text-white">Discover</h2>
-            </div>
-          </button>
-          {expandedSection === 'discover' && (
-            <div className="pl-3 py-2 bg-gray-900/30">
-              <VirtualizedContentGrid
-                items={videos.filter(video => video.videoId !== processingVideoId).map(video => ({
-                  videoId: video.videoId,
-                  title: video.title,
-                  channelTitle: youtubeChannelDetails?.channelName || '',
-                  thumbnail: video.thumbnails,
-                  createdTime: video.publishedAt
-                }))}
-                isLoading={loadingVideos}
-                isLoadingMore={loadingMoreVideos || false}
-                loadMoreRows={() => setVideosSize(videosSize + 1) as any}
-                rowCount={isReachingEndVideos ? videos.filter(video => video.videoId !== processingVideoId).length : videos.filter(video => video.videoId !== processingVideoId).length + 1}
-                scrollElement={scrollElement}
-                emptyMessage="No videos found for this channel."
-                errorMessage="Error loading videos"
-                error={videosError}
-                onItemClick={handleItemClick}
-                processingVideoId={processingVideoId}
-                processingStatus={status}
-              />
-            </div>
-          )}
-        </div>
+        <Expander
+          title="Discover"
+          isExpanded={expandedSection === 'discover'}
+          onToggle={() => setExpandedSection(expandedSection === 'discover' ? null : 'discover')}
+          isSummarizing={Boolean(processingVideoId && videos.some(v => v.videoId === processingVideoId) && (status === "gathering" || status === "summarizing"))}
+        >
+          <VirtualizedContentGrid
+            items={videos.filter(video => video.videoId !== processingVideoId).map(video => ({
+              videoId: video.videoId,
+              title: video.title,
+              channelTitle: youtubeChannelDetails?.channelName || '',
+              thumbnail: video.thumbnails,
+              createdTime: video.publishedAt
+            }))}
+            isLoading={loadingVideos}
+            isLoadingMore={loadingMoreVideos || false}
+            loadMoreRows={() => setVideosSize(videosSize + 1) as any}
+            rowCount={isReachingEndVideos ? videos.filter(video => video.videoId !== processingVideoId).length : videos.filter(video => video.videoId !== processingVideoId).length + 1}
+            scrollElement={scrollElement}
+            emptyMessage="No videos found for this channel."
+            errorMessage="Error loading videos"
+            error={videosError}
+            onItemClick={handleItemClick}
+            processingVideoId={processingVideoId}
+            processingStatus={status}
+          />
+        </Expander>
       </div>
     </div>
   )

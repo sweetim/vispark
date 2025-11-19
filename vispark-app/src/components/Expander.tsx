@@ -8,6 +8,7 @@ type ExpanderProps = {
   className?: string
   isExpanded?: boolean
   onToggle?: () => void
+  isSummarizing?: boolean
 }
 
 const Expander = ({
@@ -16,7 +17,8 @@ const Expander = ({
   defaultExpanded = false,
   className = "",
   isExpanded: controlledIsExpanded,
-  onToggle
+  onToggle,
+  isSummarizing = false
 }: ExpanderProps) => {
   // Use internal state if not controlled, otherwise use the controlled prop
   const [internalIsExpanded, setInternalIsExpanded] = useState(defaultExpanded)
@@ -41,6 +43,16 @@ const Expander = ({
             <CaretDownIcon className="w-5 h-5 text-gray-400" />
           </div>
           <h2 className="text-xl font-bold text-white">{title}</h2>
+          {isSummarizing && (
+            <div className="inline-flex h-5 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse">
+              <div className="flex items-center space-x-1">
+                <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+                <span className="text-xs font-medium text-white">
+                  SUMMARIZING
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {isExpanded && (
