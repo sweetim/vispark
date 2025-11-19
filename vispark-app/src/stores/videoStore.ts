@@ -1,6 +1,11 @@
 import { create } from "zustand"
 import type { VideoMetadata } from "@/services/vispark"
-import { fetchTranscript, fetchSummaryStream, saveVispark, formatTranscript } from "@/services/vispark"
+import {
+  fetchSummaryStream,
+  fetchTranscript,
+  formatTranscript,
+  saveVispark,
+} from "@/services/vispark"
 
 export type Step = "idle" | "gathering" | "summarizing" | "complete" | "error"
 export type ErrorStep = "gathering" | "summarizing" | null
@@ -9,6 +14,13 @@ export type ViewMode = "summary" | "transcript"
 type Notification = {
   message: string
   type: "success" | "error" | "info" | "warning"
+  videoId?: string
+  videoMetadata?: {
+    title?: string
+    channelTitle?: string
+    channelId?: string
+    thumbnail?: string
+  }
 } | null
 
 type VideoState = {
@@ -63,7 +75,11 @@ export const useVideoStore = create<VideoState & VideoActions>((set, get) => {
 
     startProcessing: async (videoId, metadata) => {
       const state = get()
-      if (state.processingVideoId === videoId && state.status !== "error" && state.status !== "idle") {
+      if (
+        state.processingVideoId === videoId
+        && state.status !== "error"
+        && state.status !== "idle"
+      ) {
         return // Already processing this video
       }
 
@@ -76,7 +92,7 @@ export const useVideoStore = create<VideoState & VideoActions>((set, get) => {
         transcript: "",
         summary: null,
         streamingSummary: "",
-        videoMetadata: metadata
+        videoMetadata: metadata,
       })
 
       abortController = new AbortController()
@@ -85,10 +101,12 @@ export const useVideoStore = create<VideoState & VideoActions>((set, get) => {
         // 1. Fetch Transcript
         const transcriptResult = await fetchTranscript({
           videoId,
-          lang: metadata.defaultLanguage
+          lang: metadata.defaultLanguage,
         })
 
-        const formattedTranscript = formatTranscript(transcriptResult.transcript)
+        const formattedTranscript = formatTranscript(
+          transcriptResult.transcript,
+        )
         set({ transcript: formattedTranscript })
 
         // 2. Generate Summary
@@ -121,30 +139,45 @@ export const useVideoStore = create<VideoState & VideoActions>((set, get) => {
               }
 
               if (parsed.choices?.[0]?.finish_reason === "stop") {
-                 // Save to DB
-                 await saveVispark(videoId, metadata.channelId, summaryText, metadata)
+                // Save to DB
+                await saveVispark(
+                  videoId,
+                  metadata.channelId,
+                  summaryText,
+                  metadata,
+                )
 
-                 set({
-                   status: "complete",
-                   summary: summaryText,
-                   notification: { message: "Summary generated successfully!", type: "success" }
-                 })
-                 return
+                set({
+                  status: "complete",
+                  summary: summaryText,
+                  notification: {
+                    message: "Summary generated successfully!",
+                    type: "success",
+                    videoId: videoId,
+                    videoMetadata: {
+                      title: metadata.title,
+                      channelTitle: metadata.channelTitle,
+                      channelId: metadata.channelId,
+                      thumbnail: metadata.thumbnails,
+                    },
+                  },
+                })
+                return
               }
             } catch (e) {
-               // Ignore parse errors
+              // Ignore parse errors
             }
           }
         }
-
       } catch (error) {
         console.error("Processing failed:", error)
         const currentStatus = get().status
         set({
           status: "error",
           error: error instanceof Error ? error.message : "Unknown error",
-          errorStep: currentStatus === "gathering" ? "gathering" : "summarizing",
-          notification: { message: "Failed to process video.", type: "error" }
+          errorStep:
+            currentStatus === "gathering" ? "gathering" : "summarizing",
+          notification: { message: "Failed to process video.", type: "error" },
         })
       } finally {
         abortController = null
@@ -159,7 +192,7 @@ export const useVideoStore = create<VideoState & VideoActions>((set, get) => {
       set({
         status: "idle",
         processingVideoId: null,
-        streamingSummary: ""
+        streamingSummary: "",
       })
     },
 
@@ -169,6 +202,6 @@ export const useVideoStore = create<VideoState & VideoActions>((set, get) => {
     setView: (view) => set({ view }),
     setUserViewPreference: (userViewPreference) => set({ userViewPreference }),
     setVideoMetadata: (videoMetadata) => set({ videoMetadata }),
-    resetState: () => set(initialState)
+    resetState: () => set(initialState),
   }
 })

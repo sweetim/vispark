@@ -15,6 +15,7 @@ type VideoMetadataCardProps = {
   isActive?: boolean
   createdTime?: string
   isNewFromCallback?: boolean
+  isSummarizing?: boolean
 }
 
 function formatRelativeTime(createdTime?: string): string {
@@ -41,6 +42,7 @@ export default function VideoMetadataCard({
   isActive,
   createdTime,
   isNewFromCallback,
+  isSummarizing = false,
 }: VideoMetadataCardProps) {
   const { t } = useTranslation()
   const videoAddress = `https://www.youtube.com/watch?v=${metadata.videoId}`
@@ -79,6 +81,18 @@ export default function VideoMetadataCard({
               <p className="text-xs font-medium text-white">
                 NEW
               </p>
+            </div>
+          )}
+          {isSummarizing && (
+            <div
+              className={`inline-flex h-7 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse`}
+            >
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                <p className="text-xs font-medium text-white">
+                  SUMMARIZING
+                </p>
+              </div>
             </div>
           )}
         </div>

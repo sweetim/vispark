@@ -49,13 +49,16 @@ const VideosVideoPage = () => {
       <div className="sticky top-0 z-20 space-y-2 backdrop-blur">
         <div className="w-full">
           {videoMetadata ? (
-            <VideoMetadataCard metadata={{
-              channelId: search.channelId || videoMetadata.channelId,
-              channelTitle: search.channelTitle || videoMetadata.channelTitle,
-              thumbnails: search.thumbnail || videoMetadata.thumbnails,
-              title: search.title || videoMetadata.title,
-              videoId: rawVideoId
-            }} />
+            <VideoMetadataCard
+              metadata={{
+                channelId: search.channelId || videoMetadata.channelId,
+                channelTitle: search.channelTitle || videoMetadata.channelTitle,
+                thumbnails: search.thumbnail || videoMetadata.thumbnails,
+                title: search.title || videoMetadata.title,
+                videoId: rawVideoId
+              }}
+              isSummarizing={isGenerating}
+            />
           ) : (
             <VideoMetadataSkeleton />
           )}
@@ -75,7 +78,7 @@ const VideosVideoPage = () => {
         )}
       </div>
 
-      {!videoExistsInVispark && step !== "idle" && step !== "complete" && (
+      {step !== "idle" && step !== "complete" && (
         <ProgressTimeline
           step={step}
           errorStep={errorStep}

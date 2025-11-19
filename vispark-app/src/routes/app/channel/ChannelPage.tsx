@@ -9,6 +9,7 @@ import { useToast } from "@/contexts/ToastContext"
 import { useInfiniteVisparksByChannel } from "@/hooks/useVisparks"
 import { useInfiniteYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
+import { useVideoStore } from "@/stores/videoStore"
 import { useState, useRef } from "react"
 import {
   VideoCameraIcon,
@@ -48,6 +49,8 @@ type VirtualizedContentGridProps = {
   errorMessage: string
   error: any
   onItemClick: (item: VirtualizedItem) => void
+  processingVideoId: string | null
+  processingStatus: "idle" | "gathering" | "summarizing" | "complete" | "error"
 }
 
 const VirtualizedContentGrid = ({
@@ -60,7 +63,9 @@ const VirtualizedContentGrid = ({
   emptyMessage,
   errorMessage,
   error,
-  onItemClick
+  onItemClick,
+  processingVideoId,
+  processingStatus
 }: VirtualizedContentGridProps) => {
   const cache = useRef(new CellMeasurerCache({
     fixedWidth: true,
@@ -122,7 +127,7 @@ const VirtualizedContentGrid = ({
                         }}
                         className="flex gap-2 p-1"
                       >
-                        {rowItems.map((item, itemIndex) => (
+                        {rowItems.map((item) => (
                           <div
                             key={item.id || item.videoId}
                             style={{ width: columnWidth - 8 }} // Account for gap
@@ -141,6 +146,7 @@ const VirtualizedContentGrid = ({
                                   }}
                                   createdTime={item.createdTime}
                                   isNewFromCallback={item.isNewFromCallback || false}
+                                  isSummarizing={processingVideoId === item.videoId && (processingStatus === "gathering" || processingStatus === "summarizing")}
                                   onClick={() => onItemClick(item)}
                                 />
                               </div>
@@ -216,6 +222,7 @@ const ChannelPage = () => {
   const { channelId: rawChannelId } = useParams({ from: '/app/channels/$channelId' })
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const { processingVideoId, status } = useVideoStore()
 
   const channelId = (rawChannelId ?? "").trim()
 
@@ -396,15 +403,27 @@ const ChannelPage = () => {
           {expandedSection === 'libraries' && (
             <div className="pl-3 py-2 bg-gray-900/30">
               <VirtualizedContentGrid
-                items={visparks.map(vispark => ({
-                  id: vispark.id,
-                  videoId: vispark.video_id,
-                  title: vispark.video_title,
-                  channelTitle: vispark.video_channel_title,
-                  thumbnail: vispark.video_thumbnails,
-                  createdTime: vispark.video_published_at,
-                  isNewFromCallback: vispark.is_new_from_callback
-                }))}
+                items={[
+                  ...visparks.map(vispark => ({
+                    id: vispark.id,
+                    videoId: vispark.video_id,
+                    title: vispark.video_title,
+                    channelTitle: vispark.video_channel_title,
+                    thumbnail: vispark.video_thumbnails,
+                    createdTime: vispark.video_published_at,
+                    isNewFromCallback: vispark.is_new_from_callback
+                  })),
+                  // Add currently processing video from Discover section if it belongs to this channel
+                  ...(processingVideoId && videos.some(v => v.videoId === processingVideoId) ? [{
+                    id: `processing-${processingVideoId}`,
+                    videoId: processingVideoId,
+                    title: videos.find(v => v.videoId === processingVideoId)?.title || '',
+                    channelTitle: youtubeChannelDetails?.channelName || '',
+                    thumbnail: videos.find(v => v.videoId === processingVideoId)?.thumbnails || '',
+                    createdTime: videos.find(v => v.videoId === processingVideoId)?.publishedAt,
+                    isNewFromCallback: false
+                  }] : [])
+                ]}
                 isLoading={loadingVisparks}
                 isLoadingMore={loadingMoreVisparks || false}
                 loadMoreRows={() => setVisparksSize(visparksSize + 1) as any}
@@ -414,6 +433,8 @@ const ChannelPage = () => {
                 errorMessage="Error loading libraries"
                 error={visparksError}
                 onItemClick={handleItemClick}
+                processingVideoId={processingVideoId}
+                processingStatus={status}
               />
             </div>
           )}
@@ -436,7 +457,7 @@ const ChannelPage = () => {
           {expandedSection === 'discover' && (
             <div className="pl-3 py-2 bg-gray-900/30">
               <VirtualizedContentGrid
-                items={videos.map(video => ({
+                items={videos.filter(video => video.videoId !== processingVideoId).map(video => ({
                   videoId: video.videoId,
                   title: video.title,
                   channelTitle: youtubeChannelDetails?.channelName || '',
@@ -452,6 +473,8 @@ const ChannelPage = () => {
                 errorMessage="Error loading videos"
                 error={videosError}
                 onItemClick={handleItemClick}
+                processingVideoId={processingVideoId}
+                processingStatus={status}
               />
             </div>
           )}

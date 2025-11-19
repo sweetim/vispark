@@ -1,7 +1,7 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
-import { ChartBarIcon } from "@phosphor-icons/react"
+import { ChartBarIcon, CaretDownIcon, CaretRightIcon } from "@phosphor-icons/react"
 import CountBadge from "@/components/CountBadge"
 import { useVisparks } from "@/hooks/useVisparks"
 
@@ -89,6 +89,7 @@ const SummariesPage = () => {
   const { t } = useTranslation()
   const { visparks, isLoading, error } = useVisparks()
   const navigate = useNavigate()
+  const [expandedChannels, setExpandedChannels] = useState<Set<string>>(new Set())
 
   // Group visparks by channel
   const groups = useMemo(() => {
@@ -171,6 +172,18 @@ const SummariesPage = () => {
     }
   }, [groups, visparks])
 
+  const toggleChannelExpansion = (channelId: string) => {
+    setExpandedChannels((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(channelId)) {
+        newSet.delete(channelId)
+      } else {
+        newSet.add(channelId)
+      }
+      return newSet
+    })
+  }
+
   const status = isLoading ? "loading" : error ? "error" : "success"
   const errorMessage = error instanceof Error ? error.message : null
 
@@ -233,47 +246,62 @@ const SummariesPage = () => {
                       className={`pointer-events-none absolute -top-1/3 right-[-8%] h-full w-3/5 bg-linear-to-br ${accent} opacity-30 blur-3xl`}
                     />
                     <div className="relative p-4">
-                      <div className="mb-4 flex items-center justify-between">
-                        <button
-                          type="button"
-                          onClick={() => navigate({ to: `/app/channels/${group.channelId}` })}
-                          className="text-xl font-semibold text-white hover:text-indigo-300 transition-colors"
-                        >
-                          {group.channelTitle}
-                        </button>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => toggleChannelExpansion(group.channelId)}
+                            className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                          >
+                            {expandedChannels.has(group.channelId) ? (
+                              <CaretDownIcon size={20} />
+                            ) : (
+                              <CaretRightIcon size={20} />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => navigate({ to: `/app/channels/${group.channelId}` })}
+                            className="text-xl font-semibold text-white hover:text-indigo-300 transition-colors"
+                          >
+                            {group.channelTitle}
+                          </button>
+                        </div>
                         <CountBadge count={group.entries.length} />
                       </div>
 
-                      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
-                        {group.entries.map((entry) => (
-                          <button
-                            key={entry.id}
-                            type="button"
-                            onClick={() =>
-                              navigate({ to: `/app/videos/${entry.videoId}` })
-                            }
-                            className="group flex items-center gap-3 rounded-lg border border-white/10 bg-gray-900/50 p-3 text-left backdrop-blur transition hover:bg-gray-800/50 hover:border-white/20"
-                          >
-                            <div className="relative w-24 shrink-0 overflow-hidden rounded">
-                              <img
-                                src={entry.thumbnailUrl}
-                                alt={entry.videoTitle}
-                                loading="lazy"
-                                className="aspect-video w-full object-cover transition duration-300 group-hover:scale-105"
-                              />
-                            </div>
+                      {expandedChannels.has(group.channelId) && (
+                        <div className="mt-4 grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
+                          {group.entries.map((entry) => (
+                            <button
+                              key={entry.id}
+                              type="button"
+                              onClick={() =>
+                                navigate({ to: `/app/videos/${entry.videoId}` })
+                              }
+                              className="group flex items-center gap-3 rounded-lg border border-white/10 bg-gray-900/50 p-3 text-left backdrop-blur transition hover:bg-gray-800/50 hover:border-white/20"
+                            >
+                              <div className="relative w-24 shrink-0 overflow-hidden rounded">
+                                <img
+                                  src={entry.thumbnailUrl}
+                                  alt={entry.videoTitle}
+                                  loading="lazy"
+                                  className="aspect-video w-full object-cover transition duration-300 group-hover:scale-105"
+                                />
+                              </div>
 
-                            <div className="flex-1 min-w-0">
-                              <p className="truncate text-sm font-medium text-white">
-                                {entry.videoTitle}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                {formatRelativeToNow(entry.createdTime)}
-                              </p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="truncate text-sm font-medium text-white">
+                                  {entry.videoTitle}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  {formatRelativeToNow(entry.createdTime)}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </section>

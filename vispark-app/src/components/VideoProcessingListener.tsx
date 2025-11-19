@@ -9,7 +9,13 @@ export const VideoProcessingListener = () => {
 
   useEffect(() => {
     if (notification) {
-      showToast(notification.message, notification.type)
+      showToast(
+        notification.message,
+        notification.type,
+        undefined,
+        notification.videoId,
+        notification.videoMetadata
+      )
       clearNotification()
     }
   }, [notification, showToast, clearNotification])

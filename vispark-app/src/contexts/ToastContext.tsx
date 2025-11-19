@@ -8,10 +8,17 @@ type ToastMessage = {
   message: string
   type: ToastType
   duration?: number
+  videoId?: string
+  videoMetadata?: {
+    title?: string
+    channelTitle?: string
+    channelId?: string
+    thumbnail?: string
+  }
 }
 
 type ToastContextType = {
-  showToast: (message: string, type: ToastType, duration?: number) => void
+  showToast: (message: string, type: ToastType, duration?: number, videoId?: string, videoMetadata?: ToastMessage['videoMetadata']) => void
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined)
@@ -24,13 +31,15 @@ export const ToastProvider = ({ children }: ToastProviderProps) => {
   const [toasts, setToasts] = useState<ToastMessage[]>([])
 
   const showToast = useCallback(
-    (message: string, type: ToastType, duration?: number) => {
+    (message: string, type: ToastType, duration?: number, videoId?: string, videoMetadata?: ToastMessage['videoMetadata']) => {
       const id = Date.now().toString()
       const newToast: ToastMessage = {
         id,
         message,
         type,
         duration,
+        videoId,
+        videoMetadata,
       }
 
       setToasts((prevToasts) => [...prevToasts, newToast])
@@ -51,6 +60,8 @@ export const ToastProvider = ({ children }: ToastProviderProps) => {
           message={toast.message}
           type={toast.type}
           duration={toast.duration}
+          videoId={toast.videoId}
+          videoMetadata={toast.videoMetadata}
           onClose={() => removeToast(toast.id)}
         />
       ))}

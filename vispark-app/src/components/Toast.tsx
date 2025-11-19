@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { match } from "ts-pattern"
 import { CheckCircleIcon, XCircleIcon, WarningCircleIcon, InfoIcon, XIcon } from "@phosphor-icons/react"
 
@@ -9,10 +10,18 @@ type ToastProps = {
   type: ToastType
   duration?: number
   onClose: () => void
+  videoId?: string
+  videoMetadata?: {
+    title?: string
+    channelTitle?: string
+    channelId?: string
+    thumbnail?: string
+  }
 }
 
-const Toast = ({ message, type, duration = 5000, onClose }: ToastProps) => {
+const Toast = ({ message, type, duration = 5000, onClose, videoId, videoMetadata }: ToastProps) => {
   const [isVisible, setIsVisible] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -22,6 +31,23 @@ const Toast = ({ message, type, duration = 5000, onClose }: ToastProps) => {
 
     return () => clearTimeout(timer)
   }, [duration, onClose])
+
+  const handleToastClick = () => {
+    if (videoId) {
+      navigate({
+        to: `/app/videos/${videoId}`,
+        search: {
+          title: videoMetadata?.title,
+          channelTitle: videoMetadata?.channelTitle,
+          channelId: videoMetadata?.channelId,
+          thumbnail: videoMetadata?.thumbnail,
+          createdTime: undefined,
+        },
+      })
+      setIsVisible(false)
+      setTimeout(onClose, 300)
+    }
+  }
 
   const toastStyles = match(type)
     .with("success", () => "bg-emerald-500/20 border-emerald-500/30 backdrop-blur-xl")
@@ -48,7 +74,8 @@ const Toast = ({ message, type, duration = 5000, onClose }: ToastProps) => {
     <div
       className={`fixed bottom-20 left-4 right-4 z-50 p-2.5 rounded-lg border text-white shadow-lg transform transition-all duration-300 glass-effect ${toastStyles} ${
         isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
-      }`}
+      } ${videoId ? "cursor-pointer hover:scale-[1.02]" : ""}`}
+      onClick={handleToastClick}
     >
       <div className="flex items-center">
         <div className="shrink-0 mr-2">
@@ -56,9 +83,13 @@ const Toast = ({ message, type, duration = 5000, onClose }: ToastProps) => {
         </div>
         <div className="flex-1 min-w-0 pr-6">
           <p className="text-xs text-gray-200">{message}</p>
+          {videoId && (
+            <p className="text-xs text-gray-400 mt-1">Click to view video</p>
+          )}
         </div>
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation()
             setIsVisible(false)
             setTimeout(onClose, 300)
           }}
