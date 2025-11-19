@@ -4,12 +4,10 @@ import { RouterProvider } from "@tanstack/react-router"
 
 import { router } from "@/config/tanstack-router.tsx"
 import { AuthProvider } from "@/modules/auth"
-import { ToastProvider } from "@/contexts/ToastContext"
 import { SWRProvider } from "@/config/swrConfig"
 import { LocaleProvider } from "@/contexts/LocaleContext"
 import "@/config/i18n"
 import { registerServiceWorker } from "./service-worker-registration"
-import { VideoProcessingListener } from "@/components/VideoProcessingListener"
 import "./index.css"
 
 // Register service worker for better mobile PWA support
@@ -21,10 +19,7 @@ createRoot(document.getElementById("root")!).render(
     <SWRProvider>
       <AuthProvider>
         <LocaleProvider>
-          <ToastProvider>
-            <VideoProcessingListener />
-            <RouterProvider router={router} />
-          </ToastProvider>
+          <RouterProvider router={router} />
         </LocaleProvider>
       </AuthProvider>
     </SWRProvider>

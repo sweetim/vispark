@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { ChartBarIcon, CaretDownIcon, CaretRightIcon } from "@phosphor-icons/react"
 import CountBadge from "@/components/CountBadge"
 import { useVisparks } from "@/hooks/useVisparks"
+import { useVideoStore } from "@/stores/videoStore"
 
 type ChannelGroupEntry = {
   id: string
@@ -87,9 +88,10 @@ const LoadingSkeleton = () => (
 
 const SummariesPage = () => {
   const { t } = useTranslation()
-  const { visparks, isLoading, error } = useVisparks()
+  const { visparks, isLoading, error, mutate: mutateVisparks } = useVisparks()
   const navigate = useNavigate()
   const [expandedChannels, setExpandedChannels] = useState<Set<string>>(new Set())
+  const { status } = useVideoStore()
 
   // Group visparks by channel
   const groups = useMemo(() => {
@@ -184,7 +186,32 @@ const SummariesPage = () => {
     })
   }
 
-  const status = isLoading ? "loading" : error ? "error" : "success"
+  // Listen for video processing completion and revalidate visparks data
+  useEffect(() => {
+    if (status === "complete") {
+      // Revalidate the visparks data to show the new video
+      mutateVisparks()
+    }
+  }, [status, mutateVisparks])
+
+  // Revalidate visparks data when component mounts or gains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      mutateVisparks()
+    }
+
+    // Add focus event listener to refresh data when user returns to the page
+    window.addEventListener('focus', handleFocus)
+
+    // Also revalidate on mount
+    mutateVisparks()
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [mutateVisparks])
+
+  const pageStatus = isLoading ? "loading" : error ? "error" : "success"
   const errorMessage = error instanceof Error ? error.message : null
 
   return (
@@ -214,16 +241,16 @@ const SummariesPage = () => {
           </div>
         </header>
 
-        {status === "loading" && <LoadingSkeleton />}
+        {pageStatus === "loading" && <LoadingSkeleton />}
 
-        {status === "error" && (
+        {pageStatus === "error" && (
           <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-6 py-8 text-center text-red-200 backdrop-blur-md">
             <h2 className="text-lg font-semibold">{t("summaries.unableToLoad")}</h2>
             <p className="mt-2 text-sm text-red-200/80">{errorMessage}</p>
           </div>
         )}
 
-        {status === "success" && groups.length === 0 && (
+        {pageStatus === "success" && groups.length === 0 && (
           <div className="rounded-lg border border-dashed border-white/15 bg-white/5 px-6 py-14 text-center text-gray-300 backdrop-blur-md">
             <h2 className="text-xl font-semibold text-white">
               {t("summaries.noVisparks")}
@@ -234,7 +261,7 @@ const SummariesPage = () => {
           </div>
         )}
 
-        {status === "success" && groups.length > 0 && (
+        {pageStatus === "success" && groups.length > 0 && (
           <div className="space-y-2">
             {groups.map((group, index) => {
               const accent = gradientPalette[index % gradientPalette.length]

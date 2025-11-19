@@ -10,7 +10,7 @@ import { useInfiniteVisparksByChannel } from "@/hooks/useVisparks"
 import { useInfiniteYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
 import { useVideoStore } from "@/stores/videoStore"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   VideoCameraIcon,
   UsersIcon,
@@ -222,7 +222,7 @@ const ChannelPage = () => {
   const { channelId: rawChannelId } = useParams({ from: '/app/channels/$channelId' })
   const { showToast } = useToast()
   const navigate = useNavigate()
-  const { processingVideoId, status } = useVideoStore()
+  const { processingVideoId, status, videoMetadata } = useVideoStore()
 
   const channelId = (rawChannelId ?? "").trim()
 
@@ -275,7 +275,8 @@ const ChannelPage = () => {
     isReachingEnd: isReachingEndVisparks,
     error: visparksError,
     size: visparksSize,
-    setSize: setVisparksSize
+    setSize: setVisparksSize,
+    mutate: mutateVisparks
   } = useInfiniteVisparksByChannel(channelId)
 
   // Discover Data
@@ -301,6 +302,38 @@ const ChannelPage = () => {
       }
     })
   }
+
+  // Listen for video processing completion and revalidate visparks data
+  useEffect(() => {
+    if (status === "complete" && processingVideoId) {
+      // Check if the processed video belongs to this channel
+      // First check if the video metadata has the matching channel ID
+      const processedVideoInChannel = videoMetadata?.channelId === channelId ||
+        videos.some(v => v.videoId === processingVideoId)
+
+      if (processedVideoInChannel) {
+        // Revalidate the visparks data to show the new video
+        mutateVisparks()
+      }
+    }
+  }, [status, processingVideoId, channelId, videos, mutateVisparks, videoMetadata])
+
+  // Revalidate visparks data when component mounts or gains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      mutateVisparks()
+    }
+
+    // Add focus event listener to refresh data when user returns to the page
+    window.addEventListener('focus', handleFocus)
+
+    // Also revalidate on mount
+    mutateVisparks()
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [mutateVisparks])
 
   if (channelId.length === 0) {
     return (
