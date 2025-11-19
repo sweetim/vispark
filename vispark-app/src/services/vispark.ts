@@ -284,6 +284,7 @@ export const updateVisparkCallbackFlag = async (
 export const listVisparksByChannelId = async (
   videoChannelId: string,
   limit = 50,
+  offset = 0,
 ): Promise<VisparkRow[]> => {
   const { data, error } = await supabase
     .from("visparks")
@@ -292,7 +293,7 @@ export const listVisparksByChannelId = async (
     )
     .eq("video_channel_id", videoChannelId)
     .order("created_at", { ascending: false })
-    .limit(limit)
+    .range(offset, offset + limit - 1)
 
   if (error) {
     throw new Error(

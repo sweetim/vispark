@@ -88,6 +88,7 @@ const LoadingSkeleton = () => (
 const SummariesPage = () => {
   const { t } = useTranslation()
   const { visparks, isLoading, error } = useVisparks()
+  const navigate = useNavigate()
 
   // Group visparks by channel
   const groups = useMemo(() => {

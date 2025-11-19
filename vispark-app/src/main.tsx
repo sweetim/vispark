@@ -9,6 +9,7 @@ import { SWRProvider } from "@/config/swrConfig"
 import { LocaleProvider } from "@/contexts/LocaleContext"
 import "@/config/i18n"
 import { registerServiceWorker } from "./service-worker-registration"
+import { VideoProcessingListener } from "@/components/VideoProcessingListener"
 import "./index.css"
 
 // Register service worker for better mobile PWA support
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")!).render(
       <AuthProvider>
         <LocaleProvider>
           <ToastProvider>
+            <VideoProcessingListener />
             <RouterProvider router={router} />
           </ToastProvider>
         </LocaleProvider>

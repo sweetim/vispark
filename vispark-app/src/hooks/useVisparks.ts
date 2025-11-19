@@ -49,6 +49,42 @@ export const useVisparksByChannel = (channelId: string) => {
   }
 }
 
+// Hook for infinite fetching of visparks by channel ID
+import useSWRInfinite from "swr/infinite"
+
+export const useInfiniteVisparksByChannel = (channelId: string, pageSize = 20) => {
+  const getKey = (pageIndex: number, previousPageData: VisparkRow[]) => {
+    if (!channelId) return null
+    if (previousPageData && !previousPageData.length) return null // reached the end
+    return [`visparks-infinite`, channelId, pageIndex, pageSize] // SWR key
+  }
+
+  const { data, error, isLoading, size, setSize, mutate } = useSWRInfinite<VisparkRow[]>(
+    getKey,
+    ([_, cId, index, size]) => listVisparksByChannelId(cId as string, size as number, (index as number) * (size as number)),
+    {
+      ...visparkConfig,
+      revalidateFirstPage: false,
+    }
+  )
+
+  const visparks = data ? ([] as VisparkRow[]).concat(...data) : []
+  const isLoadingMore = isLoading || (size > 0 && data && typeof data[size - 1] === "undefined")
+  const isEmpty = data?.[0]?.length === 0
+  const isReachingEnd = isEmpty || (data && data[data.length - 1]?.length < pageSize)
+
+  return {
+    visparks,
+    isLoading,
+    isLoadingMore,
+    isReachingEnd,
+    error,
+    size,
+    setSize,
+    mutate,
+  }
+}
+
 // Hook for fetching video metadata with caching
 const metadataConfig = {
   revalidateOnFocus: false,

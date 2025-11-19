@@ -1,31 +1,23 @@
 import { useParams } from "@tanstack/react-router"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import useSWR from "swr"
 import {
   ERROR_MESSAGES,
-  ERROR_STEPS,
   PROCESSING_STEPS,
   RETRY_CONFIG,
   VIEW_MODES,
 } from "@/constants/videoConstants"
 import {
-  type FetchTranscriptParams,
-  fetchSummaryStream,
-  fetchTranscript,
   fetchVisparkByVideoId,
   fetchYouTubeVideoDetails,
+  fetchTranscript,
   formatTranscript,
-  saveVispark,
   type TranscriptResult,
   type VideoMetadata,
   type VisparkRow,
 } from "@/services/vispark"
 
-import { useRetryWithBackoff } from "./useRetryWithBackoff"
-
-type View = "summary" | "transcript"
-type Step = "idle" | "gathering" | "summarizing" | "complete" | "error"
-type ErrorStep = "gathering" | "summarizing" | null
+import { useVideoStore, type Step, type ErrorStep, type ViewMode } from "@/stores/videoStore"
 
 type UseVideoProcessingReturn = {
   loading: boolean
@@ -35,15 +27,15 @@ type UseVideoProcessingReturn = {
   error: string | null
   step: Step
   errorStep: ErrorStep
-  view: View
+  view: ViewMode
   videoMetadata: VideoMetadata | null
   rawVideoId: string
   isGenerating: boolean
   hasSummary: boolean
   hasTranscript: boolean
   showViewToggle: boolean
-  setView: (view: View) => void
-  setUserViewPreference: (view: View) => void
+  setView: (view: ViewMode) => void
+  setUserViewPreference: (view: ViewMode) => void
   isSummarySaved: boolean
   isTranscriptLoading: boolean
   videoExistsInVispark: boolean
@@ -58,94 +50,18 @@ const fetchVideoMetadata = async (videoId: string): Promise<VideoMetadata> => {
   }
 }
 
-const fetchVideoTranscript = async (
-  videoId: string,
-  videoMetadata?: VideoMetadata | null,
-): Promise<TranscriptResult> => {
-  try {
-    const params: FetchTranscriptParams = {
-      videoId,
-      lang: videoMetadata?.defaultLanguage,
-    }
-
-    return await fetchTranscript(params)
-  } catch (error) {
-    console.error("Failed to fetch transcript:", error)
-    throw error
-  }
-}
-
-const processSummaryStream = async (
-  stream: ReadableStream<Uint8Array>,
-  onChunk: (chunk: string) => void,
-  onComplete: (summary: string) => void,
-  onError: (error: Error) => void,
-  onSave?: (summary: string) => Promise<void>,
-) => {
-  try {
-    const reader = stream.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ""
-    let summaryText = ""
-
-    while (true) {
-      const { done, value } = await reader.read()
-
-      if (done) break
-      buffer += decoder.decode(value, { stream: true })
-
-      // Process complete lines
-      const lines = buffer.split("\n")
-      buffer = lines.pop() || ""
-
-      for (const line of lines) {
-        const trimmedLine = line.trim()
-        if (!trimmedLine) continue
-
-        try {
-          // Parse the JSON directly from the line
-          const parsed = JSON.parse(trimmedLine)
-
-          // Extract content if available
-          const content = parsed.choices?.[0]?.delta?.content
-          if (content) {
-            onChunk(content)
-            summaryText += content
-          }
-
-          // Check if stream is finished
-          if (parsed.choices?.[0]?.finish_reason === "stop") {
-            onComplete(summaryText)
-            // Save the summary to vispark table if save function is provided
-            if (onSave) {
-              try {
-                await onSave(summaryText)
-              } catch (saveError) {
-                console.error("Failed to save summary:", saveError)
-              }
-            }
-            return
-          }
-        } catch (e) {
-          // Ignore JSON parse errors for streaming
-          console.warn("Failed to parse stream line:", trimmedLine, e)
-        }
-      }
-    }
-  } catch (error) {
-    onError(
-      error instanceof Error ? error : new Error("Stream processing failed"),
-    )
-  }
-}
-
 export const useVideoProcessing = (): UseVideoProcessingReturn => {
-  // Get video ID from URL params
   const params = useParams({ from: "/app/videos/$videoId" })
-
   const rawVideoId = params.videoId || ""
 
-  // Check if video exists in vispark table
+  // Global Store State
+  const store = useVideoStore()
+  const isProcessingCurrentVideo = store.processingVideoId === rawVideoId
+
+  // Local State (for viewing mode or when not processing)
+  const [view, setView] = useState<ViewMode>(VIEW_MODES.SUMMARY)
+
+  // Fetch existing data
   const { data: visparkData } = useSWR<VisparkRow | null>(
     rawVideoId ? `vispark?videoId=${rawVideoId}` : null,
     rawVideoId ? () => fetchVisparkByVideoId(rawVideoId) : null,
@@ -157,21 +73,6 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     },
   )
 
-  // State management
-  const [view, setView] = useState<View>(VIEW_MODES.SUMMARY)
-  const [step, setStep] = useState<Step>(PROCESSING_STEPS.IDLE)
-  const [errorStep, setErrorStep] = useState<ErrorStep>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [streamingSummary, setStreamingSummary] = useState<string>("")
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [transcriptText, setTranscriptText] = useState("")
-  const [summary, setSummary] = useState<string | null>(null)
-  const [isSummarySaved, setIsSummarySaved] = useState(false)
-
-  const streamAbortControllerRef = useRef<AbortController | null>(null)
-  const { retryWithBackoff } = useRetryWithBackoff()
-
-  // Fetch video metadata
   const { data: videoMetadata, error: metadataError } = useSWR<VideoMetadata>(
     rawVideoId ? ["video-metadata", rawVideoId] : null,
     () => fetchVideoMetadata(rawVideoId),
@@ -183,164 +84,73 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     },
   )
 
-  // Fetch transcript
-  const { data: transcriptData, error: transcriptError } =
-    useSWR<TranscriptResult>(
-      rawVideoId
+  // Derived State
+  const videoExistsInVispark = Boolean(visparkData?.summaries)
+
+  // Determine effective state (Store vs Local/Fetched)
+  const step = isProcessingCurrentVideo ? store.status : (videoExistsInVispark ? PROCESSING_STEPS.COMPLETE : PROCESSING_STEPS.IDLE)
+  const error = isProcessingCurrentVideo ? store.error : (metadataError ? ERROR_MESSAGES.UNEXPECTED_ERROR : null)
+  const effectiveErrorStep = isProcessingCurrentVideo ? store.errorStep : null
+
+
+
+  // We could fetch transcript separately if needed for viewing, but usually it's part of the flow or we'd need another SWR if we want to view it without processing.
+  // Wait, the original code fetched transcript via SWR. If we want to view transcript of an existing video, we might need to fetch it.
+  // However, the requirement is about background processing.
+  // If the video is complete, we usually have the summary. The transcript might not be stored in VisparkRow?
+  // Looking at VisparkRow type (inferred), it seems to have summaries.
+  // The original code fetched transcript via SWR `fetchVideoTranscript`.
+  // If we are in "viewing" mode (complete), we might still want to see the transcript.
+  // Let's keep the transcript SWR but only use it if NOT processing.
+
+  // Actually, if we are processing, we use store.transcript.
+  // If we are NOT processing, we might want to fetch it if the user wants to see it.
+  // But `fetchVideoTranscript` triggers the "gathering" step in the original code?
+  // No, `fetchVideoTranscript` just fetches. The original code set step to GATHERING in the fetcher function.
+
+  // Let's re-implement transcript fetching for viewing mode.
+
+  // ... logic continues below ...
+
+  const { data: transcriptData } = useSWR<TranscriptResult>(
+      rawVideoId && !isProcessingCurrentVideo && !videoExistsInVispark // Only fetch if not processing and not already complete? Or maybe always if we want to view it?
+      // Original logic: fetched if rawVideoId exists.
+      // But we don't want to trigger "gathering" step if we are just viewing.
+      // Let's fetch it if we are not processing.
         ? ["transcript", rawVideoId, videoMetadata?.defaultLanguage]
         : null,
-      () => {
-        setStep(PROCESSING_STEPS.GATHERING)
-        return fetchVideoTranscript(rawVideoId, videoMetadata)
-      },
+      () => fetchTranscript({ videoId: rawVideoId, lang: videoMetadata?.defaultLanguage }),
       {
         revalidateOnFocus: false,
         revalidateOnReconnect: false,
-        errorRetryCount: RETRY_CONFIG.TRANSCRIPT.maxRetries,
-        errorRetryInterval: RETRY_CONFIG.TRANSCRIPT.baseDelay,
-        onSuccess: (data) => {
-          setTranscriptText(formatTranscript(data.transcript))
-          // Don't change step here - let the summary generation handle the transition
-        },
-      },
-    )
-
-  // Reset error state when video ID changes
-  useEffect(() => {
-    setError(null)
-    setErrorStep(null)
-    setStep(PROCESSING_STEPS.IDLE)
-    setStreamingSummary("")
-    setSummary(null)
-    setIsGenerating(false)
-    setTranscriptText("")
-    setIsSummarySaved(false)
-
-    // Cancel any ongoing stream
-    if (streamAbortControllerRef.current) {
-      streamAbortControllerRef.current.abort()
-      streamAbortControllerRef.current = null
-    }
-  }, [rawVideoId])
-
-  // Update transcript text when transcript data changes
-  useEffect(() => {
-    if (transcriptData) {
-      setTranscriptText(formatTranscript(transcriptData.transcript))
-    }
-  }, [transcriptData])
-
-  // Handle errors from SWR
-  useEffect(() => {
-    if (metadataError) {
-      setError(ERROR_MESSAGES.UNEXPECTED_ERROR)
-      setStep(PROCESSING_STEPS.ERROR)
-    }
-  }, [metadataError])
-
-  useEffect(() => {
-    if (transcriptError) {
-      setError(ERROR_MESSAGES.TRANSCRIPT_FAILED)
-      setStep(PROCESSING_STEPS.ERROR)
-      setErrorStep(ERROR_STEPS.GATHERING)
-    }
-  }, [transcriptError])
-
-  // Save summary to vispark table
-  const saveSummaryToVispark = useCallback(
-    async (summaryText: string) => {
-      if (!videoMetadata || !rawVideoId) return
-
-      try {
-        await saveVispark(
-          rawVideoId,
-          videoMetadata.channelId,
-          summaryText,
-          videoMetadata,
-        )
-        setIsSummarySaved(true)
-      } catch (error) {
-        console.error("Failed to save summary to vispark:", error)
-        throw error
+        // We don't set steps here anymore.
       }
-    },
-    [videoMetadata, rawVideoId],
   )
 
-  // Generate summary from transcript
-  const generateSummary = useCallback(async () => {
-    if (!transcriptData || isGenerating) return
+  // Effective Transcript
+  const effectiveTranscript = isProcessingCurrentVideo ? store.transcript : (transcriptData?.transcript ? formatTranscript(transcriptData.transcript) : "")
 
-    setIsGenerating(true)
-    setStep(PROCESSING_STEPS.SUMMARIZING)
-    setError(null)
-    setErrorStep(null)
-    setStreamingSummary("")
-    setIsSummarySaved(false)
+  // Effective Summary
+  const effectiveSummary = isProcessingCurrentVideo ? store.summary : (visparkData?.summaries || null)
+  const effectiveStreamingSummary = isProcessingCurrentVideo ? store.streamingSummary : ""
 
-    streamAbortControllerRef.current = new AbortController()
+  const isGenerating = step === PROCESSING_STEPS.GATHERING || step === PROCESSING_STEPS.SUMMARIZING
 
-    try {
-      await retryWithBackoff(
-        async () => {
-          const stream = await fetchSummaryStream(transcriptData.transcript)
-
-          await processSummaryStream(
-            stream,
-            (chunk) => {
-              setStreamingSummary((prev) => prev + chunk)
-            },
-            (summaryText) => {
-              setSummary(summaryText)
-              setStep(PROCESSING_STEPS.COMPLETE)
-              setIsGenerating(false)
-            },
-            (streamError) => {
-              throw streamError
-            },
-            saveSummaryToVispark,
-          )
-        },
-        {
-          maxRetries: RETRY_CONFIG.SUMMARY.maxRetries,
-          baseDelay: RETRY_CONFIG.SUMMARY.baseDelay,
-        },
-      )
-    } catch (summaryError) {
-      console.error("Summary generation failed:", summaryError)
-      setError(ERROR_MESSAGES.SUMMARY_FAILED)
-      setStep(PROCESSING_STEPS.ERROR)
-      setErrorStep(ERROR_STEPS.SUMMARIZING)
-      setIsGenerating(false)
-    } finally {
-      streamAbortControllerRef.current = null
-    }
-  }, [transcriptData, isGenerating, retryWithBackoff, saveSummaryToVispark])
-
-  // Auto-generate summary when transcript is available
+  // Auto-start processing
   useEffect(() => {
     if (
-      transcriptData
-      && transcriptText
-      && !summary
-      && !visparkData?.summaries // Don't generate if we already have a summary in vispark
-      && !isGenerating
-      && !error
+      videoMetadata &&
+      !videoExistsInVispark &&
+      !isProcessingCurrentVideo &&
+      step === PROCESSING_STEPS.IDLE &&
+      !error
     ) {
-      generateSummary()
+      store.startProcessing(rawVideoId, videoMetadata)
     }
-  }, [
-    transcriptData,
-    transcriptText,
-    summary,
-    visparkData?.summaries,
-    isGenerating,
-    error,
-    generateSummary,
-  ])
+  }, [videoMetadata, videoExistsInVispark, isProcessingCurrentVideo, step, error, rawVideoId, store])
 
-  // User view preference management
-  const setUserViewPreference = useCallback((newView: View) => {
+  // View Preference
+  const setUserViewPreference = useCallback((newView: ViewMode) => {
     try {
       localStorage.setItem(`video-view-preference`, newView)
     } catch (e) {
@@ -348,17 +158,10 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     }
   }, [])
 
-  // Load user view preference on mount
   useEffect(() => {
     try {
-      const savedPreference = localStorage.getItem(
-        `video-view-preference`,
-      ) as View | null
-      if (
-        savedPreference
-        && (savedPreference === VIEW_MODES.SUMMARY
-          || savedPreference === VIEW_MODES.TRANSCRIPT)
-      ) {
+      const savedPreference = localStorage.getItem(`video-view-preference`) as ViewMode | null
+      if (savedPreference && (savedPreference === VIEW_MODES.SUMMARY || savedPreference === VIEW_MODES.TRANSCRIPT)) {
         setView(savedPreference)
       }
     } catch (e) {
@@ -366,30 +169,26 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     }
   }, [])
 
-  // Auto-switch to summary view when summarizing starts
   useEffect(() => {
     if (step === PROCESSING_STEPS.SUMMARIZING && view !== VIEW_MODES.SUMMARY) {
       setView(VIEW_MODES.SUMMARY)
     }
   }, [step, view])
 
-  // Computed values
-  const hasTranscript = Boolean(transcriptText)
-  const hasSummary = Boolean(summary) || Boolean(visparkData?.summaries)
+  const hasTranscript = Boolean(effectiveTranscript)
+  const hasSummary = Boolean(effectiveSummary)
   const showViewToggle = hasTranscript || hasSummary
-  const loading = !videoMetadata || (!transcriptData && !transcriptError)
-  const videoExistsInVispark = Boolean(visparkData?.summaries)
-  const isTranscriptLoading =
-    step === "gathering" && !hasTranscript && videoExistsInVispark
+  const loading = !videoMetadata || (isProcessingCurrentVideo && step === "gathering" && !hasTranscript)
+  const isTranscriptLoading = step === "gathering" && !hasTranscript
 
   return {
     loading,
-    transcript: transcriptText,
-    summary: visparkData?.summaries || summary,
-    streamingSummary,
+    transcript: effectiveTranscript,
+    summary: effectiveSummary,
+    streamingSummary: effectiveStreamingSummary,
     error,
     step,
-    errorStep,
+    errorStep: effectiveErrorStep,
     view,
     videoMetadata: videoMetadata || null,
     rawVideoId,
@@ -399,7 +198,7 @@ export const useVideoProcessing = (): UseVideoProcessingReturn => {
     showViewToggle,
     setView,
     setUserViewPreference,
-    isSummarySaved,
+    isSummarySaved: Boolean(visparkData?.summaries), // If it's in DB, it's saved.
     isTranscriptLoading,
     videoExistsInVispark,
   }

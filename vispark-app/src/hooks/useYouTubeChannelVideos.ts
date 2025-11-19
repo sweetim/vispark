@@ -78,6 +78,74 @@ export const useYouTubeChannelVideos = (
   }
 }
 
+// Hook for infinite fetching of YouTube channel videos
+import useSWRInfinite from "swr/infinite"
+
+export const useInfiniteYouTubeChannelVideos = (
+  channelId: string,
+  maxResults: number = 20,
+) => {
+  const getKey = (pageIndex: number, previousPageData: YouTubeChannelVideosResponse) => {
+    if (!channelId) return null
+    if (pageIndex === 0) return [`youtube-channel-videos-infinite`, channelId, null, maxResults]
+    if (!previousPageData?.nextPageToken) return null // reached the end
+    return [`youtube-channel-videos-infinite`, channelId, previousPageData.nextPageToken, maxResults]
+  }
+
+  const { data, error, isLoading, size, setSize, mutate } = useSWRInfinite<YouTubeChannelVideosResponse>(
+    getKey,
+    async ([_, cId, pageToken, max]) => {
+        // Build the URL with query parameters
+        const queryParams = new URLSearchParams()
+        if (pageToken) queryParams.set("pageToken", pageToken as string)
+        if (max) queryParams.set("maxResults", (max as number).toString())
+
+        const queryString = queryParams.toString()
+        const url = `youtube-channel-videos/${cId}${queryString ? `?${queryString}` : ""}`
+
+        const { data, error } =
+          await supabase.functions.invoke<YouTubeChannelVideosResponse>(url, {
+            method: "GET",
+          })
+
+        if (error) {
+          throw new Error(
+            error.message
+              ?? "Failed to fetch channel videos. Please try again.",
+          )
+        }
+
+        if (!data?.videos) {
+          throw new Error(
+            "Unexpected response format from channel videos service.",
+          )
+        }
+
+        return data
+    },
+    {
+      ...videosConfig,
+      revalidateFirstPage: false,
+    }
+  )
+
+  const videos = data ? ([] as YouTubeChannelVideo[]).concat(...data.map(page => page.videos)) : []
+  const isLoadingMore = isLoading || (size > 0 && data && typeof data[size - 1] === "undefined")
+  const isEmpty = data?.[0]?.videos.length === 0
+  const isReachingEnd = isEmpty || (data && !data[data.length - 1]?.nextPageToken)
+
+  return {
+    videos,
+    isLoading,
+    isLoadingMore,
+    isReachingEnd,
+    error,
+    size,
+    setSize,
+    mutate,
+  }
+}
+
 // Hook for getting videos with vispark summaries from the channel
 export const useVisparkVideos = (channelId: string) => {
   // Get all visparks for this channel (videos with summaries)

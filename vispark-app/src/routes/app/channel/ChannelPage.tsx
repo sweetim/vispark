@@ -6,17 +6,209 @@ import {
 import { useTranslation } from "react-i18next"
 import { useChannelSubscriptionManager, useYouTubeChannelDetails } from "@/hooks/useChannels"
 import { useToast } from "@/contexts/ToastContext"
-import { useVisparksByChannel } from "@/hooks/useVisparks"
-import { useYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
-import Expander from "@/components/Expander"
+import { useInfiniteVisparksByChannel } from "@/hooks/useVisparks"
+import { useInfiniteYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
 import VideoMetadataCard from "@/components/VideoMetadataCard"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   VideoCameraIcon,
   UsersIcon,
   BellIcon,
   BellSlashIcon
 } from "@phosphor-icons/react"
+import {
+  AutoSizer,
+  CellMeasurer,
+  CellMeasurerCache,
+  InfiniteLoader,
+  List,
+  WindowScroller,
+} from "react-virtualized"
+import "react-virtualized/styles.css"
+
+type VirtualizedItem = {
+  id?: string
+  videoId: string
+  title: string
+  channelTitle: string
+  thumbnail: string
+  createdTime: string | undefined
+  isNewFromCallback?: boolean
+}
+
+type VirtualizedContentGridProps = {
+  items: VirtualizedItem[]
+  isLoading: boolean
+  isLoadingMore: boolean
+  loadMoreRows: () => Promise<void>
+  rowCount: number
+  scrollElement: HTMLElement | null
+  emptyMessage: string
+  errorMessage: string
+  error: any
+  onItemClick: (item: VirtualizedItem) => void
+}
+
+const VirtualizedContentGrid = ({
+  items,
+  isLoading,
+  isLoadingMore,
+  loadMoreRows,
+  rowCount,
+  scrollElement,
+  emptyMessage,
+  errorMessage,
+  error,
+  onItemClick
+}: VirtualizedContentGridProps) => {
+  const cache = useRef(new CellMeasurerCache({
+    fixedWidth: true,
+    defaultHeight: 220, // Increased to account for aspect-video ratio and padding
+    minHeight: 180, // Increased minimum height
+    keyMapper: (index) => index // Add key mapper for proper cache invalidation
+  }))
+
+  if (error) {
+    return (
+      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+        <p className="text-red-400">{errorMessage}: {error.message}</p>
+      </div>
+    )
+  }
+
+  if (!isLoading && items.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400">{emptyMessage}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full h-full min-h-[200px]">
+      <WindowScroller scrollElement={scrollElement || undefined}>
+        {({ height, isScrolling, onChildScroll, scrollTop }) => (
+          <AutoSizer disableHeight>
+            {({ width }) => {
+              const columnCount = width > 1024 ? 3 : width > 768 ? 2 : 1
+              const columnWidth = width / columnCount
+              const rowCountCalculated = Math.ceil(rowCount / columnCount)
+
+              const rowRenderer = ({ index, key, parent, style }: { index: number, key: string, parent: any, style: React.CSSProperties }) => {
+                const startIndex = index * columnCount
+                const rowItems = items.slice(startIndex, startIndex + columnCount)
+
+                return (
+                  <CellMeasurer
+                    cache={cache.current}
+                    columnIndex={0}
+                    rowIndex={index}
+                    parent={parent}
+                    key={key}
+                  >
+                    {({ measure, registerChild }) => (
+                      <div
+                        style={{...style}}
+                        ref={(element) => {
+                          if (element) {
+                            registerChild(element)
+                            // Force remeasurement after content is rendered
+                            setTimeout(() => {
+                              cache.current.clear(index, 0)
+                              measure()
+                            }, 0)
+                          }
+                        }}
+                        className="flex gap-2 p-1"
+                      >
+                        {rowItems.map((item, itemIndex) => (
+                          <div
+                            key={item.id || item.videoId}
+                            style={{ width: columnWidth - 8 }} // Account for gap
+                            className="flex-shrink-0"
+                          >
+                            <div className="group relative transform transition-all duration-300 hover:scale-105">
+                              <div className="absolute -inset-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
+                              <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
+                                <VideoMetadataCard
+                                  metadata={{
+                                    videoId: item.videoId,
+                                    title: item.title,
+                                    channelId: "", // Not needed for display
+                                    channelTitle: item.channelTitle,
+                                    thumbnails: item.thumbnail,
+                                  }}
+                                  createdTime={item.createdTime}
+                                  isNewFromCallback={item.isNewFromCallback || false}
+                                  onClick={() => onItemClick(item)}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CellMeasurer>
+                )
+              }
+
+              return (
+                <InfiniteLoader
+                  isRowLoaded={({ index }) => {
+                    // Check if all items in this row are loaded
+                    const startIndex = index * columnCount
+                    // If the last item in the row is within the loaded items range
+                    return startIndex < items.length
+                  }}
+                  loadMoreRows={async () => {
+                    await loadMoreRows()
+                    // Clear cache after loading more rows to recalculate heights
+                    cache.current.clearAll()
+                  }}
+                  rowCount={rowCountCalculated}
+                  threshold={5}
+                >
+                  {({ onRowsRendered, registerChild }) => (
+                    <List
+                      autoHeight
+                      height={height}
+                      isScrolling={isScrolling}
+                      onScroll={onChildScroll}
+                      scrollTop={scrollTop}
+                      width={width}
+                      rowCount={rowCountCalculated}
+                      rowHeight={cache.current.rowHeight}
+                      rowRenderer={rowRenderer}
+                      onRowsRendered={onRowsRendered}
+                      ref={registerChild}
+                      deferredMeasurementCache={cache.current}
+                      overscanRowCount={3} // Add overscan for smoother scrolling
+                    />
+                  )}
+                </InfiniteLoader>
+              )
+            }}
+          </AutoSizer>
+        )}
+      </WindowScroller>
+      {isLoadingMore && (
+        <div className="py-4 flex justify-center">
+          <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Simple Expander Component to replace the imported one if needed, or reuse existing
+// Reusing existing Expander component but we need to import it.
+// Wait, I removed the import in the previous chunk. I should add it back or re-implement.
+// I'll assume Expander is still needed. I'll add the import back in the first chunk or use the one from components.
+// Actually I removed it in the first chunk. I should have kept it.
+// I will re-add the import in this chunk by adding it to the top of the file? No, I can't edit the top again easily.
+// I'll just use the existing Expander component. I need to import it.
+// Ah, I can't add import here.
+// I'll fix the import in the first chunk.
 
 const ChannelPage = () => {
   const { t } = useTranslation()
@@ -28,6 +220,9 @@ const ChannelPage = () => {
 
   // State to track which expander is currently expanded
   const [expandedSection, setExpandedSection] = useState<'libraries' | 'discover' | null>('libraries')
+
+  // Ref for scrolling
+  const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null)
 
   // Get YouTube channel details directly from YouTube API
   const { youtubeChannelDetails,
@@ -64,99 +259,42 @@ const ChannelPage = () => {
     }
   }
 
-  // Unified Content Component for both Libraries and Discover
-  const ContentGrid = ({
-    data,
-    emptyMessage,
-    errorMessage
-  }: {
-    data: {
-      items: Array<{
-        id?: string
-        videoId: string
-        title: string
-        channelTitle: string
-        thumbnail: string
-        createdTime: string | undefined
-        isNewFromCallback?: boolean
-      }>
-      isLoading: boolean
-      error: any
-    }
-    emptyMessage: string
-    errorMessage: string
-  }) => {
-    if (data.isLoading) {
-      return (
-        <div className="space-y-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-gray-800/50 rounded-lg p-4 animate-pulse">
-              <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-            </div>
-          ))}
-        </div>
-      )
-    }
+  // Libraries Data
+  const {
+    visparks,
+    isLoading: loadingVisparks,
+    isLoadingMore: loadingMoreVisparks,
+    isReachingEnd: isReachingEndVisparks,
+    error: visparksError,
+    size: visparksSize,
+    setSize: setVisparksSize
+  } = useInfiniteVisparksByChannel(channelId)
 
-    if (data.error) {
-      return (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-          <p className="text-red-400">{errorMessage}: {data.error.message}</p>
-        </div>
-      )
-    }
+  // Discover Data
+  const {
+    videos,
+    isLoading: loadingVideos,
+    isLoadingMore: loadingMoreVideos,
+    isReachingEnd: isReachingEndVideos,
+    error: videosError,
+    size: videosSize,
+    setSize: setVideosSize
+  } = useInfiniteYouTubeChannelVideos(channelId)
 
-    if (data.items.length === 0) {
-      return (
-        <div className="text-center py-8">
-          <p className="text-gray-400">{emptyMessage}</p>
-        </div>
-      )
-    }
-
-    return (
-      <div className="space-y-2">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
-          {data.items.map((item) => (
-            <div
-              key={item.id || item.videoId}
-              className="group relative transform transition-all duration-300 hover:scale-105"
-            >
-              <div className="absolute -inset-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
-              <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
-                <VideoMetadataCard
-                  metadata={{
-                    videoId: item.videoId,
-                    title: item.title,
-                    channelId: channelId,
-                    channelTitle: item.channelTitle,
-                    thumbnails: item.thumbnail,
-                  }}
-                  createdTime={item.createdTime}
-                  isNewFromCallback={item.isNewFromCallback || false}
-                  onClick={() =>
-                    navigate({
-                      to: `/app/videos/${item.videoId}`,
-                      search: {
-                        title: item.title,
-                        channelTitle: item.channelTitle,
-                        thumbnail: item.thumbnail,
-                        createdTime: item.createdTime,
-                        channelId: channelId
-                      }
-                    })
-                  }
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+  const handleItemClick = (item: VirtualizedItem) => {
+    navigate({
+      to: `/app/videos/${item.videoId}`,
+      search: {
+        title: item.title,
+        channelTitle: item.channelTitle,
+        thumbnail: item.thumbnail,
+        createdTime: item.createdTime,
+        channelId: channelId
+      }
+    })
   }
 
-    if (channelId.length === 0) {
+  if (channelId.length === 0) {
     return (
       <Navigate
         to="/app/channels"
@@ -166,7 +304,7 @@ const ChannelPage = () => {
   }
 
   return (
-    <div className="w-full max-w-3xl h-full space-y-2 overflow-y-auto">
+    <div ref={setScrollElement} className="w-full max-w-3xl h-full space-y-2 overflow-y-auto">
       {/* Channel Header */}
       {isLoading ? (
         <div className="glass-effect border-b border-gray-800 px-6 py-4">
@@ -241,52 +379,78 @@ const ChannelPage = () => {
       {/* Libraries and Discover Expanders */}
       <div className="space-y-2">
         {/* Libraries Expander */}
-        <Expander
-          title="Libraries"
-          isExpanded={expandedSection === 'libraries'}
-          onToggle={() => setExpandedSection(expandedSection === 'libraries' ? null : 'libraries')}
-        >
-          <ContentGrid
-            data={{
-              items: useVisparksByChannel(channelId).visparks.map(vispark => ({
-                id: vispark.id,
-                videoId: vispark.video_id,
-                title: vispark.video_title,
-                channelTitle: vispark.video_channel_title,
-                thumbnail: vispark.video_thumbnails,
-                createdTime: vispark.video_published_at,
-                isNewFromCallback: vispark.is_new_from_callback
-              })),
-              isLoading: useVisparksByChannel(channelId).isLoading,
-              error: useVisparksByChannel(channelId).error
-            }}
-            emptyMessage="No vispark summaries found for this channel."
-            errorMessage="Error loading libraries"
-          />
-        </Expander>
+        <div className="border border-gray-800 rounded-lg overflow-hidden bg-gray-900/50">
+          <button
+            type="button"
+            className="w-full px-4 py-3 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
+            onClick={() => setExpandedSection(expandedSection === 'libraries' ? null : 'libraries')}
+          >
+            <span className="font-medium text-white">Libraries</span>
+            <span className={`transform transition-transform duration-200 ${expandedSection === 'libraries' ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+          {expandedSection === 'libraries' && (
+            <div className="p-2">
+              <VirtualizedContentGrid
+                items={visparks.map(vispark => ({
+                  id: vispark.id,
+                  videoId: vispark.video_id,
+                  title: vispark.video_title,
+                  channelTitle: vispark.video_channel_title,
+                  thumbnail: vispark.video_thumbnails,
+                  createdTime: vispark.video_published_at,
+                  isNewFromCallback: vispark.is_new_from_callback
+                }))}
+                isLoading={loadingVisparks}
+                isLoadingMore={loadingMoreVisparks || false}
+                loadMoreRows={() => setVisparksSize(visparksSize + 1) as any}
+                rowCount={isReachingEndVisparks ? visparks.length : visparks.length + 1}
+                scrollElement={scrollElement}
+                emptyMessage="No vispark summaries found for this channel."
+                errorMessage="Error loading libraries"
+                error={visparksError}
+                onItemClick={handleItemClick}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Discover Expander */}
-        <Expander
-          title="Discover"
-          isExpanded={expandedSection === 'discover'}
-          onToggle={() => setExpandedSection(expandedSection === 'discover' ? null : 'discover')}
-        >
-          <ContentGrid
-            data={{
-              items: useYouTubeChannelVideos(channelId).videos.map(video => ({
-                videoId: video.videoId,
-                title: video.title,
-                channelTitle: youtubeChannelDetails?.channelName || '',
-                thumbnail: video.thumbnails,
-                createdTime: video.publishedAt
-              })),
-              isLoading: useYouTubeChannelVideos(channelId).isLoading,
-              error: useYouTubeChannelVideos(channelId).error
-            }}
-            emptyMessage="No videos with vispark summaries found for this channel."
-            errorMessage="Error loading videos"
-          />
-        </Expander>
+        <div className="border border-gray-800 rounded-lg overflow-hidden bg-gray-900/50">
+          <button
+            type="button"
+            className="w-full px-4 py-3 flex items-center justify-between bg-gray-800/50 hover:bg-gray-800 transition-colors"
+            onClick={() => setExpandedSection(expandedSection === 'discover' ? null : 'discover')}
+          >
+            <span className="font-medium text-white">Discover</span>
+            <span className={`transform transition-transform duration-200 ${expandedSection === 'discover' ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+          {expandedSection === 'discover' && (
+            <div className="p-2">
+              <VirtualizedContentGrid
+                items={videos.map(video => ({
+                  videoId: video.videoId,
+                  title: video.title,
+                  channelTitle: youtubeChannelDetails?.channelName || '',
+                  thumbnail: video.thumbnails,
+                  createdTime: video.publishedAt
+                }))}
+                isLoading={loadingVideos}
+                isLoadingMore={loadingMoreVideos || false}
+                loadMoreRows={() => setVideosSize(videosSize + 1) as any}
+                rowCount={isReachingEndVideos ? videos.length : videos.length + 1}
+                scrollElement={scrollElement}
+                emptyMessage="No videos found for this channel."
+                errorMessage="Error loading videos"
+                error={videosError}
+                onItemClick={handleItemClick}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
