@@ -195,13 +195,13 @@ const ChannelPage = () => {
                   {channelName}
                 </h1>
                 <div className="flex items-center space-x-2 text-sm">
-                  <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-indigo-500/10 text-indigo-300">
-                    <VideoCameraIcon className="w-4 h-4" />
+                  <div className="flex items-center space-x-2 px-2 py-1 rounded-full bg-indigo-500/10 text-indigo-300">
+                    <VideoCameraIcon weight="fill" className="w-4 h-4" />
                     <span>{videoCount.toLocaleString()}</span>
                   </div>
                   {subscriberCount && (
-                    <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-purple-500/10 text-purple-300">
-                      <UsersIcon className="w-4 h-4" />
+                    <div className="flex items-center space-x-2 px-2 py-1 rounded-full bg-purple-500/10 text-purple-300">
+                      <UsersIcon weight="fill" className="w-4 h-4" />
                       <span>{subscriberCount.toLocaleString()}</span>
                     </div>
                   )}

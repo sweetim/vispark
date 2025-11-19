@@ -68,11 +68,11 @@ const skeletonPlaceholders = [
 
 const LoadingSkeleton = () => (
   <div className="flex h-full w-full flex-col">
-    <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {skeletonPlaceholders.map((placeholderKey) => (
         <div
           key={placeholderKey}
-          className="flex items-center gap-3 rounded-lg border border-white/10 bg-gray-900/50 p-3 backdrop-blur"
+          className="flex items-center gap-2 rounded-lg border border-white/10 bg-gray-900/50 p-3 backdrop-blur"
         >
           <div className="w-24 h-14 rounded bg-white/10" />
           <div className="flex-1 space-y-2">
@@ -87,7 +87,6 @@ const LoadingSkeleton = () => (
 
 const SummariesPage = () => {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const { visparks, isLoading, error } = useVisparks()
 
   // Group visparks by channel
@@ -175,12 +174,12 @@ const SummariesPage = () => {
   const errorMessage = error instanceof Error ? error.message : null
 
   return (
-    <div className="relative h-full overflow-hidden bg-slate-950">
+    <div className="relative h-full w-full overflow-hidden bg-slate-950">
       <div className="pointer-events-none absolute -top-48 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-purple-500/25 blur-3xl" />
       <div className="pointer-events-none absolute top-20 left-[-12%] h-96 w-96 rounded-full bg-blue-500/20 blur-[140px]" />
       <div className="pointer-events-none absolute bottom-[-18%] right-[-8%] h-96 w-96 rounded-full bg-emerald-500/20 blur-[140px]" />
 
-      <div className="relative z-10 mx-auto h-full w-full max-w-7xl overflow-y-auto px-4 py-8 sm:px-6">
+      <div className="relative z-10 mx-auto h-full w-full max-w-7xl overflow-y-auto px-2 py-8 sm:px-6">
         <header className="mb-8">
           <h1 className="flex items-center gap-3 text-3xl font-bold text-white sm:text-4xl">
             <ChartBarIcon size={32} className="text-indigo-400" />
