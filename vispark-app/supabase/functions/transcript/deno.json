@@ -1,15 +1,21 @@
 {
   "compilerOptions": {
-    "lib": ["deno.window"]
+    "lib": [
+      "deno.window"
+    ]
   },
   "lint": {
     "rules": {
-      "tags": ["recommended"]
+      "tags": [
+        "recommended"
+      ]
     }
   },
   "fmt": {
     "files": {
-      "include": ["*.ts"]
+      "include": [
+        "*.ts"
+      ]
     }
   },
   "tasks": {
@@ -18,6 +24,7 @@
   "imports": {
     "supadata": "npm:@supadata/js",
     "ts-pattern": "npm:ts-pattern@5.8.0",
-    "youtube-transcript-plus": "npm:youtube-transcript-plus@1.1.1"
+    "youtube-transcript-plus": "npm:youtube-transcript-plus@1.1.1",
+    "https-proxy-agent": "npm:https-proxy-agent@7.0.6"
   }
 }
