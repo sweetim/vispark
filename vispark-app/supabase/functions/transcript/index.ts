@@ -50,6 +50,13 @@ const respondWith = (body: TranscriptResponseBody, status: number): Response =>
     headers: buildHeaders(),
   });
 
+const PROXY_URL = Deno.env.get("PROXY_URL")!;
+const client = Deno.createHttpClient({
+  proxy: {
+    url: PROXY_URL,
+  },
+});
+
 type JsonParseOutcome = { type: "success"; value: unknown } | { type: "error" };
 
 const handlePost = async (req: Request): Promise<Response> => {
@@ -124,7 +131,6 @@ const handlePost = async (req: Request): Promise<Response> => {
                 console.log(
                   "[TRANSCRIPT] Attempting to fetch transcript with youtube-transcript-plus",
                 );
-                const proxyUrl = Deno.env.get("PROXY_URL")!
 
                 transcriptResponse = await fetchTranscript(trimmedVideoId, {
                   lang: normalizedLang,
@@ -132,32 +138,32 @@ const handlePost = async (req: Request): Promise<Response> => {
                     return fetch(url, {
                       headers: {
                         ...(lang && { "Accept-Language": lang }),
-                        "User-Agent": userAgent,
+                        "User-Agent": userAgent!,
                       },
-                      agent: new HttpsProxyAgent(proxyUrl),
+                      client,
                     });
                   },
                   playerFetch: async (
                     { url, method, body, headers, lang, userAgent },
                   ) => {
                     return fetch(url, {
+                      client,
                       method,
                       headers: {
-                        "User-Agent": userAgent,
+                        "User-Agent": userAgent!,
                         ...(lang && { "Accept-Language": lang }),
                         ...headers,
                       },
                       body,
-                      agent: new HttpsProxyAgent(proxyUrl),
                     });
                   },
                   transcriptFetch: async ({ url, lang, userAgent }) => {
                     return fetch(url, {
+                      client,
                       headers: {
                         ...(lang && { "Accept-Language": lang }),
-                        "User-Agent": userAgent,
+                        "User-Agent": userAgent!,
                       },
-                      agent: new HttpsProxyAgent(proxyUrl),
                     });
                   },
                 });
@@ -186,7 +192,38 @@ const handlePost = async (req: Request): Promise<Response> => {
 
                   transcriptResponse = await fetchTranscript(trimmedVideoId, {
                     lang: fallbackLanguage,
-                    // ...fetchOptions,
+                    videoFetch: async ({ url, lang, userAgent }) => {
+                      return fetch(url, {
+                        headers: {
+                          ...(lang && { "Accept-Language": lang }),
+                          "User-Agent": userAgent!,
+                        },
+                        client,
+                      });
+                    },
+                    playerFetch: async (
+                      { url, method, body, headers, lang, userAgent },
+                    ) => {
+                      return fetch(url, {
+                        client,
+                        method,
+                        headers: {
+                          "User-Agent": userAgent!,
+                          ...(lang && { "Accept-Language": lang }),
+                          ...headers,
+                        },
+                        body,
+                      });
+                    },
+                    transcriptFetch: async ({ url, lang, userAgent }) => {
+                      return fetch(url, {
+                        client,
+                        headers: {
+                          ...(lang && { "Accept-Language": lang }),
+                          "User-Agent": userAgent!,
+                        },
+                      });
+                    },
                   });
                 } else {
                   // If it's not a language error, re-throw
