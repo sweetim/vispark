@@ -25,3 +25,6 @@ dev-dist
 *.sw?
 .env*
 dev-dist/
+
+*storybook.log
+storybook-static
