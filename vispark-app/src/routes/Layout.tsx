@@ -1,7 +1,7 @@
 import type { FC } from "react"
 import { Outlet } from "@tanstack/react-router"
 import { ToastProvider } from "@/contexts/ToastContext"
-import { VideoProcessingListener } from "@/components/VideoProcessingListener"
+import { VideoProcessingListener } from "@/components"
 
 const RootLayout: FC = () => {
   return (

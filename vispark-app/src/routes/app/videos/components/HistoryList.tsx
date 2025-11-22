@@ -1,4 +1,4 @@
-import VideoMetadataCard from "@/components/VideoMetadataCard"
+import {VideoMetadataCard} from "@/components"
 import type { VideosSavedItem } from "../SearchPage"
 import { useVideoStore } from "@/stores/videoStore"
 

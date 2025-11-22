@@ -8,8 +8,7 @@ import { useChannelSubscriptionManager, useYouTubeChannelDetails } from "@/hooks
 import { useToast } from "@/contexts/ToastContext"
 import { useInfiniteVisparksByChannel } from "@/hooks/useVisparks"
 import { useInfiniteYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
-import VideoMetadataCard from "@/components/VideoMetadataCard"
-import Expander from "@/components/Expander"
+import { VideoMetadataCard, Expander } from "@/components"
 import { useVideoStore } from "@/stores/videoStore"
 import { useState, useRef, useEffect } from "react"
 import {
@@ -18,15 +17,7 @@ import {
   BellIcon,
   BellSlashIcon
 } from "@phosphor-icons/react"
-import {
-  AutoSizer,
-  CellMeasurer,
-  CellMeasurerCache,
-  InfiniteLoader,
-  List,
-  WindowScroller,
-} from "react-virtualized"
-import "react-virtualized/styles.css"
+import { ChannelHeader, VirtualizedGrid } from "@/components"
 
 type VirtualizedItem = {
   id?: string
@@ -37,185 +28,6 @@ type VirtualizedItem = {
   createdTime: string | undefined
   isNewFromCallback?: boolean
 }
-
-type VirtualizedContentGridProps = {
-  items: VirtualizedItem[]
-  isLoading: boolean
-  isLoadingMore: boolean
-  loadMoreRows: () => Promise<void>
-  rowCount: number
-  scrollElement: HTMLElement | null
-  emptyMessage: string
-  errorMessage: string
-  error: any
-  onItemClick: (item: VirtualizedItem) => void
-  processingVideoId: string | null
-  processingStatus: "idle" | "gathering" | "summarizing" | "complete" | "error"
-}
-
-const VirtualizedContentGrid = ({
-  items,
-  isLoading,
-  isLoadingMore,
-  loadMoreRows,
-  rowCount,
-  scrollElement,
-  emptyMessage,
-  errorMessage,
-  error,
-  onItemClick,
-  processingVideoId,
-  processingStatus
-}: VirtualizedContentGridProps) => {
-  const cache = useRef(new CellMeasurerCache({
-    fixedWidth: true,
-    defaultHeight: 220, // Increased to account for aspect-video ratio and padding
-    minHeight: 180, // Increased minimum height
-    keyMapper: (index) => index // Add key mapper for proper cache invalidation
-  }))
-
-  if (error) {
-    return (
-      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-        <p className="text-red-400">{errorMessage}: {error.message}</p>
-      </div>
-    )
-  }
-
-  if (!isLoading && items.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-400">{emptyMessage}</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="w-full h-full min-h-[200px]">
-      <WindowScroller scrollElement={scrollElement || undefined}>
-        {({ height, isScrolling, onChildScroll, scrollTop }) => (
-          <AutoSizer disableHeight>
-            {({ width }) => {
-              const columnCount = width > 1024 ? 3 : width > 768 ? 2 : 1
-              const columnWidth = width / columnCount
-              const rowCountCalculated = Math.ceil(rowCount / columnCount)
-
-              const rowRenderer = ({ index, key, parent, style }: { index: number, key: string, parent: any, style: React.CSSProperties }) => {
-                const startIndex = index * columnCount
-                const rowItems = items.slice(startIndex, startIndex + columnCount)
-
-                return (
-                  <CellMeasurer
-                    cache={cache.current}
-                    columnIndex={0}
-                    rowIndex={index}
-                    parent={parent}
-                    key={key}
-                  >
-                    {({ measure, registerChild }) => (
-                      <div
-                        style={{...style}}
-                        ref={(element) => {
-                          if (element) {
-                            registerChild(element)
-                            // Force remeasurement after content is rendered
-                            setTimeout(() => {
-                              cache.current.clear(index, 0)
-                              measure()
-                            }, 0)
-                          }
-                        }}
-                        className="flex gap-2 p-1"
-                      >
-                        {rowItems.map((item) => (
-                          <div
-                            key={item.id || item.videoId}
-                            style={{ width: columnWidth - 8 }} // Account for gap
-                            className="flex-shrink-0"
-                          >
-                            <div className="group relative transform transition-all duration-300 hover:scale-105">
-                              <div className="absolute -inset-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
-                              <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
-                                <VideoMetadataCard
-                                  metadata={{
-                                    videoId: item.videoId,
-                                    title: item.title,
-                                    channelId: "", // Not needed for display
-                                    channelTitle: item.channelTitle,
-                                    thumbnails: item.thumbnail,
-                                  }}
-                                  createdTime={item.createdTime}
-                                  isNewFromCallback={item.isNewFromCallback || false}
-                                  isSummarizing={processingVideoId === item.videoId && (processingStatus === "gathering" || processingStatus === "summarizing")}
-                                  onClick={() => onItemClick(item)}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CellMeasurer>
-                )
-              }
-
-              return (
-                <InfiniteLoader
-                  isRowLoaded={({ index }) => {
-                    // Check if all items in this row are loaded
-                    const startIndex = index * columnCount
-                    // If the last item in the row is within the loaded items range
-                    return startIndex < items.length
-                  }}
-                  loadMoreRows={async () => {
-                    await loadMoreRows()
-                    // Clear cache after loading more rows to recalculate heights
-                    cache.current.clearAll()
-                  }}
-                  rowCount={rowCountCalculated}
-                  threshold={5}
-                >
-                  {({ onRowsRendered, registerChild }) => (
-                    <List
-                      autoHeight
-                      height={height}
-                      isScrolling={isScrolling}
-                      onScroll={onChildScroll}
-                      scrollTop={scrollTop}
-                      width={width}
-                      rowCount={rowCountCalculated}
-                      rowHeight={cache.current.rowHeight}
-                      rowRenderer={rowRenderer}
-                      onRowsRendered={onRowsRendered}
-                      ref={registerChild}
-                      deferredMeasurementCache={cache.current}
-                      overscanRowCount={3} // Add overscan for smoother scrolling
-                    />
-                  )}
-                </InfiniteLoader>
-              )
-            }}
-          </AutoSizer>
-        )}
-      </WindowScroller>
-      {isLoadingMore && (
-        <div className="py-4 flex justify-center">
-          <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// Simple Expander Component to replace the imported one if needed, or reuse existing
-// Reusing existing Expander component but we need to import it.
-// Wait, I removed the import in the previous chunk. I should add it back or re-implement.
-// I'll assume Expander is still needed. I'll add the import back in the first chunk or use the one from components.
-// Actually I removed it in the first chunk. I should have kept it.
-// I will re-add the import in this chunk by adding it to the top of the file? No, I can't edit the top again easily.
-// I'll just use the existing Expander component. I need to import it.
-// Ah, I can't add import here.
-// I'll fix the import in the first chunk.
 
 const ChannelPage = () => {
   const { t } = useTranslation()
@@ -306,13 +118,13 @@ const ChannelPage = () => {
   // Listen for video processing completion and revalidate visparks data
   useEffect(() => {
     if (status === "complete" && processingVideoId) {
-      // Check if the processed video belongs to this channel
-      // First check if the video metadata has the matching channel ID
+      // Check if processed video belongs to this channel
+      // First check if video metadata has matching channel ID
       const processedVideoInChannel = videoMetadata?.channelId === channelId ||
         videos.some(v => v.videoId === processingVideoId)
 
       if (processedVideoInChannel) {
-        // Revalidate the visparks data to show the new video
+        // Revalidate visparks data to show new video
         mutateVisparks()
       }
     }
@@ -324,7 +136,7 @@ const ChannelPage = () => {
       mutateVisparks()
     }
 
-    // Add focus event listener to refresh data when user returns to the page
+    // Add focus event listener to refresh data when user returns to page
     window.addEventListener('focus', handleFocus)
 
     // Also revalidate on mount
@@ -346,76 +158,16 @@ const ChannelPage = () => {
 
   return (
     <div ref={setScrollElement} className="w-full max-w-3xl h-full space-y-2 overflow-y-auto">
-      {/* Channel Header */}
-      {isLoading ? (
-        <div className="glass-effect border-b border-gray-800 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full bg-gray-700 animate-pulse"></div>
-              <div>
-                <div className="h-5 w-48 bg-gray-700 rounded animate-pulse mb-2"></div>
-                <div className="h-4 w-24 bg-gray-700 rounded animate-pulse"></div>
-              </div>
-            </div>
-            <div className="w-10 h-10 bg-gray-700 rounded-full animate-pulse"></div>
-          </div>
-        </div>
-      ) : channelName ? (
-        <div className="glass-effect border-b border-gray-800 px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <img
-                src={channelThumbnail}
-                alt={channelName}
-                className="w-12 h-12 rounded-full object-cover"
-              />
-              <div className="space-y-2">
-                <h1 className="text-xl font-semibold text-white">
-                  {channelName}
-                </h1>
-                <div className="flex items-center space-x-2 text-sm">
-                  <div className="flex items-center space-x-2 px-2 py-1 rounded-full bg-indigo-500/10 text-indigo-300">
-                    <VideoCameraIcon weight="fill" className="w-4 h-4" />
-                    <span>{videoCount.toLocaleString()}</span>
-                  </div>
-                  {subscriberCount && (
-                    <div className="flex items-center space-x-2 px-2 py-1 rounded-full bg-purple-500/10 text-purple-300">
-                      <UsersIcon weight="fill" className="w-4 h-4" />
-                      <span>{subscriberCount.toLocaleString()}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleSubscriptionToggle}
-              disabled={false}
-              className={`p-2 rounded-lg transition-colors ${
-                isSubscribed
-                  ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }`}
-              title={isSubscribed ? t("channels.unsubscribe") : t("channels.subscribe")}
-            >
-              {isSubscribed ? (
-                <BellSlashIcon className="w-5 h-5" />
-              ) : (
-                <BellIcon className="w-5 h-5" />
-              )}
-            </button>
-          </div>
-        </div>
-      ) : youtubeDetailsError ? (
-        <div className="glass-effect border-b border-gray-800 px-6 py-4">
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-            <h3 className="text-red-400 font-medium mb-2">
-              {t("channels.errorLoadingChannel")}
-            </h3>
-            <p className="text-red-300/80 text-sm">{youtubeDetailsError.message}</p>
-          </div>
-        </div>
-      ) : null}
+      <ChannelHeader
+        channelName={channelName}
+        channelThumbnail={channelThumbnail}
+        videoCount={videoCount}
+        subscriberCount={subscriberCount}
+        isSubscribed={isSubscribed}
+        onSubscriptionToggle={handleSubscriptionToggle}
+        isLoading={isLoading}
+        error={youtubeDetailsError?.message}
+      />
 
       {/* Libraries and Discover Expanders */}
       <div className="space-y-2">
@@ -426,11 +178,11 @@ const ChannelPage = () => {
           onToggle={() => setExpandedSection(expandedSection === 'libraries' ? null : 'libraries')}
           isSummarizing={Boolean(processingVideoId && videos.some(v => v.videoId === processingVideoId) && (status === "gathering" || status === "summarizing"))}
         >
-          <VirtualizedContentGrid
+          <VirtualizedGrid
             items={[
               ...visparks.map(vispark => ({
                 id: vispark.id,
-                videoId: vispark.video_id,
+                videoId: vispark.video_id || '',
                 title: vispark.video_title,
                 channelTitle: vispark.video_channel_title,
                 thumbnail: vispark.video_thumbnails,
@@ -469,7 +221,7 @@ const ChannelPage = () => {
           onToggle={() => setExpandedSection(expandedSection === 'discover' ? null : 'discover')}
           isSummarizing={Boolean(processingVideoId && videos.some(v => v.videoId === processingVideoId) && (status === "gathering" || status === "summarizing"))}
         >
-          <VirtualizedContentGrid
+          <VirtualizedGrid
             items={videos.filter(video => video.videoId !== processingVideoId).map(video => ({
               videoId: video.videoId,
               title: video.title,

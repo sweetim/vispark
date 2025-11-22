@@ -19,6 +19,7 @@ import { Link, Navigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { useAuth } from "@/modules/auth"
 import { useLocale } from "@/contexts/LocaleContext"
+import { AnimatedBackground } from "@/components"
 
 
 const LandingPage: FC = () => {
@@ -179,23 +180,6 @@ const LandingPage: FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div
-          className="absolute w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"
-          style={{
-            top: `${10 + scrollY * 0.05}%`,
-            left: `${10 - scrollY * 0.02}%`,
-          }}
-        />
-        <div
-          className="absolute w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"
-          style={{
-            bottom: `${20 - scrollY * 0.03}%`,
-            right: `${15 + scrollY * 0.01}%`,
-          }}
-        />
-      </div>
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 px-6 py-6 md:px-12 backdrop-blur-sm bg-zinc-950/50 border-b border-white/5 z-40">

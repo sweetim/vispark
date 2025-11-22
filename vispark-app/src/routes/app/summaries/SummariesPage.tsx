@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { ChartBarIcon, CaretDownIcon, CaretRightIcon } from "@phosphor-icons/react"
-import CountBadge from "@/components/CountBadge"
+import { CountBadge, LoadingSkeleton } from "@/components"
 import { useVisparks } from "@/hooks/useVisparks"
 import { useVideoStore } from "@/stores/videoStore"
 
@@ -58,33 +58,6 @@ const formatRelativeToNow = (iso: string): string => {
   return formatter.format(Math.round(diff / 1000), "second")
 }
 
-const skeletonPlaceholders = [
-  "placeholder-a",
-  "placeholder-b",
-  "placeholder-c",
-  "placeholder-d",
-  "placeholder-e",
-  "placeholder-f",
-] as const
-
-const LoadingSkeleton = () => (
-  <div className="flex h-full w-full flex-col">
-    <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {skeletonPlaceholders.map((placeholderKey) => (
-        <div
-          key={placeholderKey}
-          className="flex items-center gap-2 rounded-lg border border-white/10 bg-gray-900/50 p-3 backdrop-blur"
-        >
-          <div className="w-24 h-14 rounded bg-white/10" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 w-3/4 rounded bg-white/10" />
-            <div className="h-3 w-1/2 rounded bg-white/5" />
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-)
 
 const SummariesPage = () => {
   const { t } = useTranslation()

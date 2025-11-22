@@ -4,7 +4,7 @@ type ToggleSwitchProps = {
   disabled?: boolean
 }
 
-export const ToggleSwitch = ({ isOn, onToggle, disabled = false }: ToggleSwitchProps) => {
+const ToggleSwitch = ({ isOn, onToggle, disabled = false }: ToggleSwitchProps) => {
   return (
     <button
       type="button"
@@ -22,3 +22,5 @@ export const ToggleSwitch = ({ isOn, onToggle, disabled = false }: ToggleSwitchP
     </button>
   )
 }
+
+export default ToggleSwitch

@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useAuth } from "@/modules/auth"
 import { useAnalytics } from "@/hooks/useAnalytics"
+import { PageHeader, StatsCard, TabNavigation } from "@/components"
 
 const WalletPage = () => {
   const { t } = useTranslation()
@@ -15,100 +16,65 @@ const WalletPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full w-full bg-gray-900 text-white p-4 overflow-y-auto">
+      <PageHeader title={t("analytics.title")}>
         <div className="w-full max-w-lg mx-auto space-y-6">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-2">{t("analytics.title")}</h1>
             <p className="text-gray-400">{t("common.loading")}</p>
           </div>
         </div>
-      </div>
+      </PageHeader>
     )
   }
 
   if (error || !analytics) {
     return (
-      <div className="flex flex-col h-full w-full bg-gray-900 text-white p-4 overflow-y-auto">
+      <PageHeader title={t("analytics.title")}>
         <div className="w-full max-w-lg mx-auto space-y-6">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-2">{t("analytics.title")}</h1>
             <p className="text-red-400">{t("common.error")}</p>
             <button className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg">
               {t("common.retry")}
             </button>
           </div>
         </div>
-      </div>
+      </PageHeader>
     )
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-gray-900 text-white p-4 overflow-y-auto">
+    <PageHeader
+      title={t("analytics.title")}
+      subtitle={t("analytics.subtitle")}
+    >
       <div className="w-full max-w-lg mx-auto space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">{t("analytics.title")}</h1>
-          <p className="text-gray-400">{t("analytics.subtitle")}</p>
-        </div>
-
         {/* Key Metrics Cards */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
-            <div className="text-center">
-              <p className="text-sm text-gray-400 mb-1">{t("analytics.visparkVideosProcessed")}</p>
-              <p className="text-2xl font-bold text-indigo-400">
-                {analytics.visparkVideosProcessed}
-              </p>
-            </div>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
-            <div className="text-center">
-              <p className="text-sm text-gray-400 mb-1">{t("analytics.timesSavedFromApp")}</p>
-              <p className="text-2xl font-bold text-green-400">
-                {totalHoursSaved}h {remainingMinutes}m
-              </p>
-            </div>
-          </div>
+          <StatsCard
+            title={t("analytics.visparkVideosProcessed")}
+            value={analytics.visparkVideosProcessed}
+            color="indigo"
+          />
+          <StatsCard
+            title={t("analytics.timesSavedFromApp")}
+            value={`${totalHoursSaved}h ${remainingMinutes}m`}
+            color="green"
+          />
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex bg-gray-800 rounded-lg p-1">
-          <button
-            className={`flex-1 py-2 px-4 rounded-md transition-colors ${
-              activeTab === "overview"
-                ? "bg-indigo-600 text-white"
-                : "text-gray-400 hover:text-white"
-            }`}
-            onClick={() => setActiveTab("overview")}
-          >
-            {t("analytics.overview")}
-          </button>
-          <button
-            className={`flex-1 py-2 px-4 rounded-md transition-colors ${
-              activeTab === "insights"
-                ? "bg-indigo-600 text-white"
-                : "text-gray-400 hover:text-white"
-            }`}
-            onClick={() => setActiveTab("insights")}
-          >
-            {t("analytics.insights")}
-          </button>
-          <button
-            className={`flex-1 py-2 px-4 rounded-md transition-colors ${
-              activeTab === "trends"
-                ? "bg-indigo-600 text-white"
-                : "text-gray-400 hover:text-white"
-            }`}
-            onClick={() => setActiveTab("trends")}
-          >
-            {t("analytics.trends")}
-          </button>
-        </div>
+        <TabNavigation
+          tabs={[
+            { id: "overview", label: t("analytics.overview") },
+            { id: "insights", label: t("analytics.insights") },
+            { id: "trends", label: t("analytics.trends") }
+          ]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
         {/* Overview Tab */}
         {activeTab === "overview" && (
           <div className="space-y-4">
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3">{t("analytics.usageStats")}</h3>
+            <StatsCard title={t("analytics.usageStats")}>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">{t("analytics.videosSummarized")}</span>
@@ -129,10 +95,9 @@ const WalletPage = () => {
                   <span>{analytics.weeklyVideosProcessed} videos</span>
                 </div>
               </div>
-            </div>
+            </StatsCard>
 
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3">{t("analytics.accountInformation")}</h3>
+            <StatsCard title={t("analytics.accountInformation")}>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">{t("analytics.memberSince")}</span>
@@ -143,7 +108,7 @@ const WalletPage = () => {
                   <span className="text-indigo-400">{t("analytics.free")}</span>
                 </div>
               </div>
-            </div>
+            </StatsCard>
 
             {/* Upgrade Prompt */}
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-4">
@@ -159,8 +124,7 @@ const WalletPage = () => {
         {/* Insights Tab */}
         {activeTab === "insights" && (
           <div className="space-y-4">
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3">{t("analytics.insightsTitle")}</h3>
+            <StatsCard title={t("analytics.insightsTitle")}>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">{t("analytics.mostProductiveDay")}</span>
@@ -179,10 +143,9 @@ const WalletPage = () => {
                   <span className="text-green-400 font-semibold">{analytics.timeSavedPerWeek} min</span>
                 </div>
               </div>
-            </div>
+            </StatsCard>
 
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3">{t("analytics.weeklyActivity")}</h3>
+            <StatsCard title={t("analytics.weeklyActivity")}>
               <div className="space-y-2">
                 {analytics.weeklyActivity.map((day) => (
                   <div key={day.day} className="flex items-center justify-between">
@@ -197,10 +160,9 @@ const WalletPage = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </StatsCard>
 
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3">{t("analytics.topCategories")}</h3>
+            <StatsCard title={t("analytics.topCategories")}>
               <div className="space-y-2">
                 {analytics.topCategories.map((category) => (
                   <div key={category.name} className="flex items-center justify-between">
@@ -217,15 +179,14 @@ const WalletPage = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </StatsCard>
           </div>
         )}
 
         {/* Trends Tab */}
         {activeTab === "trends" && (
           <div className="space-y-4">
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3">{t("analytics.trendingTopics")}</h3>
+            <StatsCard title={t("analytics.trendingTopics")}>
               <div className="space-y-3">
                 {analytics.trendingTopics.map((topic) => (
                   <div key={topic.topic} className="flex items-center justify-between">
@@ -239,10 +200,9 @@ const WalletPage = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </StatsCard>
 
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3">{t("analytics.premiumFeatures")}</h3>
+            <StatsCard title={t("analytics.premiumFeatures")}>
               <div className="space-y-3">
                 <div className="flex items-center">
                   <div className="w-5 h-5 bg-gray-600 rounded-full mr-3"></div>
@@ -268,11 +228,11 @@ const WalletPage = () => {
               <button className="w-full mt-4 py-2 px-4 bg-indigo-600 hover:bg-indigo-500 transition-colors rounded-lg">
                 {t("analytics.upgradeNow")}
               </button>
-            </div>
+            </StatsCard>
           </div>
         )}
       </div>
-    </div>
+    </PageHeader>
   )
 }
 

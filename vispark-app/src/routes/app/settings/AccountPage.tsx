@@ -1,13 +1,12 @@
 import { useTranslation } from "react-i18next"
+import { BackgroundDecoration, SettingsSection } from "@/components"
 
 const AccountPage = () => {
   const { t } = useTranslation()
 
   return (
     <div className="relative h-full">
-      <div className="pointer-events-none absolute -top-48 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-purple-500/25 blur-3xl" />
-      <div className="pointer-events-none absolute top-20 left-[-12%] h-96 w-96 rounded-full bg-blue-500/20 blur-[140px]" />
-      <div className="pointer-events-none absolute bottom-[-18%] right-[-8%] h-96 w-96 rounded-full bg-emerald-500/20 blur-[140px]" />
+      <BackgroundDecoration />
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 lg:px-10">
         <header className="mb-4">
@@ -18,11 +17,8 @@ const AccountPage = () => {
 
         <div className="space-y-6">
           {/* Security Settings */}
-          <div className="relative overflow-hidden rounded-4xl border border-white/10 bg-white/5 shadow-[0_24px_90px_-40px_rgba(15,23,42,0.75)] backdrop-blur-xl">
-            <div className="px-6 py-4 border-b border-white/10">
-              <h2 className="text-lg font-medium text-white">{t("settings.security")}</h2>
-            </div>
-            <div className="p-6 space-y-4">
+          <SettingsSection title={t("settings.security")}>
+            <div className="space-y-4">
               <div className="flex items-center justify-between py-3 px-4 bg-gray-800/50 rounded-xl">
                 <div>
                   <h3 className="text-sm font-medium text-white">{t("settings.changePassword")}</h3>
@@ -42,14 +38,11 @@ const AccountPage = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </SettingsSection>
 
           {/* Privacy Settings */}
-          <div className="relative overflow-hidden rounded-4xl border border-white/10 bg-white/5 shadow-[0_24px_90px_-40px_rgba(15,23,42,0.75)] backdrop-blur-xl">
-            <div className="px-6 py-4 border-b border-white/10">
-              <h2 className="text-lg font-medium text-white">{t("settings.privacy")}</h2>
-            </div>
-            <div className="p-6 space-y-4">
+          <SettingsSection title={t("settings.privacy")}>
+            <div className="space-y-4">
               <div className="flex items-center justify-between py-3 px-4 bg-gray-800/50 rounded-xl">
                 <div>
                   <h3 className="text-sm font-medium text-white">{t("settings.dataUsage")}</h3>
@@ -78,7 +71,7 @@ const AccountPage = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </SettingsSection>
         </div>
       </div>
     </div>

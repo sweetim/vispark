@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import TranscriptView from "@/components/TranscriptView"
+import { TranscriptView } from "@/components"
 
 type VideoContentProps = {
   view: "summary" | "transcript"

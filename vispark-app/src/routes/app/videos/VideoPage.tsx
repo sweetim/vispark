@@ -1,9 +1,5 @@
 import { Navigate, useSearch } from "@tanstack/react-router"
-import ProgressTimeline from "@/components/ProgressTimeline"
-import VideoContent from "@/components/VideoContent"
-import VideoMetadataCard from "@/components/VideoMetadataCard"
-import VideoMetadataSkeleton from "@/components/VideoMetadataSkeleton"
-import ViewToggle from "@/components/ViewToggle"
+import { ProgressTimeline, VideoContent, VideoMetadataCard, VideoMetadataSkeleton, ViewToggle } from "@/components"
 import { useVideoProcessing } from "@/hooks/useVideoProcessing"
 import { useVisparkByVideoId } from "@/hooks/useVisparks"
 

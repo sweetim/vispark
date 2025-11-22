@@ -1,5 +1,7 @@
 import type { Preview } from "@storybook/react-vite";
 import "../src/index.css";
+import { INITIAL_VIEWPORTS } from "storybook/viewport";
+import { background } from "storybook/theming";
 
 const preview: Preview = {
   parameters: {
@@ -14,13 +16,16 @@ const preview: Preview = {
       values: [
         {
           name: "dark",
-          value: "#101828",
+          value: "#0f172a",
         },
         {
           name: "light",
           value: "#ffffff",
         },
       ],
+    },
+    viewport: {
+      viewports: INITIAL_VIEWPORTS,
     },
     layout: "centered",
     a11y: {
@@ -29,6 +34,13 @@ const preview: Preview = {
       // 'off' - skip a11y checks entirely
       test: "todo",
     },
+    docs: {
+      toc: true,
+    },
+  },
+  initialGlobals: {
+    backgrounds: { value: "dark" },
+    viewport: { value: 'mobile2', isRotated: false },
   },
   globalTypes: {
     theme: {

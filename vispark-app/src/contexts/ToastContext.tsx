@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react"
-import Toast from "@/components/Toast"
+import { Toast } from "@/components"
 
 type ToastType = "success" | "error" | "warning" | "info"
 
