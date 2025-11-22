@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from "date-fns"
 import { decodeHtmlEntities } from "@/utils"
 import { useTranslation } from "react-i18next"
+import { SparkleIcon } from "@phosphor-icons/react"
 
 type VideoMetadataCardProps = {
   metadata: {
@@ -67,7 +68,7 @@ export default function VideoMetadataCard({
       <div className="w-full absolute inset-0 bg-linear-to-t from-black/70 via-black/25 to-transparent" />
 
       {isNewFromCallback && (
-        <div className="absolute inset-0 bg-gradient-to-br from-green-400/10 via-transparent to-emerald-400/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-br from-green-400/10 via-transparent to-emerald-400/10 pointer-events-none" />
       )}
 
       <div className="absolute top-0 left-0 right-0 p-1 flex items-start justify-between gap-2">
@@ -103,7 +104,7 @@ export default function VideoMetadataCard({
         <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
           <div className="rounded-lg bg-black/60 backdrop-blur-md px-6 py-3 border border-white/20 shadow-2xl">
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+              <SparkleIcon size={16} weight="fill" className="text-purple-400 animate-pulse" />
               <p className="text-white font-medium text-sm tracking-wide">NEW</p>
             </div>
           </div>
