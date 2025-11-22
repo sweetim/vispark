@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import ChannelList from './ChannelList';
+import { AuthProvider } from '@/modules/auth/AuthProvider';
+import { ToastProvider } from '@/contexts/ToastContext';
 
 // Mock data for stories
 const mockChannels = [
@@ -55,7 +57,11 @@ const meta = {
     (Story) => (
       <div className="min-h-screen bg-slate-950 p-8">
         <div className="w-full max-w-2xl">
-          <Story />
+          <AuthProvider>
+            <ToastProvider>
+              <Story />
+            </ToastProvider>
+          </AuthProvider>
         </div>
       </div>
     ),
@@ -168,45 +174,49 @@ export const InteractiveExample = {
     };
 
     return (
-      <div className="space-y-6">
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={toggleEmpty}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            {showEmpty ? 'Show Channels' : 'Show Empty'}
-          </button>
-          <button
-            onClick={addChannel}
-            disabled={showEmpty}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Add Channel
-          </button>
-          <button
-            onClick={removeChannel}
-            disabled={showEmpty || items.length === 0}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Remove Channel
-          </button>
-        </div>
+      <AuthProvider>
+        <ToastProvider>
+          <div className="space-y-6">
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={toggleEmpty}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                {showEmpty ? 'Show Channels' : 'Show Empty'}
+              </button>
+              <button
+                onClick={addChannel}
+                disabled={showEmpty}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add Channel
+              </button>
+              <button
+                onClick={removeChannel}
+                disabled={showEmpty || items.length === 0}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Remove Channel
+              </button>
+            </div>
 
-        <ChannelList
-          items={showEmpty ? [] : items}
-          emptyMessage="No channels found. Try adjusting your search criteria."
-        />
+            <ChannelList
+              items={showEmpty ? [] : items}
+              emptyMessage="No channels found. Try adjusting your search criteria."
+            />
 
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-          <h3 className="text-white font-semibold mb-2">Interactive Controls</h3>
-          <div className="text-sm text-gray-300 space-y-1">
-            <p>• Click "Show Empty" to see empty state</p>
-            <p>• Click "Add Channel" to add a new channel</p>
-            <p>• Click "Remove Channel" to remove the last channel</p>
-            <p>• Current channels: {items.length}</p>
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <h3 className="text-white font-semibold mb-2">Interactive Controls</h3>
+              <div className="text-sm text-gray-300 space-y-1">
+                <p>• Click "Show Empty" to see empty state</p>
+                <p>• Click "Add Channel" to add a new channel</p>
+                <p>• Click "Remove Channel" to remove the last channel</p>
+                <p>• Current channels: {items.length}</p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </ToastProvider>
+      </AuthProvider>
     );
   },
 };
