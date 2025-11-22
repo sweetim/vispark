@@ -52,7 +52,6 @@ const VideosVideoPage = () => {
                 title: search.title || videoMetadata.title,
                 videoId: rawVideoId
               }}
-              isSummarizing={isGenerating}
             />
           ) : (
             <VideoMetadataSkeleton />
