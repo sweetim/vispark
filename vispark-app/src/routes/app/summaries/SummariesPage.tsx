@@ -1,26 +1,10 @@
 import { useMemo, useState, useEffect } from "react"
-import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
-import { ChartBarIcon, CaretDownIcon, CaretRightIcon } from "@phosphor-icons/react"
-import { CountBadge, LoadingSkeleton } from "@/components"
+import { ChartBarIcon } from "@phosphor-icons/react"
+import { formatDistanceToNow } from "date-fns"
+import { CountBadge, LoadingSkeleton, ChannelGroup, type ChannelGroupEntry } from "@/components"
 import { useVisparks } from "@/hooks/useVisparks"
 import { useVideoStore } from "@/stores/videoStore"
-
-type ChannelGroupEntry = {
-  id: string
-  videoId: string
-  videoTitle: string
-  channelTitle: string
-  channelId: string
-  createdTime: string
-  thumbnailUrl: string
-}
-
-type ChannelGroup = {
-  channelTitle: string
-  channelId: string
-  entries: ChannelGroupEntry[]
-}
 
 const gradientPalette = [
   "from-indigo-500/40 via-purple-500/25 to-pink-500/30",
@@ -30,45 +14,20 @@ const gradientPalette = [
   "from-lime-500/35 via-emerald-500/25 to-teal-500/30",
 ] as const
 
-const formatRelativeToNow = (iso: string): string => {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) {
-    return "Unknown time"
-  }
-
-  const diff = date.getTime() - Date.now()
-  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
-    ["year", 1000 * 60 * 60 * 24 * 365],
-    ["month", 1000 * 60 * 60 * 24 * 30],
-    ["day", 1000 * 60 * 60 * 24],
-    ["hour", 1000 * 60 * 60],
-    ["minute", 1000 * 60],
-    ["second", 1000],
-  ]
-
-  const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
-
-  for (const [unit, ms] of units) {
-    const value = diff / ms
-    if (Math.abs(value) >= 1) {
-      return formatter.format(Math.round(value), unit)
-    }
-  }
-
-  return formatter.format(Math.round(diff / 1000), "second")
-}
-
 
 const SummariesPage = () => {
   const { t } = useTranslation()
   const { visparks, isLoading, error, mutate: mutateVisparks } = useVisparks()
-  const navigate = useNavigate()
   const [expandedChannels, setExpandedChannels] = useState<Set<string>>(new Set())
   const { processingVideoId, status, videoMetadata } = useVideoStore()
 
   // Group visparks by channel
   const groups = useMemo(() => {
-    const groupedMap = new Map<string, ChannelGroup>()
+    const groupedMap = new Map<string, {
+      channelTitle: string
+      channelId: string
+      entries: ChannelGroupEntry[]
+    }>()
 
     // Add existing visparks
     for (const item of visparks) {
@@ -130,7 +89,7 @@ const SummariesPage = () => {
 
     // Sort entries within each group by creation time (newest first)
     for (const group of groupedMap.values()) {
-      group.entries.sort((a, b) =>
+      group.entries.sort((a: ChannelGroupEntry, b: ChannelGroupEntry) =>
         new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime()
       )
     }
@@ -235,7 +194,7 @@ const SummariesPage = () => {
             </CountBadge>
             {stats.latestVideoUploadedIso && (
               <CountBadge variant="gray" count={0}>
-                Updated {formatRelativeToNow(stats.latestVideoUploadedIso)}
+                Updated {formatDistanceToNow(new Date(stats.latestVideoUploadedIso), { addSuffix: true })}
               </CountBadge>
             )}
           </div>
@@ -267,109 +226,17 @@ const SummariesPage = () => {
               const accent = gradientPalette[index % gradientPalette.length]
 
               return (
-                <section key={group.channelTitle}>
-                  <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
-                    <div
-                      className={`pointer-events-none absolute -top-1/3 right-[-8%] h-full w-3/5 bg-linear-to-br ${accent} opacity-30 blur-3xl`}
-                    />
-                    <div className="relative p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => toggleChannelExpansion(group.channelId)}
-                            className="text-indigo-400 hover:text-indigo-300 transition-colors"
-                          >
-                            {expandedChannels.has(group.channelId) ? (
-                              <CaretDownIcon size={20} />
-                            ) : (
-                              <CaretRightIcon size={20} />
-                            )}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => navigate({ to: `/app/channels/${group.channelId}` })}
-                            className="text-xl font-semibold text-white hover:text-indigo-300 transition-colors"
-                          >
-                            {group.channelTitle}
-                          </button>
-                          {group.entries.some(entry =>
-                            entry.videoId === processingVideoId &&
-                            (status === "gathering" || status === "summarizing")
-                          ) && (
-                            <div className="inline-flex h-5 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse">
-                              <div className="flex items-center space-x-1">
-                                <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
-                                <span className="text-xs font-medium text-white">
-                                  SUMMARIZING
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <CountBadge count={group.entries.length} />
-                      </div>
-
-                      {expandedChannels.has(group.channelId) && (
-                        <div className="mt-4 grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
-                          {group.entries.map((entry) => {
-                            const isSummarizing = status === "gathering" || status === "summarizing"
-                            const isCurrentlyProcessing = processingVideoId === entry.videoId && isSummarizing
-
-                            return (
-                              <button
-                                key={entry.id}
-                                type="button"
-                                onClick={() =>
-                                  navigate({ to: `/app/videos/${entry.videoId}` })
-                                }
-                                className="group flex items-center gap-3 rounded-lg border border-white/10 bg-gray-900/50 p-3 text-left backdrop-blur transition hover:bg-gray-800/50 hover:border-white/20"
-                              >
-                                <div className="relative w-24 shrink-0 overflow-hidden rounded">
-                                  <img
-                                    src={entry.thumbnailUrl}
-                                    alt={entry.videoTitle}
-                                    loading="lazy"
-                                    className="aspect-video w-full object-cover transition duration-300 group-hover:scale-105"
-                                  />
-                                  {isCurrentlyProcessing && (
-                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                      <div className="flex flex-col items-center">
-                                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        <span className="text-white text-xs mt-1">Processing...</span>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className="truncate text-sm font-medium text-white">
-                                      {entry.videoTitle}
-                                    </p>
-                                    {isCurrentlyProcessing && (
-                                      <div className="inline-flex h-5 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse">
-                                        <div className="flex items-center space-x-1">
-                                          <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
-                                          <span className="text-xs font-medium text-white">
-                                            SUMMARIZING
-                                          </span>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <p className="text-xs text-gray-400">
-                                    {formatRelativeToNow(entry.createdTime)}
-                                  </p>
-                                </div>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </section>
+                <ChannelGroup
+                  key={group.channelId}
+                  channelTitle={group.channelTitle}
+                  channelId={group.channelId}
+                  entries={group.entries}
+                  accent={accent}
+                  expandedChannels={expandedChannels}
+                  onToggleExpansion={toggleChannelExpansion}
+                  processingVideoId={processingVideoId}
+                  processingStatus={status}
+                />
               )
             })}
           </div>

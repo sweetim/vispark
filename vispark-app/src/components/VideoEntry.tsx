@@ -1,3 +1,5 @@
+import { formatDistanceToNow } from "date-fns"
+
 type ChannelGroupEntry = {
   id: string
   videoId: string
@@ -64,40 +66,13 @@ const VideoEntry = ({
           )}
         </div>
         <p className="text-xs text-gray-400">
-          {formatRelativeToNow(entry.createdTime)}
+          {formatDistanceToNow(new Date(entry.createdTime), { addSuffix: true })}
         </p>
       </div>
     </button>
   )
 }
 
-const formatRelativeToNow = (iso: string): string => {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) {
-    return "Unknown time"
-  }
-
-  const diff = date.getTime() - Date.now()
-  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
-    ["year", 1000 * 60 * 60 * 24 * 365],
-    ["month", 1000 * 60 * 60 * 24 * 30],
-    ["day", 1000 * 60 * 60 * 24],
-    ["hour", 1000 * 60 * 60],
-    ["minute", 1000 * 60],
-    ["second", 1000],
-  ]
-
-  const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
-
-  for (const [unit, ms] of units) {
-    const value = diff / ms
-    if (Math.abs(value) >= 1) {
-      return formatter.format(Math.round(value), unit)
-    }
-  }
-
-  return formatter.format(Math.round(diff / 1000), "second")
-}
 
 export default VideoEntry
 export type { VideoEntryProps, ChannelGroupEntry }
