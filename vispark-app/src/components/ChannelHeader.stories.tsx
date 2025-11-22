@@ -190,7 +190,7 @@ export const InteractiveExample = {
 
 export const MultipleChannels = {
   render: () => (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <ChannelHeader
         channelName="Gaming Channel"
         channelThumbnail="https://picsum.photos/seed/gaming/200/200.jpg"

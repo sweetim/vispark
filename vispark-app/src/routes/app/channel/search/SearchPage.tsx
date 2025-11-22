@@ -1,5 +1,6 @@
 import { useSearch } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
+import { WarningCircleIcon, MagnifyingGlassIcon } from "@phosphor-icons/react"
 import { useChannelSearch } from "@/hooks/useChannels"
 import ChannelList from "../components/ChannelList"
 import { CountBadge, LoadingSkeleton, EmptyStateIllustration } from "@/components"
@@ -46,20 +47,11 @@ const SearchPage = () => {
         <div className="glass-effect rounded-2xl p-6 border border-red-500/20 animate-fadeIn">
           <div className="flex items-start space-x-3">
             <div className="p-2 rounded-lg bg-red-500/20">
-              <svg
-                className="w-5 h-5 text-red-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <title>Error warning</title>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <WarningCircleIcon
+                size={20}
+                className="text-red-400"
+                weight="fill"
+              />
             </div>
             <div>
               <h3 className="text-red-400 font-semibold mb-1">
@@ -78,20 +70,10 @@ const SearchPage = () => {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-linear-to-br from-indigo-500/20 to-purple-500/20">
-                  <svg
-                    className="w-5 h-5 text-indigo-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <title>Search icon</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
+                  <MagnifyingGlassIcon
+                    size={20}
+                    className="text-indigo-400"
+                  />
                 </div>
                 <h2 className="text-2xl font-bold bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
                   {t("channels.results")}

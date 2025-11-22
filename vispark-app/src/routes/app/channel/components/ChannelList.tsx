@@ -4,6 +4,12 @@ import { useSWRConfig } from "swr"
 import { useAuth } from "@/modules/auth/useAuth.ts"
 import { useToast } from "@/contexts/ToastContext.tsx"
 import { useTranslation } from "react-i18next"
+import {
+  FileTextIcon,
+  CircleNotchIcon,
+  CheckCircleIcon,
+  BellIcon
+} from "@phosphor-icons/react"
 import type { ChannelMetadata } from "@/services/channel.ts"
 import {
   areChannelsSubscribed,
@@ -157,22 +163,10 @@ const ChannelList = ({
     >
       {items.length === 0 ? (
         <div className="text-sm text-gray-400 border border-dashed border-gray-700 rounded-lg px-4 py-6 text-center backdrop-blur-sm bg-gray-800/30">
-          <svg
-            className="w-8 h-8 mx-auto mb-2 text-gray-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <title>No channels icon</title>
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
-            />
-          </svg>
+          <FileTextIcon
+            size={32}
+            className="mx-auto mb-2 text-gray-500"
+          />
           {emptyMessage}
         </div>
       ) : (
@@ -239,62 +233,23 @@ const ChannelList = ({
                       >
                         {isLoading ? (
                           // Loading spinner
-                          <svg
-                            className="w-4 h-4 text-white animate-spin"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                          >
-                            <title>Loading</title>
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
+                          <CircleNotchIcon
+                            size={16}
+                            className="text-white animate-spin"
+                          />
                         ) : isSubscribed ? (
                           // Animated checkmark for subscribed channels
-                          <svg
-                            className="w-4 h-4 text-white"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                          >
-                            <title>Checkmark</title>
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                          <CheckCircleIcon
+                            size={16}
+                            className="text-white"
+                            weight="fill"
+                          />
                         ) : (
                           // Animated bell icon for unsubscribed channels
-                          <svg
-                            className="w-4 h-4 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                          >
-                            <title>Bell notification</title>
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                            />
-                          </svg>
+                          <BellIcon
+                            size={16}
+                            className="text-white"
+                          />
                         )}
                       </button>
                     </div>

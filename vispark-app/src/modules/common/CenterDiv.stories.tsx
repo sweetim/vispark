@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { LightningIcon } from "@phosphor-icons/react";
 import CenterDiv from './CenterDiv';
 
 const meta = {
@@ -63,9 +64,11 @@ export const WithIcon: Story = {
     children: (
       <div className="text-center">
         <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mb-4 mx-auto">
-          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+          <LightningIcon
+            size={32}
+            className="text-white"
+            weight="fill"
+          />
         </div>
         <p className="text-white font-medium">Icon Centered</p>
       </div>
