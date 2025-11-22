@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { WarningCircleIcon, StarIcon } from "@phosphor-icons/react"
 import { useSubscribedChannels } from "@/hooks/useChannels"
-import ChannelList from "../components/ChannelList"
+import { ChannelList } from "@/components"
 import { CountBadge, LoadingSkeleton, EmptyStateIllustration } from "@/components"
 
 const SubscribedPage = () => {

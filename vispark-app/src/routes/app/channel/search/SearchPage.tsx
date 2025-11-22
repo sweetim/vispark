@@ -2,7 +2,7 @@ import { useSearch } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { WarningCircleIcon, MagnifyingGlassIcon } from "@phosphor-icons/react"
 import { useChannelSearch } from "@/hooks/useChannels"
-import ChannelList from "../components/ChannelList"
+import { ChannelList } from "@/components"
 import { CountBadge, LoadingSkeleton, EmptyStateIllustration } from "@/components"
 
 const SearchPage = () => {

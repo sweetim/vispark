@@ -10,6 +10,7 @@ export {
   default as ChannelGroup,
 } from "./ChannelGroup"
 export { default as ChannelHeader } from "./ChannelHeader"
+export { default as ChannelList } from "./ChannelList"
 export { default as CountBadge } from "./CountBadge"
 export { default as EmptyStateIllustration } from "./EmptyStateIllustration"
 export { default as Expander } from "./Expander"
