@@ -48,7 +48,8 @@ export default function VideoMetadataCard({
   const videoAddress = `https://www.youtube.com/watch?v=${metadata.videoId}`
   const baseClasses =
     "relative block aspect-video w-full overflow-hidden rounded-xl border border-gray-700 bg-gray-800 shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:ring-offset-2 focus:ring-offset-gray-900 transition-transform duration-200 hover:scale-[1.002]"
-  const composedClasses = `${baseClasses}${isActive ? " ring-2 ring-indigo-400/70" : ""}${
+  const summarizingClasses = isSummarizing ? " animate-gradient-border" : ""
+  const composedClasses = `${baseClasses}${isActive ? " ring-2 ring-indigo-400/70" : ""}${summarizingClasses}${
     className ? ` ${className}` : ""
   }`
   const relativeTimeLabel = formatRelativeTime(createdTime)
@@ -65,6 +66,10 @@ export default function VideoMetadataCard({
 
       <div className="w-full absolute inset-0 bg-linear-to-t from-black/70 via-black/25 to-transparent" />
 
+      {isNewFromCallback && (
+        <div className="absolute inset-0 bg-gradient-to-br from-green-400/10 via-transparent to-emerald-400/10 pointer-events-none" />
+      )}
+
       <div className="absolute top-0 left-0 right-0 p-1 flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 max-w-full">
           <div
@@ -74,27 +79,6 @@ export default function VideoMetadataCard({
               {decodeHtmlEntities(metadata.channelTitle)}
             </p>
           </div>
-          {isNewFromCallback && (
-            <div
-              className={`inline-flex h-7 items-center rounded-md px-2 backdrop-blur shrink-0 bg-green-600/80 text-xs font-medium tracking-wide text-white border border-green-400/30`}
-            >
-              <p className="text-xs font-medium text-white">
-                NEW
-              </p>
-            </div>
-          )}
-          {isSummarizing && (
-            <div
-              className={`inline-flex h-7 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse`}
-            >
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
-                <p className="text-xs font-medium text-white">
-                  SUMMARIZING
-                </p>
-              </div>
-            </div>
-          )}
         </div>
         {relativeTimeLabel && (
           <div
@@ -114,6 +98,28 @@ export default function VideoMetadataCard({
           </h2>
         </div>
       </div>
+
+      {isNewFromCallback && (
+        <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
+          <div className="rounded-lg bg-black/60 backdrop-blur-md px-6 py-3 border border-white/20 shadow-2xl">
+            <div className="flex items-center space-x-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+              <p className="text-white font-medium text-sm tracking-wide">NEW</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isSummarizing && (
+        <div className="absolute inset-0 flex items-center justify-center z-40">
+          <div className="rounded-lg bg-black/60 backdrop-blur-md px-6 py-3 border border-white/20 shadow-2xl">
+            <div className="flex items-center space-x-3">
+              <div className="w-5 h-5 rounded-full border-2 border-blue-400 border-t-transparent animate-spin"></div>
+              <p className="text-white font-medium text-sm tracking-wide">SUMMARIZING</p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 

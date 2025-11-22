@@ -88,6 +88,114 @@
   animation: shimmer 2s infinite;
 }
 
+@keyframes comet-border {
+  0% {
+    border-color: transparent;
+    border-top-color: #3B82F6; /* blue-500 */
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+    box-shadow:
+      0 -3px 15px #3B82F6,
+      0 -5px 25px rgba(59, 130, 246, 0.5),
+      inset 0 0 15px rgba(59, 130, 246, 0.3);
+  }
+  25% {
+    border-color: transparent;
+    border-top-color: transparent;
+    border-right-color: #8B5CF6; /* violet-500 */
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+    box-shadow:
+      3px 0 15px #8B5CF6,
+      5px 0 25px rgba(139, 92, 246, 0.5),
+      inset 0 0 15px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    border-color: transparent;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: #EC4899; /* pink-500 */
+    border-left-color: transparent;
+    box-shadow:
+      0 3px 15px #EC4899,
+      0 5px 25px rgba(236, 72, 153, 0.5),
+      inset 0 0 15px rgba(236, 72, 153, 0.3);
+  }
+  75% {
+    border-color: transparent;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: #10B981; /* emerald-500 */
+    box-shadow:
+      -3px 0 15px #10B981,
+      -5px 0 25px rgba(16, 185, 129, 0.5),
+      inset 0 0 15px rgba(16, 185, 129, 0.3);
+  }
+  100% {
+    border-color: transparent;
+    border-top-color: #3B82F6; /* blue-500 */
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+    box-shadow:
+      0 -3px 15px #3B82F6,
+      0 -5px 25px rgba(59, 130, 246, 0.5),
+      inset 0 0 15px rgba(59, 130, 246, 0.3);
+  }
+}
+
+.animate-gradient-border {
+  animation: comet-border 3s linear infinite;
+  position: relative;
+  overflow: visible;
+  z-index: 10;
+}
+
+.animate-gradient-border::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(45deg, #3B82F6, #8B5CF6, #EC4899, #10B981, #3B82F6);
+  background-size: 400% 400%;
+  border-radius: inherit;
+  z-index: 20;
+  opacity: 0;
+  animation: gradient-shift 3s ease infinite;
+  pointer-events: none;
+}
+
+.animate-gradient-border::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: inherit;
+  z-index: 15;
+  pointer-events: none;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.3;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.6;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.3;
+  }
+}
+
 .glass-effect {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
