@@ -21,7 +21,6 @@ const LoginPage: FC = () => {
   const {
     user,
     loading: authLoading,
-    signInWithPassword,
     signInWithGoogle,
   } = useAuth()
   const navigate = useNavigate()
@@ -79,31 +78,6 @@ const LoginPage: FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.email || !formData.password) {
-      setErrorMessage(t("common.error"))
-      return
-    }
-
-    setSubmitting(true)
-    setErrorMessage(null)
-
-    const error = await signInWithPassword({
-      email: formData.email,
-      password: formData.password,
-    })
-
-    if (error) {
-      setErrorMessage(error.message)
-    } else {
-      setFormData({ email: "", password: "", remember: true })
-      navigate({ to: redirectPath, replace: true })
-    }
-
-    setSubmitting(false)
-  }
 
   const handleGoogleSignIn = async () => {
     setSubmitting(true)

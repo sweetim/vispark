@@ -51,14 +51,20 @@ const WalletPage = () => {
         <div className="grid grid-cols-2 gap-4">
           <StatsCard
             title={t("analytics.visparkVideosProcessed")}
-            value={analytics.visparkVideosProcessed}
             color="indigo"
-          />
+          >
+            <div className="text-2xl font-bold text-white">
+              {analytics.visparkVideosProcessed}
+            </div>
+          </StatsCard>
           <StatsCard
             title={t("analytics.timesSavedFromApp")}
-            value={`${totalHoursSaved}h ${remainingMinutes}m`}
             color="green"
-          />
+          >
+            <div className="text-2xl font-bold text-white">
+              {`${totalHoursSaved}h ${remainingMinutes}m`}
+            </div>
+          </StatsCard>
         </div>
 
         <TabNavigation
@@ -68,7 +74,7 @@ const WalletPage = () => {
             { id: "trends", label: t("analytics.trends") }
           ]}
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={(tabId) => setActiveTab(tabId as "overview" | "insights" | "trends")}
         />
 
         {/* Overview Tab */}

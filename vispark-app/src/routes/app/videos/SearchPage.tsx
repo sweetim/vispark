@@ -1,10 +1,9 @@
-import { type FormEvent, useId, useMemo, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
-import { SparkleIcon } from "@phosphor-icons/react"
 import { extractYouTubeVideoId } from "@/utils/youtube"
 import { updateVisparkCallbackFlag } from "@/services/vispark"
-import { SearchForm, VideoMetadataCard, VideoMetadataSkeleton } from "@/components"
+import { SearchForm } from "@/components"
 import HistoryList from "./components/HistoryList"
 import { useVisparks } from "@/hooks/useVisparks"
 import { useVideoStore } from "@/stores/videoStore"
@@ -70,29 +69,6 @@ const VideosSearchPage = () => {
     }] : [])
   ]
   const [videoId, setVideoId] = useState("")
-  const reactId = useId()
-  const inputId = useMemo(() => `videos-video-id-${reactId}`, [reactId])
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const trimmedInput = videoId.trim()
-    if (!trimmedInput) {
-      return
-    }
-
-    // Try to extract video ID from URL or use the input directly if it's already an ID
-    const extractedVideoId = extractYouTubeVideoId(trimmedInput)
-    const finalVideoId = extractedVideoId || trimmedInput
-
-    if (!finalVideoId) {
-      return
-    }
-
-    // Navigate to video page with just the video ID
-    navigate({
-      to: `/app/videos/${finalVideoId}`
-    })
-  }
 
   const handleVideoSelect = async (videoId: string) => {
     // Find the vispark with this video ID

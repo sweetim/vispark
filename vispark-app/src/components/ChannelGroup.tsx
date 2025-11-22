@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { CaretDownIcon, CaretRightIcon } from "@phosphor-icons/react"
 import { CountBadge } from "@/components"

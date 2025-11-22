@@ -11,7 +11,6 @@ type ProcessingIndicatorProps = {
 const ProcessingIndicator: FC<ProcessingIndicatorProps> = ({
   isProcessing,
   text = "Processing...",
-  size = "sm",
   className = ""
 }) => {
   if (!isProcessing) return null

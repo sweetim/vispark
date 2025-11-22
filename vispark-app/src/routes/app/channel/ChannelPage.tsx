@@ -8,15 +8,9 @@ import { useChannelSubscriptionManager, useYouTubeChannelDetails } from "@/hooks
 import { useToast } from "@/contexts/ToastContext"
 import { useInfiniteVisparksByChannel } from "@/hooks/useVisparks"
 import { useInfiniteYouTubeChannelVideos } from "@/hooks/useYouTubeChannelVideos"
-import { VideoMetadataCard, Expander } from "@/components"
+import { Expander } from "@/components"
 import { useVideoStore } from "@/stores/videoStore"
-import { useState, useRef, useEffect } from "react"
-import {
-  VideoCameraIcon,
-  UsersIcon,
-  BellIcon,
-  BellSlashIcon
-} from "@phosphor-icons/react"
+import { useState, useEffect } from "react"
 import { ChannelHeader, VirtualizedGrid } from "@/components"
 
 type VirtualizedItem = {

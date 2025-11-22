@@ -19,18 +19,16 @@ import { Link, Navigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { useAuth } from "@/modules/auth"
 import { useLocale } from "@/contexts/LocaleContext"
-import { AnimatedBackground } from "@/components"
 
 
 const LandingPage: FC = () => {
   const { t, i18n } = useTranslation()
   const { changeLanguage } = useLocale()
-  const [scrollY, setScrollY] = useState(0)
   const { user, loading } = useAuth()
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY)
+    const handleScroll = () => window.scrollY
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])

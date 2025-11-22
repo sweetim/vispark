@@ -1,4 +1,5 @@
 import type { FC } from "react"
+import { match } from "ts-pattern"
 import {
   CircleNotchIcon,
   CheckCircleIcon,
@@ -21,16 +22,28 @@ const ProgressTimeline: FC<ProgressTimelineProps> = ({
   isSubmitting,
   error,
 }) => {
-  const isGatheringActive = step === "gathering"
-  const isGatheringDone = step === "summarizing" || step === "complete"
-  const isGatheringError = step === "error" && errorStep === "gathering"
-  const isSummarizingActive = step === "summarizing"
-  const isSummarizingDone = step === "complete"
-  const isSummarizingError = step === "error" && errorStep === "summarizing"
+  const shouldRender = match({ step, isSubmitting })
+    .with({ step: "error" }, () => true)
+    .with({ step: "gathering" }, () => true)
+    .with({ isSubmitting: true }, () => true)
+    .otherwise(() => false)
 
-  if (!isSubmitting && step !== "error" && step !== "gathering") {
+  if (!shouldRender) {
     return null
   }
+
+  const gatheringStatus = match({ step, errorStep })
+    .with({ step: "error", errorStep: "gathering" }, () => "error" as const)
+    .with({ step: "summarizing" }, () => "done" as const)
+    .with({ step: "complete" }, () => "done" as const)
+    .with({ step: "gathering" }, () => "active" as const)
+    .otherwise(() => "idle" as const)
+
+  const summarizingStatus = match({ step, errorStep })
+    .with({ step: "error", errorStep: "summarizing" }, () => "error" as const)
+    .with({ step: "complete" }, () => "done" as const)
+    .with({ step: "summarizing" }, () => "active" as const)
+    .otherwise(() => "idle" as const)
 
   return (
     <div
@@ -41,78 +54,84 @@ const ProgressTimeline: FC<ProgressTimelineProps> = ({
       <ol className="relative border-l border-gray-700 pl-6">
         <li className="mb-6">
           <span className="absolute -left-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-800 border border-gray-600">
-            {isGatheringError ? (
-              <WarningCircleIcon
-                size={14}
-                className="text-red-400"
-                weight="fill"
-              />
-            ) : isGatheringDone ? (
-              <CheckCircleIcon
-                size={14}
-                className="text-green-400 transition-transform duration-300"
-                weight="fill"
-              />
-            ) : isGatheringActive ? (
-              <CircleNotchIcon
-                size={14}
-                className="text-indigo-400 animate-spin"
-              />
-            ) : (
-              <span className="h-2.5 w-2.5 rounded-full bg-gray-600"></span>
-            )}
+            {match(gatheringStatus)
+              .with("error", () => (
+                <WarningCircleIcon
+                  size={15}
+                  className="text-red-400"
+                  weight="fill"
+                />
+              ))
+              .with("done", () => (
+                <CheckCircleIcon
+                  size={15}
+                  className="text-green-400 transition-transform duration-300"
+                  weight="fill"
+                />
+              ))
+              .with("active", () => (
+                <CircleNotchIcon
+                  size={15}
+                  className="text-indigo-400 animate-spin"
+                />
+              ))
+              .otherwise(() => (
+                <span className="h-2.5 w-2.5 rounded-full bg-gray-600"></span>
+              ))}
           </span>
-          <div className={`ml-2 ${isGatheringActive ? "animate-pulse" : ""}`}>
-            <div className="font-medium text-sm">
-              {isGatheringDone
-                ? "Transcripts gathered"
-                : isGatheringError
-                  ? "Failed to gather transcripts"
-                  : "Gathering transcripts"}
+          <div className={`ml-2 ${gatheringStatus === "active" ? "animate-pulse" : ""}`}>
+            <div className="font-medium text-sm text-white">
+              {match(gatheringStatus)
+                .with("done", () => "Transcripts gathered")
+                .with("error", () => "Failed to gather transcripts")
+                .otherwise(() => "Gathering transcripts")}
             </div>
             <div className="text-xs text-gray-400">
-              {isGatheringError
-                ? (error ?? "Error during transcript fetching.")
-                : "Fetching and cleaning the video transcript"}
+              {match(gatheringStatus)
+                .with("error", () => error ?? "Error during transcript fetching.")
+                .otherwise(() => "Fetching and cleaning the video transcript")}
             </div>
           </div>
         </li>
 
         <li className="mb-0">
           <span className="absolute -left-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-800 border border-gray-600">
-            {isSummarizingError ? (
-              <WarningCircleIcon
-                size={14}
-                className="text-red-400"
-                weight="fill"
-              />
-            ) : isSummarizingDone ? (
-              <CheckCircleIcon
-                size={14}
-                className="text-green-400 transition-transform duration-300"
-                weight="fill"
-              />
-            ) : isSummarizingActive ? (
-              <CircleNotchIcon
-                size={14}
-                className="text-indigo-400 animate-spin"
-              />
-            ) : (
-              <span className="h-2.5 w-2.5 rounded-full bg-gray-600"></span>
-            )}
+            {match(summarizingStatus)
+              .with("error", () => (
+                <WarningCircleIcon
+                  size={15}
+                  className="text-red-400"
+                  weight="fill"
+                />
+              ))
+              .with("done", () => (
+                <CheckCircleIcon
+                  size={15}
+                  className="text-green-400 transition-transform duration-300"
+                  weight="fill"
+                />
+              ))
+              .with("active", () => (
+                <CircleNotchIcon
+                  size={15}
+                  className="text-indigo-400 animate-spin"
+                />
+              ))
+              .otherwise(() => (
+                <span className="h-2.5 w-2.5 rounded-full bg-gray-600"></span>
+              ))}
           </span>
-          <div className={`ml-2 ${isSummarizingActive ? "animate-pulse" : ""}`}>
-            <div className="font-medium text-sm">
-              {isSummarizingDone
-                ? "Summary generated"
-                : isSummarizingError
-                  ? "Failed to summarize contents"
-                  : "Summarizing contents"}
+          <div className={`ml-2 ${summarizingStatus === "active" ? "animate-pulse" : ""}`}>
+            <div className="font-medium text-sm text-white">
+              {match(summarizingStatus)
+                .with("done", () => "Summary generated")
+                .with("error", () => "Failed to summarize contents")
+                .otherwise(() => "Summarizing contents")}
             </div>
             <div className="text-xs text-gray-400">
-              {isSummarizingError
-                ? (error ?? "Error during summarization.")
-                : "Creating concise bullet-point summary"}
+              {match(summarizingStatus)
+                .with("error", () => error ?? "Error during summarization.")
+                .otherwise(() => "Creating concise bullet-point summary")}
             </div>
           </div>
         </li>

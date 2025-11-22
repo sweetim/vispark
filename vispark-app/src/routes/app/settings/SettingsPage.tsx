@@ -18,7 +18,6 @@ const SettingsPage = () => {
   const appVersion = useAppVersion()
   const [signingOut, setSigningOut] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [avatarError, setAvatarError] = useState(false)
 
   const displayName =
     user?.user_metadata?.full_name
@@ -27,14 +26,11 @@ const SettingsPage = () => {
     ?? user?.email
     ?? t("settings.anonymousUser")
 
-  const rawAvatarUrl =
+  const avatarUrl =
     user?.user_metadata?.avatar_url
     ?? user?.user_metadata?.picture
     ?? user?.user_metadata?.avatar
     ?? null
-
-  const avatarUrl = avatarError ? null : rawAvatarUrl
-  const userInitial = displayName.trim().charAt(0).toUpperCase() || "U"
 
   const handleSignOut = async () => {
     if (signingOut) return
