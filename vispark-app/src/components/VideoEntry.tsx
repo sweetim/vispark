@@ -40,10 +40,11 @@ const VideoEntry = ({
           className="aspect-video w-full object-cover transition duration-300 group-hover:scale-105"
         />
         {isCurrentlyProcessing && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-white text-xs mt-1">Processing...</span>
+          <div className="absolute inset-0 flex items-center justify-center z-40">
+            <div className="rounded-lg bg-black/60 backdrop-blur-md px-3 py-2 border border-white/20 shadow-2xl">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin"></div>
+              </div>
             </div>
           </div>
         )}
@@ -54,16 +55,6 @@ const VideoEntry = ({
           <p className="truncate text-sm font-medium text-white">
             {entry.videoTitle}
           </p>
-          {isCurrentlyProcessing && (
-            <div className="inline-flex h-5 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse">
-              <div className="flex items-center space-x-1">
-                <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
-                <span className="text-xs font-medium text-white">
-                  SUMMARIZING
-                </span>
-              </div>
-            </div>
-          )}
         </div>
         <p className="text-xs text-gray-400">
           {formatDistanceToNow(new Date(entry.createdTime), { addSuffix: true })}

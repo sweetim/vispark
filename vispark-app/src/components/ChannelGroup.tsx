@@ -71,13 +71,10 @@ const ChannelGroup = ({
                 entry.videoId === processingVideoId &&
                 (processingStatus === "gathering" || processingStatus === "summarizing")
               ) && (
-                <div className="inline-flex h-5 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
-                    <span className="text-xs font-medium text-white">
-                      SUMMARIZING
-                    </span>
-                  </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" style={{ animationDelay: '0.2s' }} />
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" style={{ animationDelay: '0.4s' }} />
                 </div>
               )}
             </div>
