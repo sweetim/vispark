@@ -30,7 +30,7 @@ const SearchLayout = () => {
       <div className="absolute inset-0 pattern-bg -z-10"></div>
 
       {/* Header Section with Search Input */}
-      <div className="sticky top-0 z-20 animate-slideInFromTop">
+      <div className="sticky top-0 z-20 animate-slideInFromTop bg-black/20 backdrop-blur-sm">
         <div className="glass-effect rounded-2xl p-6 shadow-2xl border border-white/10">
           <div className="mb-4">
             <div className="flex items-center justify-between">

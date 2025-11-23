@@ -67,7 +67,17 @@ const VideosSearchPage = () => {
       summaries: "",
       isNewFromCallback: false,
     }] : [])
-  ]
+  ].sort((a, b) => {
+    // Put the currently summarizing video at the top
+    const aIsSummarizing = a.metadata.videoId === processingVideoId && status !== "idle" && status !== "complete";
+    const bIsSummarizing = b.metadata.videoId === processingVideoId && status !== "idle" && status !== "complete";
+
+    if (aIsSummarizing && !bIsSummarizing) return -1;
+    if (!aIsSummarizing && bIsSummarizing) return 1;
+
+    // If neither or both are summarizing, maintain original order
+    return 0;
+  });
   const [videoId, setVideoId] = useState("")
 
   const handleVideoSelect = async (videoId: string) => {
