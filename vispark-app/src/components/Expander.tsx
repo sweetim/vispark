@@ -56,7 +56,7 @@ const Expander = ({
         </div>
       </div>
       {isExpanded && (
-        <div className="pl-3 py-2 bg-gray-900/30">
+        <div className="pl-3 py-1 bg-gray-900/30">
           {children}
         </div>
       )}

@@ -106,7 +106,7 @@ const VirtualizedGrid = ({
                             }, 0)
                           }
                         }}
-                        className="flex gap-2 p-1"
+                        className="flex gap-2 py-0.5 px-1"
                       >
                         {rowItems.map((item) => (
                           <div
