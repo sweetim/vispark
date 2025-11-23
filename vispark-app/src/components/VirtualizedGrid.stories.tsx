@@ -236,6 +236,23 @@ export const WithNewItems: Story = {
   },
 };
 
+export const Summarizing: Story = {
+  args: {
+    items: mockItems,
+    isLoading: false,
+    isLoadingMore: false,
+    loadMoreRows: async () => {},
+    rowCount: 10,
+    scrollElement: null,
+    emptyMessage: 'No videos found',
+    errorMessage: 'Failed to load videos',
+    error: null,
+    onItemClick: (item) => console.log('Item clicked:', item),
+    processingVideoId: 'video-2',
+    processingStatus: 'summarizing',
+  },
+};
+
 export const InteractiveExample = {
   render: () => {
     const [items, setItems] = useState(mockItems);

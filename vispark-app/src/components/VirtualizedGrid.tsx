@@ -106,13 +106,13 @@ const VirtualizedGrid = ({
                             }, 0)
                           }
                         }}
-                        className="flex gap-2 py-0.5 px-1"
+                        className="flex gap-2 py-0.5 px-1 overflow-hidden"
                       >
                         {rowItems.map((item) => (
                           <div
                             key={item.id || item.videoId}
                             style={{ width: columnWidth - 8 }}
-                            className="shrink-0"
+                            className="shrink-0 overflow-hidden"
                           >
                             <div className="group relative transform transition-all duration-300 hover:scale-105">
                               <div className="absolute -inset-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-300"></div>
