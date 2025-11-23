@@ -4,24 +4,9 @@ import { useTranslation } from "react-i18next"
 import { extractYouTubeVideoId } from "@/utils/youtube"
 import { updateVisparkCallbackFlag } from "@/services/vispark"
 import { SearchForm } from "@/components"
-import HistoryList from "./components/HistoryList"
-import { useVisparks } from "@/hooks/useVisparks"
+import { HistoryList } from "@/components"
+import { useVisparks, type VideosSavedItem } from "@/hooks/useVisparks"
 import { useVideoStore } from "@/stores/videoStore"
-
-export type VideosSavedItem = {
-  id: string
-  createdTime: string
-  publishedAt: string
-  metadata: {
-    videoId: string
-    title: string
-    channelId: string
-    channelTitle: string
-    thumbnails: string
-  }
-  summaries: string
-  isNewFromCallback: boolean
-}
 
 const VideosSearchPage = () => {
   const { t } = useTranslation()

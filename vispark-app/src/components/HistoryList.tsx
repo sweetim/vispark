@@ -1,5 +1,5 @@
 import {VideoMetadataCard} from "@/components"
-import type { VideosSavedItem } from "../SearchPage"
+import type { VideosSavedItem } from "@/hooks/useVisparks"
 import { useVideoStore } from "@/stores/videoStore"
 
 type VideosHistoryListProps = {

@@ -9,6 +9,21 @@ import {
   type VisparkRow,
 } from "@/services/vispark"
 
+export type VideosSavedItem = {
+  id: string
+  createdTime: string
+  publishedAt: string
+  metadata: {
+    videoId: string
+    title: string
+    channelId: string
+    channelTitle: string
+    thumbnails: string
+  }
+  summaries: string
+  isNewFromCallback: boolean
+}
+
 // Base SWR configuration for visparks
 const visparkConfig = {
   revalidateOnFocus: true,
@@ -52,26 +67,38 @@ export const useVisparksByChannel = (channelId: string) => {
 // Hook for infinite fetching of visparks by channel ID
 import useSWRInfinite from "swr/infinite"
 
-export const useInfiniteVisparksByChannel = (channelId: string, pageSize = 20) => {
+export const useInfiniteVisparksByChannel = (
+  channelId: string,
+  pageSize = 20,
+) => {
   const getKey = (pageIndex: number, previousPageData: VisparkRow[]) => {
     if (!channelId) return null
     if (previousPageData && !previousPageData.length) return null // reached the end
     return [`visparks-infinite`, channelId, pageIndex, pageSize] // SWR key
   }
 
-  const { data, error, isLoading, size, setSize, mutate } = useSWRInfinite<VisparkRow[]>(
+  const { data, error, isLoading, size, setSize, mutate } = useSWRInfinite<
+    VisparkRow[]
+  >(
     getKey,
-    ([_, cId, index, size]) => listVisparksByChannelId(cId as string, size as number, (index as number) * (size as number)),
+    ([_, cId, index, size]) =>
+      listVisparksByChannelId(
+        cId as string,
+        size as number,
+        (index as number) * (size as number),
+      ),
     {
       ...visparkConfig,
       revalidateFirstPage: false,
-    }
+    },
   )
 
   const visparks = data ? ([] as VisparkRow[]).concat(...data) : []
-  const isLoadingMore = isLoading || (size > 0 && data && typeof data[size - 1] === "undefined")
+  const isLoadingMore =
+    isLoading || (size > 0 && data && typeof data[size - 1] === "undefined")
   const isEmpty = data?.[0]?.length === 0
-  const isReachingEnd = isEmpty || (data && data[data.length - 1]?.length < pageSize)
+  const isReachingEnd =
+    isEmpty || (data && data[data.length - 1]?.length < pageSize)
 
   return {
     visparks,
