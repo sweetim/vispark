@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { CaretDownIcon } from "@phosphor-icons/react"
+import { CaretDownIcon, SparkleIcon } from "@phosphor-icons/react"
 
 type ExpanderProps = {
   title: string
@@ -43,17 +43,17 @@ const Expander = ({
             <CaretDownIcon className="w-5 h-5 text-gray-400" />
           </div>
           <h2 className="text-xl font-bold text-white">{title}</h2>
-          {isSummarizing && (
-            <div className="inline-flex h-5 items-center rounded-md px-2 backdrop-blur shrink-0 bg-blue-600/80 text-xs font-medium tracking-wide text-white border border-blue-400/30 animate-pulse">
-              <div className="flex items-center space-x-1">
-                <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
-                <span className="text-xs font-medium text-white">
-                  SUMMARIZING
-                </span>
-              </div>
-            </div>
-          )}
         </div>
+        {isSummarizing && (
+          <div className="flex items-center justify-center">
+            <SparkleIcon
+              size={20}
+              weight="fill"
+              className="text-purple-400 animate-spin"
+              style={{ animationDuration: '2s' }}
+            />
+          </div>
+        )}
       </div>
       {isExpanded && (
         <div className="pl-3 py-1 bg-gray-900/30">
