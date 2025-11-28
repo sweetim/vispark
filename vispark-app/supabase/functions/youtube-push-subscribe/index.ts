@@ -57,7 +57,7 @@ const subscribeToYouTubePush = async (
   hubUrl: string,
   leaseSeconds: number,
 ): Promise<{ subscriptionId: string; expiresAt: string; hubSecret: string; callbackUrl: string }> => {
-  const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
+  const topicUrl = `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`
   const hubSecret = generateHubSecret()
 
   // Create user-specific callback URL
