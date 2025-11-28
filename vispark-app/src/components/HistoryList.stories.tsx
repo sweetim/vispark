@@ -198,12 +198,6 @@ export const WithProcessingState = {
   render: () => {
     // Mock the video store to simulate processing state
     const MockProcessingWrapper = () => {
-      // This would normally come from useVideoStore()
-      const mockProcessingState = {
-        processingVideoId: 'def456',
-        status: 'gathering' as const,
-      };
-
       return (
         <div className="space-y-4">
           <div className="p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
