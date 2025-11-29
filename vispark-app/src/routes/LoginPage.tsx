@@ -22,6 +22,7 @@ const LoginPage: FC = () => {
     user,
     loading: authLoading,
     signInWithGoogle,
+    signInWithPassword,
   } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -92,6 +93,23 @@ const LoginPage: FC = () => {
     // Note: Google OAuth will redirect, so we don't need to navigate here
   }
 
+  const handleEmailSignIn = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setSubmitting(true)
+    setErrorMessage(null)
+
+    const error = await signInWithPassword({
+      email: formData.email,
+      password: formData.password,
+    })
+
+    if (error) {
+      setErrorMessage(error.message)
+      setSubmitting(false)
+    }
+    // Note: Successful sign in will be handled by the auth state change listener
+  }
+
   return (
     <div className="min-h-screen w-full bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden relative">
       <AnimatedBackground scrollY={scrollY} />
@@ -109,7 +127,7 @@ const LoginPage: FC = () => {
                 alt="VISPARK Logo"
                 className="w-16 h-16 object-contain bg-white rounded-full"
               />
-              <span className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-3xl font-bold tracking-tight bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 VISPARK
               </span>
             </Link>
@@ -193,7 +211,8 @@ const LoginPage: FC = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 border-0 h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-200 mt-6 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleEmailSignIn}
+                className="w-full bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 border-0 h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-200 mt-6 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <div className="flex items-center justify-center gap-2">
