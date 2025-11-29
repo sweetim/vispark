@@ -6,7 +6,6 @@ import {
   type RootRoute,
 } from '@tanstack/react-router'
 import { z } from 'zod'
-import { supabase } from '@/config/supabaseClient'
 
 import {
   RootLayout,
