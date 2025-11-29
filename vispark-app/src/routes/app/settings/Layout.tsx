@@ -53,8 +53,8 @@ const SettingsLayout = () => {
       )}
 
       {/* Content area with flexible height */}
-      <div className="flex-1 overflow-hidden bg-slate-950">
-        <div className="h-full overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-950">
+        <div className="min-h-full">
           <Outlet />
         </div>
       </div>
