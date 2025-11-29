@@ -6,6 +6,7 @@ import {
   type RootRoute,
 } from '@tanstack/react-router'
 import { z } from 'zod'
+import { supabase } from '@/config/supabaseClient'
 
 import {
   RootLayout,
@@ -71,11 +72,6 @@ const landingRoute = createRoute({
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app',
-  beforeLoad: async () => {
-    // We'll implement authentication check later
-    // For now, just pass through
-    return {}
-  },
   component: AppLayout,
 })
 

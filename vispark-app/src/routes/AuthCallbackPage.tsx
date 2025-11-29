@@ -19,7 +19,7 @@ const AuthCallbackPage = () => {
 
         if (data.session) {
           // Successfully authenticated
-          navigate({ to: "/app" })
+          navigate({ to: "/app/summaries" })
         } else {
           // No session found, redirect to login
           navigate({ to: "/login", search: { error: "no_session" } })

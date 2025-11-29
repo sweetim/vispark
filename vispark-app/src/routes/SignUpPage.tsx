@@ -43,7 +43,7 @@ const SignUpPage: FC = () => {
 
   const redirectPath =
     (location.state as any)?.from?.pathname
-    ?? "/app"
+    ?? "/app/summaries"
 
   if (authLoading) {
     return (
