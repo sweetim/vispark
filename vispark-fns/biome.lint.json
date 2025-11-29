@@ -1,0 +1,35 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
+  "files": {
+    "ignoreUnknown": true,
+    "ignore": [
+      "dist/**",
+      "dev-dist/**",
+      "screenshots/**",
+      ".vscode/**",
+      ".roo/**",
+      "pwa-assets.config.ts",
+      "vite.config.ts"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "useTemplate": "off"
+      },
+      "suspicious": {
+        "noAssignInExpressions": "off",
+        "noRedundantUseStrict": "off"
+      },
+      "complexity": {
+        "useArrowFunction": "off",
+        "noCommaOperator": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      }
+    }
+  }
+}

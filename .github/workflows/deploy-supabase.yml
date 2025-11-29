@@ -27,11 +27,11 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: vispark-app/package-lock.json
+          cache-dependency-path: vispark-fns/package-lock.json
 
       - name: Install dependencies
         run: |
-          cd vispark-app
+          cd vispark-fns
           npm ci
 
       - name: Install Supabase CLI
@@ -41,7 +41,7 @@ jobs:
 
       - name: Deploy to Supabase
         run: |
-          cd vispark-app
+          cd vispark-fns
           supabase link --project-ref ${SUPABASE_PROJECT_REF}
           supabase projects list
           supabase db push
