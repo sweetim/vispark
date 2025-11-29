@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'vispark-app/supabase/**'
+      - 'vispark-fns/supabase/**'
       - '.github/workflows/deploy-supabase.yml'
   workflow_dispatch:
 
@@ -22,12 +22,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
       - name: Deploy to Supabase
         run: |
-          cd vispark-fns
           supabase link --project-ref ${SUPABASE_PROJECT_REF}
           supabase projects list
           supabase db push
           supabase functions deploy
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-
