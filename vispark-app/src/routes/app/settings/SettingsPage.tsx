@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { useAuth } from "@/modules/auth"
 import { useTranslation } from "react-i18next"
 import { useAppVersion } from "@/hooks/useAppVersion"
+import { useSignOut } from "@/hooks/useSignOut"
 import {
   UserIcon,
   IdentificationCardIcon,
@@ -12,7 +13,8 @@ import {
 import { PageHeader, GlassCard, UserAvatar, NavigationButton } from "@/components"
 
 const SettingsPage = () => {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
+  const { signOut } = useSignOut()
   const navigate = useNavigate()
   const { t } = useTranslation()
   const appVersion = useAppVersion()
