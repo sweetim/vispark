@@ -22,23 +22,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: vispark-fns/package-lock.json
-
-      - name: Install dependencies
-        run: |
-          cd vispark-fns
-          npm ci
-
-      - name: Install Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
       - name: Deploy to Supabase
         run: |
           cd vispark-fns
