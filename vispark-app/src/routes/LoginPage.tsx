@@ -140,6 +140,7 @@ const LoginPage: FC = () => {
               type="signIn"
             />
 
+            <form onSubmit={handleEmailSignIn}>
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true">
                   <div className="w-full border-t border-white/10"></div>
@@ -211,7 +212,6 @@ const LoginPage: FC = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                onClick={handleEmailSignIn}
                 className="w-full bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 border-0 h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-200 mt-6 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
@@ -240,6 +240,7 @@ const LoginPage: FC = () => {
                   </button>
                 </span>
               </div>
+            </form>
           </AuthFormContainer>
         </div>
       </div>
