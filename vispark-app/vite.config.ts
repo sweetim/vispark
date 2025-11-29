@@ -36,11 +36,6 @@ export default defineConfig({
     injectRegister: "auto",
     strategies: "generateSW",
     filename: "sw.js",
-    pwaAssets: {
-      disabled: false,
-      config: true,
-      includeHtmlHeadLinks: true
-    },
     manifest: {
       name: "vispark - AI Video Summaries",
       short_name: "vispark",
